@@ -8,22 +8,9 @@ def test_kernel_blocks_context_layer_mismatch():
     request = build_request()
 
     # Change the context layer to be different from the rule layer
-    request = build_request(
-        rule=request.rule,
-        asl=request.asl,
-        far=request.far,
-        evidence=request.evidence,
-    )
-    mismatched_context = QiyasContext(layer="DifferentLayer")
-    mismatched_request = build_request(
-        rule=request.rule,
-        asl=request.asl,
-        far=request.far,
-        evidence=request.evidence,
-    )
-    # Override context
     from dataclasses import replace
-    mismatched_request = replace(mismatched_request, context=mismatched_context)
+    mismatched_context = QiyasContext(layer="DifferentLayer")
+    mismatched_request = replace(request, context=mismatched_context)
 
     result = kernel.apply(mismatched_request)
 
