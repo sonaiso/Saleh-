@@ -155,3 +155,56 @@ def test_control_character_may_be_blocked():
     # Should be blocked since it's not in Arabic range
     assert len(result.blocked) == 1
     assert result.blocked[0].status == CandidateStatus.BLOCKED
+
+
+def test_non_arabic_blocked_residuals_are_clean():
+    """
+    Test that non-Arabic codepoints have clean blocking residuals.
+
+    Non-Arabic codepoints should be blocked due to:
+    - blocking_fariq_present (the fariq: non_arabic_codepoint)
+    - effective_wasf_missing (wasf not evidenced for non-Arabic)
+    - shared_illah_missing (illah not verified for non-Arabic)
+
+    But NOT due to wadi failures, since wadi conditions are satisfied
+    even for non-Arabic codepoints (they just fail on domain mismatch).
+    """
+    adapter = UnicodeLayerAdapter(kernel=QiyasKernel())
+
+    # U+0041 is Latin capital letter A
+    result = adapter.process_codepoint(0x0041)
+
+    assert len(result.blocked) == 1
+    candidate = result.blocked[0]
+    assert candidate.status == CandidateStatus.BLOCKED
+
+    # Get all residual types
+    residual_types = [r.residual_type for r in candidate.residuals]
+
+    # Should have fariq blocking
+    assert "blocking_fariq_present" in residual_types, (
+        "Expected blocking_fariq_present in residuals"
+    )
+
+    # Should have wasf and illah missing (genuinely not applicable)
+    assert "effective_wasf_missing" in residual_types, (
+        "Expected effective_wasf_missing in residuals"
+    )
+    assert "shared_illah_missing" in residual_types, (
+        "Expected shared_illah_missing in residuals"
+    )
+
+    # Should NOT have wadi failures (wadi conditions are satisfied)
+    wadi_failure_types = [
+        "wadi_sabab_failed",
+        "wadi_shart_failed",
+        "wadi_mani_failed",
+        "wadi_sihha_failed",
+        "wadi_fasad_failed",
+        "wadi_butlan_failed",
+    ]
+    for wadi_failure in wadi_failure_types:
+        assert wadi_failure not in residual_types, (
+            f"Did not expect {wadi_failure} in residuals for non-Arabic codepoint. "
+            f"Blocking should be clean: only due to fariq/wasf/illah, not wadi failures."
+        )

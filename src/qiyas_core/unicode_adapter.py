@@ -83,11 +83,18 @@ class UnicodeLayerAdapter:
                 "wadi:butlan:absent",
             )
         else:
-            # Non-Arabic: still establish asl and far, but fail on Arabic-specific checks
-            # This will trigger a fariq (invalidating difference)
+            # Non-Arabic: establish asl, far, and all wadi conditions
+            # The fariq (invalidating difference) will block, but wadi conditions are satisfied
+            # This keeps blocking clean: only due to domain mismatch, not wadi failures
             proves = (
                 "asl:established",
                 "far:determined",
+                "wadi:sabab:established",
+                "wadi:shart:satisfied",
+                "wadi:mani:absent",
+                "wadi:sihha:valid",
+                "wadi:fasad:absent",
+                "wadi:butlan:absent",
                 "fariq:non_arabic_codepoint:present",
             )
 
