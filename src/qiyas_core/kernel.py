@@ -305,6 +305,19 @@ class QiyasKernel:
         if status != CandidateStatus.ACCEPTED:
             rank = EvidenceRank.ZERO
 
+        # Combine identity_ids from both nodes
+        identity_ids = request.asl.identity_ids + request.far.identity_ids
+        identity_set = set(identity_ids)
+
+        # Combine all trace_ids, filtering out any that conflict with identity_ids
+        all_trace_ids = (
+            request.asl.trace_ids
+            + request.far.trace_ids
+            + request.evidence.all_trace_ids()
+            + audit.trace_ids
+        )
+        trace_ids = tuple(tid for tid in all_trace_ids if tid not in identity_set)
+
         candidate = Candidate(
             candidate_id=f"{status.value}:{request.rule.layer}:{uuid.uuid4().hex[:12]}",
             candidate_type=request.rule.output_candidate_type,
@@ -313,13 +326,10 @@ class QiyasKernel:
             source_rule_id=request.rule.rule_id,
             asl_id=request.asl.node_id,
             far_id=request.far.node_id,
-            identity_ids=request.asl.identity_ids + request.far.identity_ids,
+            identity_ids=identity_ids,
             rank=rank,
             residuals=audit.residuals,
-            trace_ids=request.asl.trace_ids
-            + request.far.trace_ids
-            + request.evidence.all_trace_ids()
-            + audit.trace_ids,
+            trace_ids=trace_ids,
             output_flags=frozenset({"CandidateOnly"}),
         )
 

@@ -16,7 +16,7 @@ def validate_rule(rule: QiyasRule) -> None:
     if len(set(rule.invalidating_differences)) != len(rule.invalidating_differences):
         raise ValidationError("invalidating_differences must not contain duplicates")
 
-    # Enforce all six constitutional WadiGate requirements
+    # Enforce all six constitutional WadiGate requirements (exact equality)
     required_gates = {
         WadiGate.SABAB,
         WadiGate.SHART,
@@ -27,8 +27,14 @@ def validate_rule(rule: QiyasRule) -> None:
     }
     actual_gates = set(rule.required_wadi_gates)
 
-    if not required_gates.issubset(actual_gates):
-        missing = required_gates - actual_gates
-        raise ValidationError(
-            f"Rule must require all six WadiGates. Missing: {sorted(g.value for g in missing)}"
-        )
+    if actual_gates != required_gates:
+        if not required_gates.issubset(actual_gates):
+            missing = required_gates - actual_gates
+            raise ValidationError(
+                f"Rule must require exactly the six WadiGates. Missing: {sorted(g.value for g in missing)}"
+            )
+        else:
+            extra = actual_gates - required_gates
+            raise ValidationError(
+                f"Rule must require exactly the six WadiGates. Extra: {sorted(g.value for g in extra)}"
+            )

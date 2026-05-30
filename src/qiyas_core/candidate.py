@@ -35,11 +35,9 @@ class Candidate:
                 f"{self.output_flags & forbidden_runtime_flags}"
             )
 
-        # Enforce identity and trace ids must be disjoint for accepted candidates
-        # Blocked candidates may report conflicts, so we only check accepted ones
-        if self.status == CandidateStatus.ACCEPTED:
-            if set(self.identity_ids) & set(self.trace_ids):
-                raise ValueError("identity_ids and trace_ids must be disjoint")
+        # Enforce identity and trace ids must be disjoint
+        if set(self.identity_ids) & set(self.trace_ids):
+            raise ValueError("identity_ids and trace_ids must be disjoint")
 
 
 @dataclass(frozen=True)
