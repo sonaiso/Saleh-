@@ -15,6 +15,11 @@ def test_kernel_blocks_identity_trace_conflict():
                 "wasf:shared_wasf:evidenced",
                 "illah:shared_illah:verified",
                 "wadi:sabab:established",
+                "wadi:shart:satisfied",
+                "wadi:mani:absent",
+                "wadi:sihha:valid",
+                "wadi:fasad:absent",
+                "wadi:butlan:absent",
             )
         ),
     )
