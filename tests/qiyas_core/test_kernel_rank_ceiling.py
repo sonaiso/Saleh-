@@ -13,6 +13,11 @@ def test_kernel_rank_ceiling():
             "wasf:shared_wasf:evidenced",
             "illah:shared_illah:verified",
             "wadi:sabab:established",
+            "wadi:shart:satisfied",
+            "wadi:mani:absent",
+            "wadi:sihha:valid",
+            "wadi:fasad:absent",
+            "wadi:butlan:absent",
         ),
         rank=EvidenceRank.TAWATUR,
     )

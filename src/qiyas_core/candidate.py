@@ -35,6 +35,10 @@ class Candidate:
                 f"{self.output_flags & forbidden_runtime_flags}"
             )
 
+        # Enforce identity and trace ids must be disjoint
+        if set(self.identity_ids) & set(self.trace_ids):
+            raise ValueError("identity_ids and trace_ids must be disjoint")
+
 
 @dataclass(frozen=True)
 class CandidateSet:

@@ -14,7 +14,14 @@ def build_rule(*, forbidden_outputs=("HukmCandidate", "RealityClaim", "FinalMean
         far_type="FarType",
         required_effective_wasf=("shared_wasf",),
         required_illah=("shared_illah",),
-        required_wadi_gates=(WadiGate.SABAB,),
+        required_wadi_gates=(
+            WadiGate.SABAB,
+            WadiGate.SHART,
+            WadiGate.MANI,
+            WadiGate.SIHHA,
+            WadiGate.FASAD,
+            WadiGate.BUTLAN,
+        ),
         invalidating_differences=("blocking_diff",),
         neutral_identity_domain="domain",
         output_candidate_type="KernelCandidate",
@@ -65,6 +72,11 @@ def build_request(*, rule=None, asl=None, far=None, evidence=None):
             "wasf:shared_wasf:evidenced",
             "illah:shared_illah:verified",
             "wadi:sabab:established",
+            "wadi:shart:satisfied",
+            "wadi:mani:absent",
+            "wadi:sihha:valid",
+            "wadi:fasad:absent",
+            "wadi:butlan:absent",
         )
     )
     return QiyasRequest(
