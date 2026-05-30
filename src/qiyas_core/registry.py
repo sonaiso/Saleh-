@@ -19,3 +19,6 @@ class QiyasRegistry:
 
     def all(self) -> tuple[QiyasRule, ...]:
         return tuple(self._rules.values())
+
+    def rules_for_layer(self, layer: str) -> tuple[QiyasRule, ...]:
+        return tuple(rule for rule in self._rules.values() if rule.layer == layer)
