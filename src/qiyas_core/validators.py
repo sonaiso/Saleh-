@@ -1,4 +1,5 @@
 from .rule import QiyasRule
+from .enums import WadiGate
 
 
 class ValidationError(ValueError):
@@ -14,3 +15,20 @@ def validate_rule(rule: QiyasRule) -> None:
         raise ValidationError("required_wadi_gates must not contain duplicates")
     if len(set(rule.invalidating_differences)) != len(rule.invalidating_differences):
         raise ValidationError("invalidating_differences must not contain duplicates")
+
+    # Enforce all six constitutional WadiGate requirements
+    required_gates = {
+        WadiGate.SABAB,
+        WadiGate.SHART,
+        WadiGate.MANI,
+        WadiGate.SIHHA,
+        WadiGate.FASAD,
+        WadiGate.BUTLAN,
+    }
+    actual_gates = set(rule.required_wadi_gates)
+
+    if not required_gates.issubset(actual_gates):
+        missing = required_gates - actual_gates
+        raise ValidationError(
+            f"Rule must require all six WadiGates. Missing: {sorted(g.value for g in missing)}"
+        )
