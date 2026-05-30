@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import uuid
 
 from .candidate import CandidateSet
-from .enums import EvidenceRank
+from .enums import DiacriticKind, EvidenceRank
 from .evidence import Evidence, EvidenceSet
 from .kernel import QiyasContext, QiyasKernel, QiyasRequest
 from .node import QiyasNodeRef
@@ -28,6 +28,42 @@ def is_haraka_codepoint(codepoint: int) -> bool:
     """Check if a codepoint is an Arabic combining mark (haraka/diacritic)."""
     start, end = HARAKAT_RANGE
     return start <= codepoint <= end
+
+
+def classify_diacritic(codepoint: int) -> DiacriticKind | None:
+    """
+    Classify an Arabic diacritic by its linguistic function.
+
+    Args:
+        codepoint: The Unicode codepoint value
+
+    Returns:
+        DiacriticKind if codepoint is a diacritic, None otherwise
+    """
+    if not is_haraka_codepoint(codepoint):
+        return None
+
+    # Core harakat: short vowels and tanwin
+    # U+064B: Fathatan, U+064C: Dammatan, U+064D: Kasratan
+    # U+064E: Fatha, U+064F: Damma, U+0650: Kasra
+    if codepoint in (0x064B, 0x064C, 0x064D, 0x064E, 0x064F, 0x0650):
+        return DiacriticKind.CORE_HARAKA
+
+    # Shadda: gemination/consonant doubling
+    if codepoint == 0x0651:
+        return DiacriticKind.SHADDA
+
+    # Sukun: vowel absence marker
+    if codepoint == 0x0652:
+        return DiacriticKind.SUKUN
+
+    # Additional diacritics: maddah, hamza variants, etc.
+    # U+0653-U+065F
+    if 0x0653 <= codepoint <= 0x065F:
+        return DiacriticKind.ADDITIONAL
+
+    # Shouldn't reach here if is_haraka_codepoint is correct
+    return None
 
 
 @dataclass
@@ -68,10 +104,11 @@ class HarakaLayerAdapter:
 
         # Build evidence based on whether codepoint is a haraka
         is_haraka = is_haraka_codepoint(codepoint)
+        diacritic_kind = classify_diacritic(codepoint)
 
         if is_haraka:
-            # All checks pass for harakat codepoints
-            proves = (
+            # Base proves for all harakat codepoints
+            proves = [
                 "asl:established",
                 "far:determined",
                 "wasf:codepoint_is_arabic_combining_mark:evidenced",
@@ -82,7 +119,19 @@ class HarakaLayerAdapter:
                 "wadi:sihha:valid",
                 "wadi:fasad:absent",
                 "wadi:butlan:absent",
-            )
+            ]
+
+            # Add kind-specific classification evidence
+            if diacritic_kind == DiacriticKind.CORE_HARAKA:
+                proves.append("wasf:core_haraka:evidenced")
+            elif diacritic_kind == DiacriticKind.SHADDA:
+                proves.append("wasf:shadda_mark:evidenced")
+            elif diacritic_kind == DiacriticKind.SUKUN:
+                proves.append("wasf:sukun_mark:evidenced")
+            elif diacritic_kind == DiacriticKind.ADDITIONAL:
+                proves.append("wasf:additional_arabic_diacritic:evidenced")
+
+            proves = tuple(proves)
         else:
             # Non-haraka: establish asl, far, and all wadi conditions
             # The fariq (invalidating difference) will block, but wadi conditions are satisfied
