@@ -1,4 +1,5 @@
 from .adapter import QiyasKernelAdapter
+from .atomic_unit_adapter import AtomicUnitLayerAdapter
 from .candidate import Candidate, CandidateSet
 from .enums import DiacriticKind
 from .haraka_adapter import HarakaLayerAdapter, classify_diacritic
@@ -7,6 +8,7 @@ from .registry import QiyasRegistry
 from .unicode_adapter import UnicodeLayerAdapter
 
 __all__ = [
+    "AtomicUnitLayerAdapter",
     "Candidate",
     "CandidateSet",
     "DiacriticKind",
