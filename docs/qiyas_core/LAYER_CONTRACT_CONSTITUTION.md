@@ -806,7 +806,7 @@ identity(asl)  +  identity(far)   ⊆   identity(candidate)
   - يفرض المخرج الوحيد المسموح: CandidateSet.
 
 والجبر العربي الكامل لم تُستأنف طبقاته canonical بعد:
-  - المثال الكنوني الوحيد حاليًا هو UnicodeLayerAdapter.
+  - المثالان الكنونيان الحاليان هما UnicodeLayerAdapter وTypedCodePointLayerAdapter (PR #20).
   - بقية الطبقات (Jamid, Mushtaqq, Wazn, Wadh, Dalalah, Ifadah,
     Hukm, Tanzil…) عقود في هذا الملف، لا تنفيذ canonical في src/.
 ```
@@ -847,10 +847,12 @@ candidate_set = QiyasKernel().apply(request)
 ويترك للنواة قرار accepted / deferred / blocked.
 ```
 
-### 8.7 المثال الكنوني الحالي
+### 8.7 الأمثلة الكنونية الحالية
+
+#### 8.7.1 UnicodeLayerAdapter — طبقة الانتماء اليونيكودي
 
 `UnicodeLayerAdapter` (في `src/qiyas_core/unicode_adapter.py`) هو
-التطبيق الكنوني الوحيد لهذا الجبر حتى الآن: يبني الأصل
+التطبيق الكنوني الأول لهذا الجبر: يبني الأصل
 (`Arabic Unicode Block` بهوية `identity:arabic_unicode_block`) والفرع
 (`InputCodepoint` بهوية `identity:codepoint:<hex>`)، ثم `EvidenceSet`،
 ثم يمرر الطلب إلى `QiyasKernel`. عند `codepoint` غير عربي يضيف
@@ -859,6 +861,37 @@ candidate_set = QiyasKernel().apply(request)
 
 ```
 أصل + فرع + دليل + علة + شروط + لا مانع  →  مرشح انتماء
+```
+
+#### 8.7.2 TypedCodePointLayerAdapter — طبقة التصنيف الكودي (PR #20)
+
+`TypedCodePointLayerAdapter` (في `src/qiyas_core/typed_codepoint_adapter.py`) هو
+التطبيق الكنوني الثاني، ويُنفذ تصنيفًا disjoint على `UnicodeCandidate`:
+
+```
+UnicodeCandidate  →  TypedCodePoint
+                      (Letter ⊔ Haraka ⊔ Boundary ⊔ Punctuation ⊔ Residual)
+```
+
+الأصل: `TypedCodePointClassificationDomain` (مجال التصنيف الكودي).
+الفرع: `UnicodeCandidate` (بهوية محفوظة من طبقة Unicode).
+الوصف المؤثر: `is_classifiable_codepoint` (عام لكل الأنواع).
+العلة: `belongs_to_typed_domain` (عام لكل الأنواع).
+المخرج: `LetterCodePoint` أو `HarakaCodePoint` أو `BoundaryCodePoint` أو
+`PunctuationCodePoint` أو `ResidualCodePoint` (يتحدد ديناميكيًا بحسب الكود).
+
+**الحفظ الجبري:**
+
+- يحفظ `identity:codepoint:<hex>` من الفرع.
+- يضيف `identity:typed_codepoint_domain` من الأصل.
+- كل كود يُصنف إلى نوع **واحد فقط** (disjoint union).
+- `forbidden_outputs` يمنع القفز إلى `AtomicUnitCandidate` أو طبقات أعلى.
+
+**الصيغة الجبرية:**
+
+```
+domain + unicode_candidate + evidence(is_classifiable)
+  →  typed_codepoint[LetterCodePoint | HarakaCodePoint | ...]
 ```
 
 كل طبقة جديدة يجب أن تُحاكي هذا الشكل، لا أن تُخالفه.
@@ -900,6 +933,8 @@ qiyas_core نواة جبرية كاملة للقياس المحكوم:
 | أثر                      | Trace                   | بنية تربط المخرج بمدخلاته وأدلته وبوابته.                                   |
 | مخرج ممنوع               | Forbidden Output        | نوع مخرج لا يُسمح للقاعدة بإنتاجه (يطابق `forbidden_outputs` في النواة).    |
 | قفزة ممنوعة              | Forbidden Jump          | انتقال غير مرخَّص من طبقة إلى أعلى منها بلا بوابة.                          |
+| كود يونيكود              | UnicodeCandidate        | مرشح انتماء يونيكودي عربي (خرج `UnicodeLayerAdapter`).                     |
+| كود مُصنّف               | TypedCodePoint          | مرشح تصنيف كودي (حرف/حركة/حد/ترقيم/بقية)، خرج `TypedCodePointLayerAdapter`. |
 | الجامد                   | Jamid                   | لفظ غير مشتق ولا مبنى وظيفي.                                                |
 | المشتق                   | Mushtaqq                | لفظ صادر عن جذر بصيغة معروفة.                                               |
 | المدلول اللفظي           | VerbalSignified         | المرشح البنيوي الذي تفتحه الصيغة قبل الوضع والمعنى والمراد والحكم.          |
