@@ -863,7 +863,7 @@ candidate_set = QiyasKernel().apply(request)
 أصل + فرع + دليل + علة + شروط + لا مانع  →  مرشح انتماء
 ```
 
-#### 8.7.2 TypedCodePointLayerAdapter — طبقة التصنيف الكودي (PR #20)
+#### 8.7.2 TypedCodePointLayerAdapter — طبقة التصنيف الكودي (PR #20, hardened PR #23)
 
 `TypedCodePointLayerAdapter` (في `src/qiyas_core/typed_codepoint_adapter.py`) هو
 التطبيق الكنوني الثاني، ويُنفذ تصنيفًا disjoint على `UnicodeCandidate`:
@@ -875,8 +875,10 @@ UnicodeCandidate  →  TypedCodePoint
 
 الأصل: `TypedCodePointClassificationDomain` (مجال التصنيف الكودي).
 الفرع: `UnicodeCandidate` (بهوية محفوظة من طبقة Unicode).
-الوصف المؤثر: `is_classifiable_codepoint` (عام لكل الأنواع).
-العلة: `belongs_to_typed_domain` (عام لكل الأنواع).
+الوصف المؤثر العام: `is_classifiable_codepoint` (لكل الأنواع).
+**الوصف المؤثر الخاص** (PR #23): `is_arabic_letter`, `is_arabic_haraka`, `is_whitespace_boundary`, `is_arabic_punctuation`, `is_unclassified_codepoint`.
+العلة العامة: `belongs_to_typed_domain` (لكل الأنواع).
+**العلة الخاصة** (PR #23): `belongs_to_letter_class`, `belongs_to_haraka_class`, `belongs_to_boundary_class`, `belongs_to_punctuation_class`, `belongs_to_residual_class`.
 المخرج: `LetterCodePoint` أو `HarakaCodePoint` أو `BoundaryCodePoint` أو
 `PunctuationCodePoint` أو `ResidualCodePoint` (يتحدد ديناميكيًا بحسب الكود).
 
@@ -886,12 +888,23 @@ UnicodeCandidate  →  TypedCodePoint
 - يضيف `identity:typed_codepoint_domain` من الأصل.
 - كل كود يُصنف إلى نوع **واحد فقط** (disjoint union).
 - `forbidden_outputs` يمنع القفز إلى `AtomicUnitCandidate` أو طبقات أعلى.
+- **PR #23**: كل تصنيف يثبت الوصف والعلة الخاصين داخل `EvidenceSet`.
+- **PR #23**: `invalidating_differences` تثبت disjoint union جبريًا: `multiple_classes_claimed`, `ambiguous_classification`, `letter_haraka_overlap`, `boundary_punctuation_overlap`.
 
 **الصيغة الجبرية:**
 
 ```
-domain + unicode_candidate + evidence(is_classifiable)
+domain + unicode_candidate + evidence(is_classifiable + specific_wasf + specific_illah)
   →  typed_codepoint[LetterCodePoint | HarakaCodePoint | ...]
+```
+
+**القيد الدستوري** (PR #23):
+`classify_codepoint()` مخصص للاختبارات فقط. المسار الإنتاجي الدستوري:
+```
+UnicodeLayerAdapter.process_codepoint()
+  → UnicodeCandidate (accepted)
+  → TypedCodePointLayerAdapter.classify_unicode_candidate()
+  → TypedCodePoint
 ```
 
 كل طبقة جديدة يجب أن تُحاكي هذا الشكل، لا أن تُخالفه.

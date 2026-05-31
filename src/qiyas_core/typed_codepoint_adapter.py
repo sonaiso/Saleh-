@@ -135,12 +135,14 @@ class TypedCodePointLayerAdapter:
         # Classify the codepoint
         candidate_type, wasf, illah = classify_codepoint(codepoint)
 
-        # Build evidence
+        # Build evidence with both generic and type-specific wasf/illah
         proves = [
             "asl:established",
             "far:determined",
-            f"wasf:is_classifiable_codepoint:evidenced",
-            f"illah:belongs_to_typed_domain:verified",
+            f"wasf:is_classifiable_codepoint:evidenced",  # Generic wasf
+            f"wasf:{wasf}:evidenced",  # Type-specific wasf
+            f"illah:belongs_to_typed_domain:verified",  # Generic illah
+            f"illah:{illah}:verified",  # Type-specific illah
             "wadi:sabab:established",
             "wadi:shart:satisfied",
             "wadi:mani:absent",
@@ -218,7 +220,22 @@ class TypedCodePointLayerAdapter:
         """
         Classify a raw codepoint by creating a minimal UnicodeCandidate first.
 
-        This is a convenience method for testing.
+        **WARNING: This is a testing/convenience method only.**
+
+        **NOT FOR PRODUCTION USE.** This method bypasses the constitutional
+        production path (UnicodeLayerAdapter.process_codepoint →
+        TypedCodePointLayerAdapter.classify_unicode_candidate). It creates
+        a synthetic UnicodeCandidate that has not passed through proper
+        Arabic Unicode membership verification.
+
+        For production code, use the full layer stack:
+        1. UnicodeLayerAdapter.process_codepoint() → accepted UnicodeCandidate
+        2. TypedCodePointLayerAdapter.classify_unicode_candidate() → TypedCodePoint
+
+        This method is provided for:
+        - Unit tests that need quick classification without full layer setup
+        - Interactive debugging/exploration
+        - Documentation examples
 
         Args:
             codepoint: The Unicode codepoint value
