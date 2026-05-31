@@ -72,3 +72,12 @@ class MarkFunction(Enum):
     SHADDA_MARK = "shadda_mark"
     ADDITIONAL_DIACRITIC_MARK = "additional_diacritic_mark"
     UNKNOWN_MARK_FUNCTION = "unknown_mark_function"
+
+
+class ClosureReadiness(Enum):
+    """Classification of syllable closure readiness."""
+    MABNI_CLOSURE_READY = "mabni_closure_ready"
+    MURAB_CLOSURE_DEFERRED = "murab_closure_deferred"
+    PAUSE_CLOSURE_READY = "pause_closure_ready"
+    CONTINUATION_CLOSURE_DEFERRED = "continuation_closure_deferred"
+    UNKNOWN_CLOSURE = "unknown_closure"
