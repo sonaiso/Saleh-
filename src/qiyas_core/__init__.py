@@ -1,23 +1,19 @@
+# qiyas_core canonical foundation (PR #1)
+# All pre-constitutional adapters moved to experimental/ per Path A isolation
+
 from .adapter import QiyasKernelAdapter
-from .atomic_unit_adapter import AtomicUnitLayerAdapter
 from .candidate import Candidate, CandidateSet
-from .enums import DiacriticKind
-from .haraka_adapter import HarakaLayerAdapter, classify_diacritic
 from .kernel import QiyasContext, QiyasKernel, QiyasRequest
 from .registry import QiyasRegistry
 from .unicode_adapter import UnicodeLayerAdapter
 
 __all__ = [
-    "AtomicUnitLayerAdapter",
     "Candidate",
     "CandidateSet",
-    "DiacriticKind",
-    "HarakaLayerAdapter",
     "QiyasContext",
     "QiyasKernel",
     "QiyasKernelAdapter",
     "QiyasRegistry",
     "QiyasRequest",
     "UnicodeLayerAdapter",
-    "classify_diacritic",
 ]
