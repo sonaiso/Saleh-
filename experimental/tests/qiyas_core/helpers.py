@@ -1,7 +1,3 @@
-# Canonical test helpers for kernel validation tests (PR #1)
-# This file uses ONLY canonical foundation imports from src/qiyas_core/
-# It is needed by canonical kernel tests and is safe to use
-
 from qiyas_core.enums import EvidenceRank, QiyasPattern, WadiGate
 from qiyas_core.evidence import Evidence, EvidenceSet
 from qiyas_core.kernel import QiyasContext, QiyasRequest
