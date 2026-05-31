@@ -15,7 +15,11 @@ Constitutional requirements:
 4. Classification returns CandidateSet
 5. Classification has evidence, rank, residuals, trace
 6. Classification forbids higher-level outputs (root, weight, meaning, hukm, etc.)
+7. Type-specific wasf and illah are proven in evidence (PR #23)
+8. invalidating_differences enforce disjoint union (PR #23)
 """
+
+from unittest.mock import MagicMock, patch
 
 from qiyas_core.candidate import Candidate
 from qiyas_core.enums import CandidateStatus, EvidenceRank
@@ -306,3 +310,183 @@ def test_haraka_codepoint_has_same_codepoint_identity():
     candidate = result.accepted[0]
     expected_identity = f"identity:codepoint:{codepoint:04x}"
     assert expected_identity in candidate.identity_ids
+
+
+# PR #23: Tests for hardened algebraic proof
+
+
+def test_letter_classification_proves_type_specific_wasf():
+    """Test that LetterCodePoint classification proves is_arabic_letter wasf."""
+    adapter = TypedCodePointLayerAdapter(kernel=QiyasKernel())
+    codepoint = 0x0628  # ب
+
+    # Get the request that would be sent to kernel
+    unicode_candidate = Candidate(
+        candidate_id=f"unicode:{codepoint:04x}",
+        candidate_type="UnicodeCandidate",
+        status=CandidateStatus.ACCEPTED,
+        layer="UnicodeQiyas",
+        source_rule_id="unicode.arabic.membership",
+        asl_id="asl:arabic_unicode_block",
+        far_id=f"far:{codepoint:04x}",
+        identity_ids=(f"identity:codepoint:{codepoint:04x}",),
+        rank=EvidenceRank.FORM,
+        residuals=(),
+        trace_ids=(f"test:unicode:{codepoint:04x}",),
+        output_flags=frozenset(),
+    )
+
+    request = adapter.build_request_for_classification(unicode_candidate)
+
+    # Check that evidence proves type-specific wasf
+    evidence_proves = set()
+    for evidence in request.evidence.items:
+        evidence_proves.update(evidence.proves)
+
+    assert "wasf:is_arabic_letter:evidenced" in evidence_proves
+
+
+def test_haraka_classification_proves_type_specific_illah():
+    """Test that HarakaCodePoint classification proves belongs_to_haraka_class illah."""
+    adapter = TypedCodePointLayerAdapter(kernel=QiyasKernel())
+    codepoint = 0x064E  # َ
+
+    unicode_candidate = Candidate(
+        candidate_id=f"unicode:{codepoint:04x}",
+        candidate_type="UnicodeCandidate",
+        status=CandidateStatus.ACCEPTED,
+        layer="UnicodeQiyas",
+        source_rule_id="unicode.arabic.membership",
+        asl_id="asl:arabic_unicode_block",
+        far_id=f"far:{codepoint:04x}",
+        identity_ids=(f"identity:codepoint:{codepoint:04x}",),
+        rank=EvidenceRank.FORM,
+        residuals=(),
+        trace_ids=(f"test:unicode:{codepoint:04x}",),
+        output_flags=frozenset(),
+    )
+
+    request = adapter.build_request_for_classification(unicode_candidate)
+
+    evidence_proves = set()
+    for evidence in request.evidence.items:
+        evidence_proves.update(evidence.proves)
+
+    assert "illah:belongs_to_haraka_class:verified" in evidence_proves
+
+
+def test_boundary_classification_proves_type_specific_wasf_and_illah():
+    """Test that BoundaryCodePoint proves both specific wasf and illah."""
+    adapter = TypedCodePointLayerAdapter(kernel=QiyasKernel())
+    codepoint = 0x0020  # Space
+
+    unicode_candidate = Candidate(
+        candidate_id=f"unicode:{codepoint:04x}",
+        candidate_type="UnicodeCandidate",
+        status=CandidateStatus.ACCEPTED,
+        layer="UnicodeQiyas",
+        source_rule_id="unicode.arabic.membership",
+        asl_id="asl:arabic_unicode_block",
+        far_id=f"far:{codepoint:04x}",
+        identity_ids=(f"identity:codepoint:{codepoint:04x}",),
+        rank=EvidenceRank.FORM,
+        residuals=(),
+        trace_ids=(f"test:unicode:{codepoint:04x}",),
+        output_flags=frozenset(),
+    )
+
+    request = adapter.build_request_for_classification(unicode_candidate)
+
+    evidence_proves = set()
+    for evidence in request.evidence.items:
+        evidence_proves.update(evidence.proves)
+
+    assert "wasf:is_whitespace_boundary:evidenced" in evidence_proves
+    assert "illah:belongs_to_boundary_class:verified" in evidence_proves
+
+
+def test_classification_uses_kernel_apply_verifiably():
+    """Test that classification actually calls kernel.apply() (not just returning structure)."""
+    mock_kernel = MagicMock(spec=QiyasKernel)
+    # Make mock return a realistic CandidateSet
+    from qiyas_core.candidate import CandidateSet
+    mock_kernel.apply.return_value = CandidateSet(
+        set_id="mock_set",
+        layer="TypedCodePointClassificationQiyas",
+        candidates=(),
+        residuals=(),
+        trace_ids=()
+    )
+
+    adapter = TypedCodePointLayerAdapter(kernel=mock_kernel)
+    adapter.classify_codepoint(0x0628)  # ب
+
+    # Verify kernel.apply was called exactly once
+    assert mock_kernel.apply.call_count == 1
+
+
+def test_typed_codepoint_rule_has_disjoint_union_invalidations():
+    """Test that rule defines invalidating_differences for disjoint union proof."""
+    assert len(TYPED_CODEPOINT_CLASSIFICATION.invalidating_differences) > 0
+    assert "multiple_classes_claimed" in TYPED_CODEPOINT_CLASSIFICATION.invalidating_differences
+    assert "letter_haraka_overlap" in TYPED_CODEPOINT_CLASSIFICATION.invalidating_differences
+
+
+def test_letter_candidate_has_no_forbidden_output_flags():
+    """Test that LetterCodePoint candidate has no forbidden output_flags."""
+    adapter = TypedCodePointLayerAdapter(kernel=QiyasKernel())
+    result = adapter.classify_codepoint(0x0628)  # ب
+
+    candidate = result.accepted[0]
+    # output_flags should be frozenset (empty or with allowed flags only)
+    assert isinstance(candidate.output_flags, frozenset)
+    # No forbidden flag names should appear
+    forbidden_types = {
+        "AtomicUnitCandidate", "SyllableCandidate", "RootCandidate",
+        "WeightCandidate", "MeaningCandidate", "HukmCandidate",
+        "RealityClaim", "FinalMeaning"
+    }
+    # Convert flags to strings if they exist and check
+    flag_strings = {str(flag) for flag in candidate.output_flags}
+    assert not any(forbidden in flag for flag in flag_strings for forbidden in forbidden_types)
+
+
+def test_all_classification_types_prove_specific_evidence():
+    """Test that all classification types (Letter/Haraka/Boundary/Punctuation/Residual) prove their specific evidence."""
+    adapter = TypedCodePointLayerAdapter(kernel=QiyasKernel())
+
+    test_cases = [
+        (0x0628, "is_arabic_letter", "belongs_to_letter_class"),      # ب
+        (0x064E, "is_arabic_haraka", "belongs_to_haraka_class"),      # َ
+        (0x0020, "is_whitespace_boundary", "belongs_to_boundary_class"),  # Space
+        (0x060C, "is_arabic_punctuation", "belongs_to_punctuation_class"),  # ،
+        (0x0058, "is_unclassified_codepoint", "belongs_to_residual_class"),  # X
+    ]
+
+    for codepoint, expected_wasf, expected_illah in test_cases:
+        unicode_candidate = Candidate(
+            candidate_id=f"unicode:{codepoint:04x}",
+            candidate_type="UnicodeCandidate",
+            status=CandidateStatus.ACCEPTED,
+            layer="UnicodeQiyas",
+            source_rule_id="unicode.arabic.membership",
+            asl_id="asl:arabic_unicode_block",
+            far_id=f"far:{codepoint:04x}",
+            identity_ids=(f"identity:codepoint:{codepoint:04x}",),
+            rank=EvidenceRank.FORM,
+            residuals=(),
+            trace_ids=(f"test:unicode:{codepoint:04x}",),
+            output_flags=frozenset(),
+        )
+
+        request = adapter.build_request_for_classification(unicode_candidate)
+
+        evidence_proves = set()
+        for evidence in request.evidence.items:
+            evidence_proves.update(evidence.proves)
+
+        assert f"wasf:{expected_wasf}:evidenced" in evidence_proves, \
+            f"Codepoint {codepoint:04x} should prove wasf:{expected_wasf}"
+        assert f"illah:{expected_illah}:verified" in evidence_proves, \
+            f"Codepoint {codepoint:04x} should prove illah:{expected_illah}"
+
