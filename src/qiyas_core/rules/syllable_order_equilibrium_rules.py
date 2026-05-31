@@ -22,8 +22,11 @@ SYLLABLE_ORDER_EQUILIBRIUM_VALIDATION = QiyasRule(
     required_illah=("left_right_order_fit",),
     required_wadi_gates=ALL_WADI,
     invalidating_differences=(
+        "left_demand_unresolved",
+        "right_capability_unresolved",
         "left_right_mismatch",
         "order_imbalance",
+        "economy_not_verified",
     ),
     neutral_identity_domain="syllable_order_equilibrium_identity",
     output_candidate_type="SyllableOrderEquilibriumCandidate",

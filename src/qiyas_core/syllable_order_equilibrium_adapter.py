@@ -18,6 +18,8 @@ class SyllableOrderEquilibriumLayerAdapter:
         carrier_codepoint: int,
         mark_codepoint: int,
         is_initial_position: bool = False,
+        left_demand_accepted: bool = False,
+        right_capability_accepted: bool = False,
         trace_prefix: str = ""
     ) -> QiyasRequest:
         """
@@ -27,6 +29,8 @@ class SyllableOrderEquilibriumLayerAdapter:
             carrier_codepoint: The Unicode codepoint of the carrier
             mark_codepoint: The Unicode codepoint of the mark
             is_initial_position: Whether this is at word/syllable start
+            left_demand_accepted: Whether LeftDemandCandidate is accepted
+            right_capability_accepted: Whether RightCapabilityCandidate is accepted
             trace_prefix: Optional prefix for trace IDs
 
         Returns:
@@ -53,23 +57,42 @@ class SyllableOrderEquilibriumLayerAdapter:
             rank=EvidenceRank.FORM,
         )
 
-        # Order equilibrium is satisfied when left demand and right capability align
-        # At initial position: left demand satisfied, right depends on mark
-        # At non-initial position: left demand deferred, right depends on mark
-        proves = (
+        # Order equilibrium requires explicit evidence from both left and right
+        # Cannot prove equilibrium automatically - must verify both demands are met
+        proves = [
             "asl:established",
             "far:determined",
-            "wasf:left_demand_resolved:evidenced",
-            "wasf:right_capability_resolved:evidenced",
-            "wasf:syllable_order_equilibrium:evidenced",
-            "illah:left_right_order_fit:verified",
             "wadi:sabab:established",
             "wadi:shart:satisfied",
             "wadi:mani:absent",
             "wadi:sihha:valid",
             "wadi:fasad:absent",
             "wadi:butlan:absent",
-        )
+        ]
+
+        # Only prove left_demand_resolved if explicitly accepted
+        if left_demand_accepted:
+            proves.append("wasf:left_demand_resolved:evidenced")
+        else:
+            # Left demand unresolved - this is an invalidating difference
+            proves.append("fariq:left_demand_unresolved:present")
+
+        # Only prove right_capability_resolved if explicitly accepted
+        if right_capability_accepted:
+            proves.append("wasf:right_capability_resolved:evidenced")
+        else:
+            # Right capability unresolved - this is an invalidating difference
+            proves.append("fariq:right_capability_unresolved:present")
+
+        # Only prove equilibrium and order fit if BOTH are accepted
+        if left_demand_accepted and right_capability_accepted:
+            proves.append("wasf:syllable_order_equilibrium:evidenced")
+            proves.append("illah:left_right_order_fit:verified")
+        else:
+            # Order imbalance - cannot prove equilibrium without both sides
+            proves.append("fariq:order_imbalance:present")
+
+        proves = tuple(proves)
 
         evidence = EvidenceSet(
             items=(
@@ -96,6 +119,8 @@ class SyllableOrderEquilibriumLayerAdapter:
         carrier_codepoint: int,
         mark_codepoint: int,
         is_initial_position: bool = False,
+        left_demand_accepted: bool = False,
+        right_capability_accepted: bool = False,
         trace_prefix: str = ""
     ) -> CandidateSet:
         """
@@ -105,12 +130,15 @@ class SyllableOrderEquilibriumLayerAdapter:
             carrier_codepoint: The Unicode codepoint of the carrier
             mark_codepoint: The Unicode codepoint of the mark
             is_initial_position: Whether this is at word/syllable start
+            left_demand_accepted: Whether LeftDemandCandidate is accepted
+            right_capability_accepted: Whether RightCapabilityCandidate is accepted
             trace_prefix: Optional prefix for trace IDs
 
         Returns:
             CandidateSet with SyllableOrderEquilibriumCandidate result
         """
         request = self.build_request_for_validation(
-            carrier_codepoint, mark_codepoint, is_initial_position, trace_prefix
+            carrier_codepoint, mark_codepoint, is_initial_position,
+            left_demand_accepted, right_capability_accepted, trace_prefix
         )
         return self.kernel.apply(request)

@@ -32,6 +32,36 @@ def test_classify_closure_readiness_unknown():
     assert result == ClosureReadiness.UNKNOWN_CLOSURE
 
 
+def test_classify_closure_readiness_mabni():
+    """Mabni evidence should result in MABNI_CLOSURE_READY."""
+    result = classify_closure_readiness(has_mabni_evidence=True)
+    assert result == ClosureReadiness.MABNI_CLOSURE_READY
+
+
+def test_classify_closure_readiness_murab_without_case():
+    """Muʿrab evidence without case/waqf/continuation should result in MURAB_CLOSURE_DEFERRED."""
+    result = classify_closure_readiness(has_murab_evidence=True)
+    assert result == ClosureReadiness.MURAB_CLOSURE_DEFERRED
+
+
+def test_classify_closure_readiness_murab_with_case():
+    """Muʿrab evidence with case should still result in MURAB_CLOSURE_DEFERRED."""
+    result = classify_closure_readiness(has_murab_evidence=True, has_case_evidence=True)
+    assert result == ClosureReadiness.MURAB_CLOSURE_DEFERRED
+
+
+def test_classify_closure_readiness_murab_with_waqf():
+    """Muʿrab evidence with waqf should result in PAUSE_CLOSURE_READY."""
+    result = classify_closure_readiness(has_murab_evidence=True, has_waqf_evidence=True)
+    assert result == ClosureReadiness.PAUSE_CLOSURE_READY
+
+
+def test_classify_closure_readiness_murab_with_continuation():
+    """Muʿrab evidence with continuation should result in CONTINUATION_CLOSURE_DEFERRED."""
+    result = classify_closure_readiness(has_murab_evidence=True, has_continuation_evidence=True)
+    assert result == ClosureReadiness.CONTINUATION_CLOSURE_DEFERRED
+
+
 def test_adapter_validates_unknown_closure_deferred():
     """Unknown closure should be deferred."""
     kernel = QiyasKernel()
@@ -40,11 +70,12 @@ def test_adapter_validates_unknown_closure_deferred():
     result = adapter.process_validation(0x0628, 0x064E)  # Ba + Fatha, no evidence
 
     assert result.layer == "ClosureReadinessQiyas"
-    assert len(result.accepted) == 1
+    assert len(result.deferred) == 1
+    assert len(result.accepted) == 0
 
-    candidate = result.accepted[0]
+    candidate = result.deferred[0]
     assert candidate.candidate_type == "ClosureReadinessCandidate"
-    assert candidate.status == CandidateStatus.ACCEPTED
+    assert candidate.status == CandidateStatus.DEFERRED
 
 
 def test_adapter_validates_pause_closure_ready():
@@ -62,12 +93,43 @@ def test_adapter_validates_pause_closure_ready():
     assert candidate.status == CandidateStatus.ACCEPTED
 
 
+def test_adapter_validates_mabni_closure_ready():
+    """Mabni closure should be ready."""
+    kernel = QiyasKernel()
+    adapter = ClosureReadinessLayerAdapter(kernel=kernel)
+
+    result = adapter.process_validation(0x0628, 0x064E, has_mabni_evidence=True)
+
+    assert result.layer == "ClosureReadinessQiyas"
+    assert len(result.accepted) == 1
+
+    candidate = result.accepted[0]
+    assert candidate.candidate_type == "ClosureReadinessCandidate"
+    assert candidate.status == CandidateStatus.ACCEPTED
+
+
+def test_adapter_validates_murab_closure_deferred():
+    """Muʿrab closure without case/waqf/continuation should be deferred."""
+    kernel = QiyasKernel()
+    adapter = ClosureReadinessLayerAdapter(kernel=kernel)
+
+    result = adapter.process_validation(0x0628, 0x064E, has_murab_evidence=True)
+
+    assert result.layer == "ClosureReadinessQiyas"
+    assert len(result.deferred) == 1
+    assert len(result.accepted) == 0
+
+    candidate = result.deferred[0]
+    assert candidate.candidate_type == "ClosureReadinessCandidate"
+    assert candidate.status == CandidateStatus.DEFERRED
+
+
 def test_closure_readiness_forbidden_outputs_enforced():
     """ClosureReadinessCandidate must not produce forbidden outputs."""
     kernel = QiyasKernel()
     adapter = ClosureReadinessLayerAdapter(kernel=kernel)
 
-    result = adapter.process_validation(0x0628, 0x064E)
+    result = adapter.process_validation(0x0628, 0x064E, has_mabni_evidence=True)
 
     candidate = result.accepted[0]
 
@@ -91,7 +153,7 @@ def test_closure_readiness_does_not_produce_syllable():
     kernel = QiyasKernel()
     adapter = ClosureReadinessLayerAdapter(kernel=kernel)
 
-    result = adapter.process_validation(0x0628, 0x064E)
+    result = adapter.process_validation(0x0628, 0x064E, has_mabni_evidence=True)
 
     candidate = result.accepted[0]
 
@@ -106,8 +168,49 @@ def test_closure_readiness_identity_trace_separation():
 
     result = adapter.process_validation(0x0628, 0x064E)
 
-    candidate = result.accepted[0]
+    candidate = result.deferred[0]
     identity_set = set(candidate.identity_ids)
     trace_set = set(candidate.trace_ids)
 
     assert identity_set.isdisjoint(trace_set), "identity_ids and trace_ids must be disjoint"
+
+
+def test_adapter_validates_continuation_closure_deferred():
+    """Continuation closure should be deferred."""
+    kernel = QiyasKernel()
+    adapter = ClosureReadinessLayerAdapter(kernel=kernel)
+
+    result = adapter.process_validation(0x0628, 0x064E, has_continuation_evidence=True)
+
+    assert result.layer == "ClosureReadinessQiyas"
+    assert len(result.deferred) == 1
+    assert len(result.accepted) == 0
+
+    candidate = result.deferred[0]
+    assert candidate.candidate_type == "ClosureReadinessCandidate"
+    assert candidate.status == CandidateStatus.DEFERRED
+
+
+def test_adapter_blocks_conflicting_mabni_murab_evidence():
+    """Conflicting mabni+muʿrab evidence should be blocked."""
+    kernel = QiyasKernel()
+    adapter = ClosureReadinessLayerAdapter(kernel=kernel)
+
+    result = adapter.process_validation(
+        0x0628, 0x064E,
+        has_mabni_evidence=True,
+        has_murab_evidence=True
+    )
+
+    assert result.layer == "ClosureReadinessQiyas"
+    assert len(result.blocked) == 1
+    assert len(result.accepted) == 0
+    assert len(result.deferred) == 0
+
+    candidate = result.blocked[0]
+    assert candidate.candidate_type == "ClosureReadinessCandidate"
+    assert candidate.status == CandidateStatus.BLOCKED
+
+    # Check that blocking_fariq_present residual exists
+    residual_types = {r.residual_type for r in candidate.residuals}
+    assert "blocking_fariq_present" in residual_types

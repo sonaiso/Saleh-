@@ -10,6 +10,8 @@ from .rules.closure_readiness_rules import CLOSURE_READINESS_VALIDATION
 
 
 def classify_closure_readiness(
+    has_mabni_evidence: bool = False,
+    has_murab_evidence: bool = False,
     has_case_evidence: bool = False,
     has_waqf_evidence: bool = False,
     has_continuation_evidence: bool = False
@@ -18,25 +20,47 @@ def classify_closure_readiness(
     Classify closure readiness based on available evidence.
 
     Args:
+        has_mabni_evidence: Whether mabni (indeclinable) evidence exists
+        has_murab_evidence: Whether muʿrab (declinable) evidence exists
         has_case_evidence: Whether case marking evidence exists
         has_waqf_evidence: Whether pause (waqf) evidence exists
         has_continuation_evidence: Whether continuation evidence exists
 
     Returns:
         ClosureReadiness classification
-    """
-    # At this layer, we don't have morphological or syntactic evidence yet
-    # So we defer closure decisions unless specific evidence exists
 
-    # If we had evidence of pause/waqf, closure is ready
+    Note:
+        Conflicting mabni+murab evidence should be handled by caller
+        and produce a blocking fariq or unknown closure state
+    """
+    # Closure law: mabni evidence => MABNI_CLOSURE_READY
+    if has_mabni_evidence:
+        return ClosureReadiness.MABNI_CLOSURE_READY
+
+    # Closure law: muʿrab evidence without case/waqf/continuation => MURAB_CLOSURE_DEFERRED
+    if has_murab_evidence:
+        # Muʿrab closure must remain deferred unless case/waqf/continuation evidence exists
+        if has_case_evidence or has_waqf_evidence or has_continuation_evidence:
+            # Have additional evidence to determine closure state
+            if has_waqf_evidence:
+                return ClosureReadiness.PAUSE_CLOSURE_READY
+            elif has_continuation_evidence:
+                return ClosureReadiness.CONTINUATION_CLOSURE_DEFERRED
+            # Has case evidence - still muʿrab deferred
+            return ClosureReadiness.MURAB_CLOSURE_DEFERRED
+        else:
+            # Muʿrab without case/waqf/continuation must be deferred
+            return ClosureReadiness.MURAB_CLOSURE_DEFERRED
+
+    # If we have evidence of pause/waqf (without mabni/murab classification), closure is ready
     if has_waqf_evidence:
         return ClosureReadiness.PAUSE_CLOSURE_READY
 
-    # If we had evidence of continuation, closure is deferred
+    # If we have evidence of continuation, closure is deferred
     if has_continuation_evidence:
         return ClosureReadiness.CONTINUATION_CLOSURE_DEFERRED
 
-    # Without evidence, we cannot determine if this is mabni or muʿrab
+    # Without evidence, we cannot determine closure readiness
     # Default: unknown closure (must be deferred)
     return ClosureReadiness.UNKNOWN_CLOSURE
 
@@ -49,6 +73,8 @@ class ClosureReadinessLayerAdapter:
         self,
         carrier_codepoint: int,
         mark_codepoint: int,
+        has_mabni_evidence: bool = False,
+        has_murab_evidence: bool = False,
         has_case_evidence: bool = False,
         has_waqf_evidence: bool = False,
         has_continuation_evidence: bool = False,
@@ -60,6 +86,8 @@ class ClosureReadinessLayerAdapter:
         Args:
             carrier_codepoint: The Unicode codepoint of the carrier
             mark_codepoint: The Unicode codepoint of the mark
+            has_mabni_evidence: Whether mabni (indeclinable) evidence exists
+            has_murab_evidence: Whether muʿrab (declinable) evidence exists
             has_case_evidence: Whether case marking evidence exists
             has_waqf_evidence: Whether pause (waqf) evidence exists
             has_continuation_evidence: Whether continuation evidence exists
@@ -90,9 +118,17 @@ class ClosureReadinessLayerAdapter:
         )
 
         # Classify closure readiness
-        closure = classify_closure_readiness(
-            has_case_evidence, has_waqf_evidence, has_continuation_evidence
-        )
+        # First check for conflicting evidence
+        if has_mabni_evidence and has_murab_evidence:
+            # Conflicting evidence - cannot determine closure
+            closure = ClosureReadiness.UNKNOWN_CLOSURE
+            has_conflict = True
+        else:
+            closure = classify_closure_readiness(
+                has_mabni_evidence, has_murab_evidence, has_case_evidence,
+                has_waqf_evidence, has_continuation_evidence
+            )
+            has_conflict = False
 
         proves = [
             "asl:established",
@@ -107,20 +143,24 @@ class ClosureReadinessLayerAdapter:
             "wadi:butlan:absent",
         ]
 
+        # Add conflicting evidence fariq if detected
+        if has_conflict:
+            proves.append("fariq:conflicting_mabni_murab_evidence:present")
+
         # Add closure-specific evidence
         if closure == ClosureReadiness.PAUSE_CLOSURE_READY:
             proves.append("wasf:pause_closure_ready:evidenced")
         elif closure == ClosureReadiness.CONTINUATION_CLOSURE_DEFERRED:
-            proves.append("residual:continuation_closure_deferred:deferred")
+            proves.append("defer:continuation_closure_deferred:present")
         elif closure == ClosureReadiness.UNKNOWN_CLOSURE:
             # Unknown closure must be deferred
-            proves.append("residual:unknown_closure_deferred:deferred")
+            proves.append("defer:unknown_closure_deferred:present")
         elif closure == ClosureReadiness.MABNI_CLOSURE_READY:
             # Mabni closure may be structurally stable (if we had evidence)
             proves.append("wasf:mabni_closure_ready:evidenced")
         elif closure == ClosureReadiness.MURAB_CLOSURE_DEFERRED:
             # Muʿrab closure must remain deferred
-            proves.append("residual:murab_closure_deferred:deferred")
+            proves.append("defer:murab_closure_deferred:present")
 
         proves = tuple(proves)
 
@@ -148,6 +188,8 @@ class ClosureReadinessLayerAdapter:
         self,
         carrier_codepoint: int,
         mark_codepoint: int,
+        has_mabni_evidence: bool = False,
+        has_murab_evidence: bool = False,
         has_case_evidence: bool = False,
         has_waqf_evidence: bool = False,
         has_continuation_evidence: bool = False,
@@ -159,6 +201,8 @@ class ClosureReadinessLayerAdapter:
         Args:
             carrier_codepoint: The Unicode codepoint of the carrier
             mark_codepoint: The Unicode codepoint of the mark
+            has_mabni_evidence: Whether mabni (indeclinable) evidence exists
+            has_murab_evidence: Whether muʿrab (declinable) evidence exists
             has_case_evidence: Whether case marking evidence exists
             has_waqf_evidence: Whether pause (waqf) evidence exists
             has_continuation_evidence: Whether continuation evidence exists
@@ -169,7 +213,8 @@ class ClosureReadinessLayerAdapter:
         """
         request = self.build_request_for_validation(
             carrier_codepoint, mark_codepoint,
-            has_case_evidence, has_waqf_evidence, has_continuation_evidence,
+            has_mabni_evidence, has_murab_evidence, has_case_evidence,
+            has_waqf_evidence, has_continuation_evidence,
             trace_prefix
         )
         return self.kernel.apply(request)

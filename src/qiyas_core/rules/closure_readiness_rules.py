@@ -23,6 +23,7 @@ CLOSURE_READINESS_VALIDATION = QiyasRule(
     required_wadi_gates=ALL_WADI,
     invalidating_differences=(
         "closure_context_indeterminate",
+        "conflicting_mabni_murab_evidence",
     ),
     neutral_identity_domain="closure_readiness_identity",
     output_candidate_type="ClosureReadinessCandidate",

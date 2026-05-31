@@ -83,6 +83,7 @@ class QiyasKernel:
             self._check_illah,
             self._check_wadi,
             self._check_fariq,
+            self._check_defer,
             self._check_identity,
             self._check_rank,
             self._check_forbidden_outputs_declared,
@@ -222,6 +223,25 @@ class QiyasKernel:
                         request.evidence.all_trace_ids(),
                     )
                 )
+        return audit
+
+    def _check_defer(self, request: QiyasRequest, audit: QiyasAudit) -> QiyasAudit:
+        """Check for defer:*:present claims in evidence and add deferral residuals."""
+        # Scan all evidence proves for defer: prefix
+        for evidence_item in request.evidence.items:
+            for claim in evidence_item.proves:
+                if claim.startswith("defer:") and claim.endswith(":present"):
+                    # Extract reason from defer:{reason}:present
+                    reason = claim[6:-8]  # Remove "defer:" prefix and ":present" suffix
+                    audit = audit.add_residual(
+                        residual(
+                            request,
+                            f"deferred_{reason}",
+                            f"تأجيل: {reason}",
+                            ResidualEffect.DEFER,
+                            evidence_item.trace_ids,
+                        )
+                    )
         return audit
 
     def _check_identity(self, request: QiyasRequest, audit: QiyasAudit) -> QiyasAudit:
