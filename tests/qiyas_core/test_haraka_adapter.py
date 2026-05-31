@@ -474,3 +474,64 @@ def test_constitutional_additional_diacritic_not_core_haraka():
         # Verify it's also not shadda or sukun
         assert kind != DiacriticKind.SHADDA
         assert kind != DiacriticKind.SUKUN
+
+
+def test_core_haraka_evidence_claim():
+    """Test that core haraka codepoints produce wasf:core_haraka:evidenced in EvidenceSet."""
+    adapter = HarakaLayerAdapter(kernel=QiyasKernel())
+
+    # Test all core haraka codepoints
+    core_haraka_codepoints = [
+        0x064B,  # Fathatan
+        0x064C,  # Dammatan
+        0x064D,  # Kasratan
+        0x064E,  # Fatha
+        0x064F,  # Damma
+        0x0650,  # Kasra
+    ]
+
+    for codepoint in core_haraka_codepoints:
+        request = adapter.build_request_for_codepoint(codepoint)
+        assert request.evidence.proves("wasf:core_haraka:evidenced"), (
+            f"Codepoint {codepoint:04x} must prove wasf:core_haraka:evidenced"
+        )
+
+
+def test_shadda_evidence_claim():
+    """Test that Shadda produces wasf:shadda_mark:evidenced in EvidenceSet."""
+    adapter = HarakaLayerAdapter(kernel=QiyasKernel())
+
+    request = adapter.build_request_for_codepoint(0x0651)  # Shadda
+    assert request.evidence.proves("wasf:shadda_mark:evidenced"), (
+        "Shadda (U+0651) must prove wasf:shadda_mark:evidenced"
+    )
+
+
+def test_sukun_evidence_claim():
+    """Test that Sukun produces wasf:sukun_mark:evidenced in EvidenceSet."""
+    adapter = HarakaLayerAdapter(kernel=QiyasKernel())
+
+    request = adapter.build_request_for_codepoint(0x0652)  # Sukun
+    assert request.evidence.proves("wasf:sukun_mark:evidenced"), (
+        "Sukun (U+0652) must prove wasf:sukun_mark:evidenced"
+    )
+
+
+def test_additional_diacritic_evidence_claim():
+    """Test that additional diacritics produce wasf:additional_arabic_diacritic:evidenced."""
+    adapter = HarakaLayerAdapter(kernel=QiyasKernel())
+
+    additional_codepoints = [
+        0x0653,  # Maddah above
+        0x0654,  # Hamza above
+        0x0655,  # Hamza below
+        0x065E,  # Fatha with two dots
+        0x065F,  # Wavy hamza below
+    ]
+
+    for codepoint in additional_codepoints:
+        request = adapter.build_request_for_codepoint(codepoint)
+        assert request.evidence.proves("wasf:additional_arabic_diacritic:evidenced"), (
+            f"Codepoint {codepoint:04x} must prove wasf:additional_arabic_diacritic:evidenced"
+        )
+
