@@ -474,3 +474,88 @@ def test_constitutional_additional_diacritic_not_core_haraka():
         # Verify it's also not shadda or sukun
         assert kind != DiacriticKind.SHADDA
         assert kind != DiacriticKind.SUKUN
+
+
+def test_core_haraka_evidence_claim_proves():
+    """Test that core haraka requests actually contain wasf:core_haraka:evidenced claim."""
+    adapter = HarakaLayerAdapter(kernel=QiyasKernel())
+
+    # U+064E is Fatha - should be core_haraka
+    request = adapter.build_request_for_codepoint(0x064E)
+
+    # Verify the request evidence contains the core_haraka claim
+    assert request.evidence is not None
+    assert len(request.evidence.items) > 0
+
+    # Check that evidence proves core_haraka
+    proves_set = set()
+    for evidence_item in request.evidence.items:
+        proves_set.update(evidence_item.proves)
+
+    assert "wasf:core_haraka:evidenced" in proves_set, (
+        "Expected wasf:core_haraka:evidenced in evidence.proves for Fatha (0x064E)"
+    )
+
+
+def test_shadda_evidence_claim_proves():
+    """Test that Shadda requests actually contain wasf:shadda_mark:evidenced claim."""
+    adapter = HarakaLayerAdapter(kernel=QiyasKernel())
+
+    # U+0651 is Shadda
+    request = adapter.build_request_for_codepoint(0x0651)
+
+    # Verify the request evidence contains the shadda claim
+    assert request.evidence is not None
+    assert len(request.evidence.items) > 0
+
+    # Check that evidence proves shadda_mark
+    proves_set = set()
+    for evidence_item in request.evidence.items:
+        proves_set.update(evidence_item.proves)
+
+    assert "wasf:shadda_mark:evidenced" in proves_set, (
+        "Expected wasf:shadda_mark:evidenced in evidence.proves for Shadda (0x0651)"
+    )
+
+
+def test_sukun_evidence_claim_proves():
+    """Test that Sukun requests actually contain wasf:sukun_mark:evidenced claim."""
+    adapter = HarakaLayerAdapter(kernel=QiyasKernel())
+
+    # U+0652 is Sukun
+    request = adapter.build_request_for_codepoint(0x0652)
+
+    # Verify the request evidence contains the sukun claim
+    assert request.evidence is not None
+    assert len(request.evidence.items) > 0
+
+    # Check that evidence proves sukun_mark
+    proves_set = set()
+    for evidence_item in request.evidence.items:
+        proves_set.update(evidence_item.proves)
+
+    assert "wasf:sukun_mark:evidenced" in proves_set, (
+        "Expected wasf:sukun_mark:evidenced in evidence.proves for Sukun (0x0652)"
+    )
+
+
+def test_additional_diacritic_evidence_claim_proves():
+    """Test that additional diacritic requests contain wasf:additional_arabic_diacritic:evidenced."""
+    adapter = HarakaLayerAdapter(kernel=QiyasKernel())
+
+    # U+0653 is Maddah above - should be additional
+    request = adapter.build_request_for_codepoint(0x0653)
+
+    # Verify the request evidence contains the additional claim
+    assert request.evidence is not None
+    assert len(request.evidence.items) > 0
+
+    # Check that evidence proves additional_arabic_diacritic
+    proves_set = set()
+    for evidence_item in request.evidence.items:
+        proves_set.update(evidence_item.proves)
+
+    assert "wasf:additional_arabic_diacritic:evidenced" in proves_set, (
+        "Expected wasf:additional_arabic_diacritic:evidenced in evidence.proves for Maddah (0x0653)"
+    )
+
