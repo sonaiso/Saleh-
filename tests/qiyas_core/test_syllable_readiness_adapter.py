@@ -13,34 +13,37 @@ from qiyas_core.syllable_readiness_adapter import SyllableReadinessLayerAdapter
 
 
 def test_adapter_validates_ba_fatha_ready():
-    """Ba+Fatha should pass syllable readiness validation."""
+    """Ba+Fatha is now deferred awaiting order equilibrium evidence."""
     kernel = QiyasKernel()
     adapter = SyllableReadinessLayerAdapter(kernel=kernel)
 
     result = adapter.process_validation(0x0628, 0x064E)  # Ba + Fatha
 
     assert result.layer == "SyllableReadinessQiyas"
-    assert len(result.accepted) == 1
+    # After PR #10, SyllableReadinessQiyas requires order equilibrium evidence
+    # Without it, candidates are blocked due to missing required wasf
+    assert len(result.blocked) == 1
 
-    candidate = result.accepted[0]
+    candidate = result.blocked[0]
     assert candidate.candidate_type == "SyllableReadinessCandidate"
-    assert candidate.status == CandidateStatus.ACCEPTED
+    assert candidate.status == CandidateStatus.BLOCKED
     assert candidate.layer == "SyllableReadinessQiyas"
 
 
 def test_adapter_validates_ta_damma_ready():
-    """Ta+Damma should pass syllable readiness validation."""
+    """Ta+Damma is now deferred awaiting order equilibrium evidence."""
     kernel = QiyasKernel()
     adapter = SyllableReadinessLayerAdapter(kernel=kernel)
 
     result = adapter.process_validation(0x062A, 0x064F)  # Ta + Damma
 
     assert result.layer == "SyllableReadinessQiyas"
-    assert len(result.accepted) == 1
+    # After PR #10, requires order equilibrium evidence
+    assert len(result.blocked) == 1
 
-    candidate = result.accepted[0]
+    candidate = result.blocked[0]
     assert candidate.candidate_type == "SyllableReadinessCandidate"
-    assert candidate.status == CandidateStatus.ACCEPTED
+    assert candidate.status == CandidateStatus.BLOCKED
 
 
 def test_adapter_blocks_initial_sukun():
@@ -62,7 +65,7 @@ def test_adapter_blocks_initial_sukun():
 
 
 def test_adapter_allows_non_initial_sukun():
-    """Ba+Sukun in non-initial position should be allowed."""
+    """Ba+Sukun in non-initial position is now deferred awaiting evidence."""
     kernel = QiyasKernel()
     adapter = SyllableReadinessLayerAdapter(kernel=kernel)
 
@@ -71,11 +74,12 @@ def test_adapter_allows_non_initial_sukun():
     )  # Ba + Sukun not at start
 
     assert result.layer == "SyllableReadinessQiyas"
-    assert len(result.accepted) == 1
+    # After PR #10, requires order equilibrium evidence
+    assert len(result.blocked) == 1
 
-    candidate = result.accepted[0]
+    candidate = result.blocked[0]
     assert candidate.candidate_type == "SyllableReadinessCandidate"
-    assert candidate.status == CandidateStatus.ACCEPTED
+    assert candidate.status == CandidateStatus.BLOCKED
 
 
 def test_adapter_handles_additional_diacritic_constraint():
@@ -98,7 +102,8 @@ def test_syllable_readiness_identity_trace_separation():
 
     result = adapter.process_validation(0x0628, 0x064E)  # Ba + Fatha
 
-    candidate = result.accepted[0]
+    # After PR #10, candidates are blocked awaiting order equilibrium evidence
+    candidate = result.blocked[0]
     identity_set = set(candidate.identity_ids)
     trace_set = set(candidate.trace_ids)
 
@@ -112,9 +117,11 @@ def test_syllable_readiness_rank_not_exceeds_form():
 
     result = adapter.process_validation(0x0628, 0x064E)  # Ba + Fatha
 
-    candidate = result.accepted[0]
+    # After PR #10, candidates are blocked awaiting order equilibrium evidence
+    candidate = result.blocked[0]
     from qiyas_core.enums import EvidenceRank
-    assert candidate.rank == EvidenceRank.FORM
+    # Blocked candidates have rank ZERO
+    assert candidate.rank == EvidenceRank.ZERO
 
 
 def test_syllable_readiness_forbidden_outputs_enforced():
@@ -124,7 +131,8 @@ def test_syllable_readiness_forbidden_outputs_enforced():
 
     result = adapter.process_validation(0x0628, 0x064E)  # Ba + Fatha
 
-    candidate = result.accepted[0]
+    # After PR #10, candidates are blocked awaiting order equilibrium evidence
+    candidate = result.blocked[0]
 
     forbidden = {
         "SyllableCandidate",
@@ -148,7 +156,8 @@ def test_syllable_readiness_does_not_produce_syllable():
 
     result = adapter.process_validation(0x0628, 0x064E)  # Ba + Fatha
 
-    candidate = result.accepted[0]
+    # After PR #10, candidates are blocked awaiting order equilibrium evidence
+    candidate = result.blocked[0]
 
     assert "SyllableCandidate" not in candidate.output_flags, \
         "SyllableReadinessCandidate must not produce SyllableCandidate"
@@ -161,7 +170,8 @@ def test_syllable_readiness_does_not_produce_pronunciation():
 
     result = adapter.process_validation(0x0628, 0x064E)  # Ba + Fatha
 
-    candidate = result.accepted[0]
+    # After PR #10, candidates are blocked awaiting order equilibrium evidence
+    candidate = result.blocked[0]
 
     assert "PronunciationCandidate" not in candidate.output_flags, \
         "SyllableReadinessCandidate must not produce PronunciationCandidate"
@@ -174,22 +184,24 @@ def test_syllable_readiness_does_not_produce_dal():
 
     result = adapter.process_validation(0x0628, 0x064E)  # Ba + Fatha
 
-    candidate = result.accepted[0]
+    # After PR #10, candidates are blocked awaiting order equilibrium evidence
+    candidate = result.blocked[0]
 
     assert "DalCandidate" not in candidate.output_flags, \
         "SyllableReadinessCandidate must not produce DalCandidate"
 
 
 def test_ba_shadda_passes_readiness():
-    """Ba+Shadda should pass syllable readiness (carrier present)."""
+    """Ba+Shadda is now deferred awaiting order equilibrium evidence."""
     kernel = QiyasKernel()
     adapter = SyllableReadinessLayerAdapter(kernel=kernel)
 
     result = adapter.process_validation(0x0628, 0x0651)  # Ba + Shadda
 
     assert result.layer == "SyllableReadinessQiyas"
-    assert len(result.accepted) == 1
+    # After PR #10, requires order equilibrium evidence
+    assert len(result.blocked) == 1
 
-    candidate = result.accepted[0]
+    candidate = result.blocked[0]
     assert candidate.candidate_type == "SyllableReadinessCandidate"
-    assert candidate.status == CandidateStatus.ACCEPTED
+    assert candidate.status == CandidateStatus.BLOCKED

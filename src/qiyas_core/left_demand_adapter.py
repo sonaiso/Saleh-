@@ -2,19 +2,18 @@ from dataclasses import dataclass
 import uuid
 
 from .candidate import CandidateSet
-from .enums import EvidenceRank, MarkFunction
+from .enums import EvidenceRank
 from .evidence import Evidence, EvidenceSet
 from .kernel import QiyasContext, QiyasKernel, QiyasRequest
-from .mark_function_adapter import classify_mark_function
 from .node import QiyasNodeRef
-from .rules.syllable_readiness_rules import SYLLABLE_READINESS_VALIDATION
+from .rules.left_demand_rules import LEFT_DEMAND_ANALYSIS
 
 
 @dataclass
-class SyllableReadinessLayerAdapter:
+class LeftDemandLayerAdapter:
     kernel: QiyasKernel
 
-    def build_request_for_validation(
+    def build_request_for_analysis(
         self,
         carrier_codepoint: int,
         mark_codepoint: int,
@@ -22,7 +21,7 @@ class SyllableReadinessLayerAdapter:
         trace_prefix: str = ""
     ) -> QiyasRequest:
         """
-        Build a QiyasRequest for syllable readiness validation.
+        Build a QiyasRequest for left demand analysis.
 
         Args:
             carrier_codepoint: The Unicode codepoint of the carrier
@@ -31,10 +30,10 @@ class SyllableReadinessLayerAdapter:
             trace_prefix: Optional prefix for trace IDs
 
         Returns:
-            QiyasRequest for syllable readiness validation
+            QiyasRequest for left demand analysis
         """
         if not trace_prefix:
-            trace_prefix = f"syl_ready:{carrier_codepoint:04x}+{mark_codepoint:04x}"
+            trace_prefix = f"left_demand:{carrier_codepoint:04x}+{mark_codepoint:04x}"
 
         # Create asl node - representing PhonoFunctionalUnitCandidate
         asl = QiyasNodeRef(
@@ -45,65 +44,53 @@ class SyllableReadinessLayerAdapter:
             rank=EvidenceRank.FORM,
         )
 
-        # Create far node - representing syllable context
+        # Create far node - representing left context
         far = QiyasNodeRef(
-            node_id=f"far:syl_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
-            node_type="SyllableContext",
-            identity_ids=(f"identity:syl_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
+            node_id=f"far:left_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_type="LeftContext",
+            identity_ids=(f"identity:left_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
             rank=EvidenceRank.FORM,
         )
 
-        # Check for blocking conditions
-        mark_fn = classify_mark_function(mark_codepoint)
-        blocking_conditions = []
-
-        # Check for initial sukun (not allowed at word start)
-        if is_initial_position and mark_fn == MarkFunction.SUKUN_MARK:
-            blocking_conditions.append("fariq:initial_sukun:present")
-
-        # Check for additional diacritic being treated as vowel
-        if mark_fn == MarkFunction.ADDITIONAL_DIACRITIC_MARK:
-            blocking_conditions.append("residual:additional_diacritic_as_vowel:blocked")
-
-        # Build evidence
-        # IMPORTANT: SyllableReadinessQiyas now requires evidence from
-        # order equilibrium layers before accepting minimal syllable readiness
-        if blocking_conditions:
-            # Has blocking or deferring conditions
-            proves = [
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
-            ]
-            proves.extend(blocking_conditions)
-            proves = tuple(proves)
-        else:
-            # Minimal syllable readiness can only be satisfied if we have
-            # evidence of order equilibrium from prerequisite layers
-            # For now, defer until those layers provide evidence
+        # Analyze left demand based on position
+        # At initial position, no left demand (word/syllable boundary)
+        # At non-initial position, left demand exists (needs preceding syllable)
+        if is_initial_position:
             proves = (
                 "asl:established",
                 "far:determined",
+                "wasf:left_position_analyzed:evidenced",
+                "wasf:left_demand_satisfied:evidenced",
+                "illah:left_demand_determinable:verified",
                 "wadi:sabab:established",
                 "wadi:shart:satisfied",
                 "wadi:mani:absent",
                 "wadi:sihha:valid",
                 "wadi:fasad:absent",
                 "wadi:butlan:absent",
-                "residual:awaiting_order_equilibrium_evidence:deferred",
+            )
+        else:
+            # Non-initial position: left demand exists but deferred
+            proves = (
+                "asl:established",
+                "far:determined",
+                "wasf:left_position_analyzed:evidenced",
+                "illah:left_demand_determinable:verified",
+                "residual:left_demand_requires_preceding:deferred",
+                "wadi:sabab:established",
+                "wadi:shart:satisfied",
+                "wadi:mani:absent",
+                "wadi:sihha:valid",
+                "wadi:fasad:absent",
+                "wadi:butlan:absent",
             )
 
         evidence = EvidenceSet(
             items=(
                 Evidence(
-                    evidence_id=f"ev:syl_ready:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
-                    source_layer="SyllableReadinessQiyas",
+                    evidence_id=f"ev:left_demand:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
+                    source_layer="LeftDemandQiyas",
                     proves=proves,
                     rank=EvidenceRank.FORM,
                     trace_ids=(f"{trace_prefix}:ev",),
@@ -112,14 +99,14 @@ class SyllableReadinessLayerAdapter:
         )
 
         return QiyasRequest(
-            rule=SYLLABLE_READINESS_VALIDATION,
+            rule=LEFT_DEMAND_ANALYSIS,
             asl=asl,
             far=far,
             evidence=evidence,
-            context=QiyasContext(layer="SyllableReadinessQiyas"),
+            context=QiyasContext(layer="LeftDemandQiyas"),
         )
 
-    def process_validation(
+    def process_analysis(
         self,
         carrier_codepoint: int,
         mark_codepoint: int,
@@ -127,7 +114,7 @@ class SyllableReadinessLayerAdapter:
         trace_prefix: str = ""
     ) -> CandidateSet:
         """
-        Process syllable readiness validation.
+        Process left demand analysis.
 
         Args:
             carrier_codepoint: The Unicode codepoint of the carrier
@@ -136,9 +123,9 @@ class SyllableReadinessLayerAdapter:
             trace_prefix: Optional prefix for trace IDs
 
         Returns:
-            CandidateSet with SyllableReadinessCandidate result
+            CandidateSet with LeftDemandCandidate result
         """
-        request = self.build_request_for_validation(
+        request = self.build_request_for_analysis(
             carrier_codepoint, mark_codepoint, is_initial_position, trace_prefix
         )
         return self.kernel.apply(request)
