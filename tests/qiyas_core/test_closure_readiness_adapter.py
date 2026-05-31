@@ -32,6 +32,36 @@ def test_classify_closure_readiness_unknown():
     assert result == ClosureReadiness.UNKNOWN_CLOSURE
 
 
+def test_classify_closure_readiness_mabni():
+    """Mabni evidence should result in MABNI_CLOSURE_READY."""
+    result = classify_closure_readiness(has_mabni_evidence=True)
+    assert result == ClosureReadiness.MABNI_CLOSURE_READY
+
+
+def test_classify_closure_readiness_murab_without_case():
+    """Muʿrab evidence without case/waqf/continuation should result in MURAB_CLOSURE_DEFERRED."""
+    result = classify_closure_readiness(has_murab_evidence=True)
+    assert result == ClosureReadiness.MURAB_CLOSURE_DEFERRED
+
+
+def test_classify_closure_readiness_murab_with_case():
+    """Muʿrab evidence with case should still result in MURAB_CLOSURE_DEFERRED."""
+    result = classify_closure_readiness(has_murab_evidence=True, has_case_evidence=True)
+    assert result == ClosureReadiness.MURAB_CLOSURE_DEFERRED
+
+
+def test_classify_closure_readiness_murab_with_waqf():
+    """Muʿrab evidence with waqf should result in PAUSE_CLOSURE_READY."""
+    result = classify_closure_readiness(has_murab_evidence=True, has_waqf_evidence=True)
+    assert result == ClosureReadiness.PAUSE_CLOSURE_READY
+
+
+def test_classify_closure_readiness_murab_with_continuation():
+    """Muʿrab evidence with continuation should result in CONTINUATION_CLOSURE_DEFERRED."""
+    result = classify_closure_readiness(has_murab_evidence=True, has_continuation_evidence=True)
+    assert result == ClosureReadiness.CONTINUATION_CLOSURE_DEFERRED
+
+
 def test_adapter_validates_unknown_closure_deferred():
     """Unknown closure should be deferred."""
     kernel = QiyasKernel()
@@ -53,6 +83,36 @@ def test_adapter_validates_pause_closure_ready():
     adapter = ClosureReadinessLayerAdapter(kernel=kernel)
 
     result = adapter.process_validation(0x0628, 0x064E, has_waqf_evidence=True)
+
+    assert result.layer == "ClosureReadinessQiyas"
+    assert len(result.accepted) == 1
+
+    candidate = result.accepted[0]
+    assert candidate.candidate_type == "ClosureReadinessCandidate"
+    assert candidate.status == CandidateStatus.ACCEPTED
+
+
+def test_adapter_validates_mabni_closure_ready():
+    """Mabni closure should be ready."""
+    kernel = QiyasKernel()
+    adapter = ClosureReadinessLayerAdapter(kernel=kernel)
+
+    result = adapter.process_validation(0x0628, 0x064E, has_mabni_evidence=True)
+
+    assert result.layer == "ClosureReadinessQiyas"
+    assert len(result.accepted) == 1
+
+    candidate = result.accepted[0]
+    assert candidate.candidate_type == "ClosureReadinessCandidate"
+    assert candidate.status == CandidateStatus.ACCEPTED
+
+
+def test_adapter_validates_murab_closure_deferred():
+    """Muʿrab closure without case/waqf/continuation should be deferred."""
+    kernel = QiyasKernel()
+    adapter = ClosureReadinessLayerAdapter(kernel=kernel)
+
+    result = adapter.process_validation(0x0628, 0x064E, has_murab_evidence=True)
 
     assert result.layer == "ClosureReadinessQiyas"
     assert len(result.accepted) == 1
