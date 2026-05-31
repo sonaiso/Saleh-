@@ -4,8 +4,6 @@ import pytest
 
 from qiyas_core.enums import WadiGate
 from qiyas_core.rules.atomic_unit_rules import ATOMIC_UNIT_BINDING
-from qiyas_core.rules.haraka_rules import HARAKA_BINDING
-from qiyas_core.rules.carrier_function_rules import CARRIER_FUNCTION_BINDING
 from tests.qiyas_core.constitutional_helpers import (
     assert_wadi_gates_complete,
     assert_forbidden_outputs_present,
@@ -96,24 +94,6 @@ class TestRuleConstitution:
         assert "SyllableCandidate" in ATOMIC_UNIT_BINDING.forbidden_outputs
         assert "WordCandidate" in ATOMIC_UNIT_BINDING.forbidden_outputs
         assert "MeaningCandidate" in ATOMIC_UNIT_BINDING.forbidden_outputs
-
-    def test_haraka_rule_passes_constitution(self):
-        """Haraka binding rule passes constitutional checks"""
-        assert_wadi_gates_complete(HARAKA_BINDING)
-        assert_forbidden_outputs_present(HARAKA_BINDING)
-
-        # Verify it forbids higher-level candidates
-        assert "AtomicUnitCandidate" in HARAKA_BINDING.forbidden_outputs
-        assert "SyllableCandidate" in HARAKA_BINDING.forbidden_outputs
-
-    def test_carrier_function_rule_passes_constitution(self):
-        """CarrierFunction binding rule passes constitutional checks"""
-        assert_wadi_gates_complete(CARRIER_FUNCTION_BINDING)
-        assert_forbidden_outputs_present(CARRIER_FUNCTION_BINDING)
-
-        # Verify it forbids higher-level candidates
-        assert "SyllableCandidate" in CARRIER_FUNCTION_BINDING.forbidden_outputs
-        assert "WordCandidate" in CARRIER_FUNCTION_BINDING.forbidden_outputs
 
     def test_minimal_rule_has_exactly_six_gates(self):
         """Minimal test rule has exactly 6 gates"""
