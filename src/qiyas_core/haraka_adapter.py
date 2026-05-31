@@ -70,16 +70,19 @@ def classify_diacritic(codepoint: int) -> DiacriticKind | None:
 class HarakaLayerAdapter:
     kernel: QiyasKernel
 
-    def process_codepoint(self, codepoint: int, trace_prefix: str = "") -> CandidateSet:
+    def build_request_for_codepoint(self, codepoint: int, trace_prefix: str = "") -> QiyasRequest:
         """
-        Process a single Unicode codepoint through the Haraka layer.
+        Build a QiyasRequest for a codepoint without applying it to the kernel.
+
+        This method is useful for testing and inspecting the evidence that would be
+        generated for a codepoint without actually processing it.
 
         Args:
-            codepoint: The Unicode codepoint value (e.g., 0x064E for Fatha)
+            codepoint: The Unicode codepoint value
             trace_prefix: Optional prefix for trace IDs
 
         Returns:
-            CandidateSet with the result of applying HARAKA_ARABIC_DIACRITIC rule
+            QiyasRequest that would be used to process this codepoint
         """
         if not trace_prefix:
             trace_prefix = f"haraka:{codepoint:04x}"
@@ -160,8 +163,8 @@ class HarakaLayerAdapter:
             )
         )
 
-        # Build and apply request
-        request = QiyasRequest(
+        # Build and return request
+        return QiyasRequest(
             rule=HARAKA_ARABIC_DIACRITIC,
             asl=asl,
             far=far,
@@ -169,6 +172,18 @@ class HarakaLayerAdapter:
             context=QiyasContext(layer="HarakaQiyas"),
         )
 
+    def process_codepoint(self, codepoint: int, trace_prefix: str = "") -> CandidateSet:
+        """
+        Process a single Unicode codepoint through the Haraka layer.
+
+        Args:
+            codepoint: The Unicode codepoint value (e.g., 0x064E for Fatha)
+            trace_prefix: Optional prefix for trace IDs
+
+        Returns:
+            CandidateSet with the result of applying HARAKA_ARABIC_DIACRITIC rule
+        """
+        request = self.build_request_for_codepoint(codepoint, trace_prefix)
         return self.kernel.apply(request)
 
     def process_text(self, text: str) -> list[CandidateSet]:
