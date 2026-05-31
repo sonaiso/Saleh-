@@ -652,7 +652,242 @@ WeakLink = HypothesisGenerator only
 
 ---
 
-## 8. قاموس المصطلحات (Glossary — AR/EN)
+## 8. هوية النواة الجبرية (Algebraic Kernel Identity)
+
+> **ملاحظة دستورية**: هذا القسم **توصيفيّ لا تنفيذيّ**. لا يضيف سلوكًا جديدًا
+> إلى `QiyasKernel`، ولا يعدّل أي قاعدة قائمة. وظيفته توثيق الصيغة الجبرية
+> التي تنفذها النواة فعلًا في `src/qiyas_core/` بحيث تُقرأ السلسلة الواردة
+> في الأقسام 1–7 على أنها تطبيقات لهذا الجبر، لا قواعد منفصلة عنه.
+
+### 8.1 الصيغة الجبرية الحاكمة
+
+النواة `QiyasKernel` تنفذ عملية واحدة فقط، تُكتب جبريًا:
+
+```
+QiyasOperation(asl, far, rule, evidence, context)
+  → CandidateSet(status, rank, residuals, trace_ids)
+```
+
+أي:
+
+```
+أصل + فرع + قاعدة + دليل + سياق  →  مرشح محكوم
+```
+
+وليست:
+
+```
+input  →  answer
+```
+
+هذا الفرق دستوريّ: كل بوابة من البوابات الأربع عشرة في القسم 7 يجب أن تُصاغ
+كتخصيص لهذه العملية، لا كدالة `input → output` مستقلة.
+
+### 8.2 أركان العملية الجبرية كما هي منفذة في النواة
+
+| الركن الجبري       | تمثيله في `src/qiyas_core/`                                |
+| ------------------ | ---------------------------------------------------------- |
+| المجال (Domain)    | `QiyasContext.layer`, `QiyasRule.layer`                    |
+| الأصل (Asl)        | `QiyasRequest.asl: QiyasNodeRef`                           |
+| الفرع (Far`)       | `QiyasRequest.far: QiyasNodeRef`                           |
+| القاعدة            | `QiyasRule`                                                |
+| الوصف المؤثر       | `QiyasRule.required_effective_wasf`                        |
+| العلة الجامعة      | `QiyasRule.required_illah`                                 |
+| الشروط والموانع    | `QiyasRule.required_wadi_gates`                            |
+| الفارق القادح      | `QiyasRule.invalidating_differences`                       |
+| العنصر المحايد     | `QiyasRule.neutral_identity_domain` + حفظ `identity_ids`   |
+| الدليل             | `EvidenceSet`                                              |
+| الرتبة             | `EvidenceRank`, `rank_ceiling`, `minimum_rank()`           |
+| البقايا            | `Residual`, `QiyasAudit`                                   |
+| الأثر              | `trace_ids`                                                |
+| المخرج             | `Candidate` / `CandidateSet`                               |
+| منع القفز          | `QiyasRule.forbidden_outputs` + `Candidate.__post_init__`  |
+
+سلسلة الفحوص الدستورية داخل `QiyasKernel.apply()` (راجع
+`src/qiyas_core/kernel.py`) هي بالترتيب:
+
+```
+context layer
+node types
+asl established
+far determined
+effective wasf
+illah
+wadi gates
+fariq
+defer
+identity
+rank
+forbidden outputs
+```
+
+هذه السلسلة هي الخوارزمية الجبرية نفسها؛ كل بوابة في القسم 7 تمر بها
+بلا استثناء.
+
+### 8.3 العنصر المحايد: حفظ الهوية (Neutral Identity Preservation)
+
+في الجبر، **العنصر المحايد** هو ما يسمح بالعملية دون تغيير هوية الشيء.
+في `qiyas_core` هذا العنصر **ليس صفرًا عدديًا** و**ليس "لا شيء"**، بل
+هو حقل إلزامي على كل قاعدة:
+
+```
+QiyasRule.neutral_identity_domain: str   # إلزامي
+```
+
+و`QiyasRule.__post_init__` يرفض أي قاعدة بلا `neutral_identity_domain`.
+معناه الجبري المحرَّر:
+
+```
+Id_domain(asl, far) = asl.identity ⊕ far.identity
+```
+
+أي أن القاعدة **لا يجوز** أن تقول:
+
+```
+أصل + فرع  →  شيء جديد يبتلع الأصل والفرع
+```
+
+بل **يجب** أن تحفظ الهوية:
+
+```
+identity(asl)  +  identity(far)   ⊆   identity(candidate)
+```
+
+ويظهر هذا الإنفاذ في موضعين متكاملين داخل النواة:
+
+1. **عند الفحص** — `QiyasKernel._check_identity` يشترط وجود هويات على
+   الأصل والفرع، ويمنع اختلاط `identity_ids` بـ`trace_ids` تحت اسم
+   البقية `identity_trace_conflict`.
+2. **عند البناء والتحقق** — عند صنع المرشح:
+
+   ```
+   identity_ids = request.asl.identity_ids + request.far.identity_ids
+   ```
+
+   ثم `QiyasKernel._validate_output` يرفض أي مرشح فقد هويات مصدره.
+
+كذلك `QiyasNodeRef.__post_init__` و`Candidate.__post_init__` يرفضان
+تقاطع `identity_ids` مع `trace_ids` بنيويًا، فلا يمكن إنشاء عقدة أو
+مرشح ينتهك حفظ الهوية أصلًا.
+
+**القانون التشغيلي:**
+
+```
+لا انتقال معتبر إذا فقد المرشح هوية الأصل والفرع،
+ولا انتقال معتبر إذا اختلطت الهوية بالأثر.
+```
+
+### 8.4 الربط (Linkage) كعملية موزعة لا كصنف واحد
+
+لا يوجد في `src/qiyas_core/` صنف باسم `Binding`. الربط الجبري **عقد موزع**
+على أربعة مواضع:
+
+1. **`QiyasRule`** — عقد الربط: `asl_type`, `far_type`,
+   `required_effective_wasf`, `required_illah`, `neutral_identity_domain`.
+2. **`EvidenceSet`** — يثبت `claims` التي ترخص الربط
+   (`asl:established`, `far:determined`, `wasf:*:evidenced`,
+   `illah:*:verified`, `wadi:*:...`)، ولكل دليل `proves`, `rank`,
+   `trace_ids`.
+3. **`QiyasKernel`** — يفحص أن هذا الربط لا يقفز: لا أصل بلا دليل،
+   ولا فرع بلا تعيين، ولا وصف بلا `evidence`، ولا علة بلا `verification`،
+   ولا رتبة فوق أضعف دليل.
+4. **`Candidate`** — يحفظ الناتج كمرشح فقط (`CandidateOnly`)،
+   ويمنع `FinalMeaning`/`RealityClaim`/`HukmCandidate` عبر
+   `forbidden_outputs` و`__post_init__`.
+
+### 8.5 معنى "جبر كامل كنواة"
+
+تُقرأ عبارة "النواة الدستورية كاملة" بمعنى دقيق:
+
+```
+الجبر كامل كنواة قياس:
+  - يحتوي كل أركان العملية الجبرية (راجع جدول 8.2).
+  - يفرض العنصر المحايد بنيويًا (راجع 8.3).
+  - يفرض المخرج الوحيد المسموح: CandidateSet.
+
+والجبر العربي الكامل لم تُستأنف طبقاته canonical بعد:
+  - المثال الكنوني الوحيد حاليًا هو UnicodeLayerAdapter.
+  - بقية الطبقات (Jamid, Mushtaqq, Wazn, Wadh, Dalalah, Ifadah,
+    Hukm, Tanzil…) عقود في هذا الملف، لا تنفيذ canonical في src/.
+```
+
+هذا هو **التصحيح الدستوري**: الكمال هنا كمالُ نواة، لا كمالُ طبقات.
+
+### 8.6 شكل التطبيق المُلزِم لكل طبقة لاحقة
+
+أي طبقة تُنفَّذ مستقبلًا تحت أي بوابة من بوابات القسم 7 يجب أن تُصاغ
+بهذه الصورة، بلا استثناء:
+
+```
+request = QiyasRequest(
+    rule=RULE,                       # عقد الربط
+    asl=asl_node,                    # أصل بهوية محفوظة
+    far=far_node,                    # فرع بهوية محفوظة
+    evidence=evidence_set,           # دليل بـ proves/rank/trace
+    context=QiyasContext(layer=RULE.layer),
+)
+
+candidate_set = QiyasKernel().apply(request)
+```
+
+ويُمنع منعًا دستوريًا:
+
+```
+- كتابة دالة تعيد "meaning" أو "answer" مباشرة.
+- إنتاج Hukm أو FinalMeaning أو RealityClaim من طبقة لا ترخصه.
+- بناء قاعدة بلا neutral_identity_domain.
+- بناء مرشح يتقاطع فيه identity_ids مع trace_ids.
+- تجاوز سلسلة فحوص kernel أو الالتفاف عليها.
+```
+
+والمسموح الوحيد:
+
+```
+بناء Adapter يصوغ (أصل، فرع، دليل) ثم يُمرر الطلب إلى QiyasKernel،
+ويترك للنواة قرار accepted / deferred / blocked.
+```
+
+### 8.7 المثال الكنوني الحالي
+
+`UnicodeLayerAdapter` (في `src/qiyas_core/unicode_adapter.py`) هو
+التطبيق الكنوني الوحيد لهذا الجبر حتى الآن: يبني الأصل
+(`Arabic Unicode Block` بهوية `identity:arabic_unicode_block`) والفرع
+(`InputCodepoint` بهوية `identity:codepoint:<hex>`)، ثم `EvidenceSet`،
+ثم يمرر الطلب إلى `QiyasKernel`. عند `codepoint` غير عربي يضيف
+`fariq:non_arabic_codepoint:present` فيمنع kernel النتيجة. هذا هو
+المعنى الدقيق لـ "Arabic Unicode membership as Qiyas operation":
+
+```
+أصل + فرع + دليل + علة + شروط + لا مانع  →  مرشح انتماء
+```
+
+كل طبقة جديدة يجب أن تُحاكي هذا الشكل، لا أن تُخالفه.
+
+### 8.8 الصياغة المعتمدة (Reference Statement)
+
+تُعتمد الصياغتان التاليتان مرجعًا عند توثيق النواة للمبرمج:
+
+```
+qiyas_core is a complete algebraic kernel for governed qiyas:
+it preserves identity as the neutral element,
+uses evidence as licensed force,
+residuals as blockers/deferments,
+rank as transition ceiling,
+and CandidateSet as the only allowed output.
+```
+
+```
+qiyas_core نواة جبرية كاملة للقياس المحكوم:
+العنصر المحايد فيها هو حفظ الهوية،
+والدليل هو قوة الترخيص،
+والبقايا هي موانع أو مؤجلات،
+والرتبة سقف الانتقال،
+والمخرج الوحيد هو مرشح لا حكم نهائي.
+```
+
+---
+
+## 9. قاموس المصطلحات (Glossary — AR/EN)
 
 | العربية                  | الإنجليزية              | تعريف موجز                                                                  |
 | ------------------------ | ----------------------- | --------------------------------------------------------------------------- |
@@ -683,7 +918,7 @@ WeakLink = HypothesisGenerator only
 
 ---
 
-## 9. تصريح ختامي (Non-Implementation Declaration)
+## 10. تصريح ختامي (Non-Implementation Declaration)
 
 ```
 هذا الملف عقدٌ، لا تنفيذٌ.
