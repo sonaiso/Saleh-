@@ -1,11 +1,21 @@
 # qiyas_core canonical rules (PR #1)
 # All pre-constitutional rules moved to experimental/ per Path A isolation
-# TYPED_CODEPOINT_CLASSIFICATION added as first constitutional rule after unicode (PR #20)
+# TypedCodePoint rules: 5 canonical rules for type-specific classification (PR #24)
 
-from .typed_codepoint_rules import TYPED_CODEPOINT_CLASSIFICATION
+from .typed_codepoint_rules import (
+    LETTER_CODEPOINT_CLASSIFICATION,
+    HARAKA_CODEPOINT_CLASSIFICATION,
+    BOUNDARY_CODEPOINT_CLASSIFICATION,
+    PUNCTUATION_CODEPOINT_CLASSIFICATION,
+    RESIDUAL_CODEPOINT_CLASSIFICATION,
+)
 from .unicode_rules import UNICODE_ARABIC_MEMBERSHIP
 
 __all__ = [
-    "TYPED_CODEPOINT_CLASSIFICATION",
+    "LETTER_CODEPOINT_CLASSIFICATION",
+    "HARAKA_CODEPOINT_CLASSIFICATION",
+    "BOUNDARY_CODEPOINT_CLASSIFICATION",
+    "PUNCTUATION_CODEPOINT_CLASSIFICATION",
+    "RESIDUAL_CODEPOINT_CLASSIFICATION",
     "UNICODE_ARABIC_MEMBERSHIP",
 ]

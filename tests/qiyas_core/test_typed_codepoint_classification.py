@@ -24,7 +24,13 @@ from unittest.mock import MagicMock, patch
 from qiyas_core.candidate import Candidate
 from qiyas_core.enums import CandidateStatus, EvidenceRank
 from qiyas_core.kernel import QiyasKernel
-from qiyas_core.rules.typed_codepoint_rules import TYPED_CODEPOINT_CLASSIFICATION
+from qiyas_core.rules.typed_codepoint_rules import (
+    LETTER_CODEPOINT_CLASSIFICATION,
+    HARAKA_CODEPOINT_CLASSIFICATION,
+    BOUNDARY_CODEPOINT_CLASSIFICATION,
+    PUNCTUATION_CODEPOINT_CLASSIFICATION,
+    RESIDUAL_CODEPOINT_CLASSIFICATION,
+)
 from qiyas_core.typed_codepoint_adapter import TypedCodePointLayerAdapter
 
 
@@ -184,53 +190,83 @@ def test_classification_has_trace():
 
 
 def test_typed_codepoint_rule_forbids_atomic_unit():
-    """Test that TypedCodePoint rule forbids AtomicUnitCandidate output."""
-    assert "AtomicUnitCandidate" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid AtomicUnitCandidate output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "AtomicUnitCandidate" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_syllable():
-    """Test that TypedCodePoint rule forbids SyllableCandidate output."""
-    assert "SyllableCandidate" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid SyllableCandidate output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "SyllableCandidate" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_root():
-    """Test that TypedCodePoint rule forbids RootCandidate output."""
-    assert "RootCandidate" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid RootCandidate output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "RootCandidate" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_weight():
-    """Test that TypedCodePoint rule forbids WeightCandidate output."""
-    assert "WeightCandidate" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid WeightCandidate output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "WeightCandidate" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_meaning():
-    """Test that TypedCodePoint rule forbids MeaningCandidate output."""
-    assert "MeaningCandidate" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid MeaningCandidate output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "MeaningCandidate" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_dalalah():
-    """Test that TypedCodePoint rule forbids DalalahCandidate output."""
-    assert "DalalahCandidate" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid DalalahCandidate output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "DalalahCandidate" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_ifadah():
-    """Test that TypedCodePoint rule forbids IfadahCandidate output."""
-    assert "IfadahCandidate" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid IfadahCandidate output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "IfadahCandidate" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_hukm():
-    """Test that TypedCodePoint rule forbids HukmCandidate output."""
-    assert "HukmCandidate" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid HukmCandidate output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "HukmCandidate" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_reality_claim():
-    """Test that TypedCodePoint rule forbids RealityClaim output."""
-    assert "RealityClaim" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid RealityClaim output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "RealityClaim" in rule.forbidden_outputs
 
 
 def test_typed_codepoint_rule_forbids_final_meaning():
-    """Test that TypedCodePoint rule forbids FinalMeaning output."""
-    assert "FinalMeaning" in TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs
+    """Test that TypedCodePoint rules forbid FinalMeaning output."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert "FinalMeaning" in rule.forbidden_outputs
 
 
 def test_classification_multiple_letters():
@@ -426,10 +462,16 @@ def test_classification_uses_kernel_apply_verifiably():
 
 
 def test_typed_codepoint_rule_has_disjoint_union_invalidations():
-    """Test that rule defines invalidating_differences for disjoint union proof."""
-    assert len(TYPED_CODEPOINT_CLASSIFICATION.invalidating_differences) > 0
-    assert "multiple_classes_claimed" in TYPED_CODEPOINT_CLASSIFICATION.invalidating_differences
-    assert "letter_haraka_overlap" in TYPED_CODEPOINT_CLASSIFICATION.invalidating_differences
+    """Test that rules define invalidating_differences for disjoint union proof."""
+    for rule in [LETTER_CODEPOINT_CLASSIFICATION, HARAKA_CODEPOINT_CLASSIFICATION,
+                 BOUNDARY_CODEPOINT_CLASSIFICATION, PUNCTUATION_CODEPOINT_CLASSIFICATION,
+                 RESIDUAL_CODEPOINT_CLASSIFICATION]:
+        assert len(rule.invalidating_differences) > 0
+        assert "multiple_classes_claimed" in rule.invalidating_differences
+
+    # Letter and Haraka specifically check for overlap
+    assert "letter_haraka_overlap" in LETTER_CODEPOINT_CLASSIFICATION.invalidating_differences
+    assert "letter_haraka_overlap" in HARAKA_CODEPOINT_CLASSIFICATION.invalidating_differences
 
 
 def test_letter_candidate_has_no_forbidden_output_flags():
@@ -489,4 +531,199 @@ def test_all_classification_types_prove_specific_evidence():
             f"Codepoint {codepoint:04x} should prove wasf:{expected_wasf}"
         assert f"illah:{expected_illah}:verified" in evidence_proves, \
             f"Codepoint {codepoint:04x} should prove illah:{expected_illah}"
+
+
+# PR #24: Failure tests - rule enforcement
+
+
+def test_letter_rule_requires_is_arabic_letter_wasf():
+    """Test that LETTER_CODEPOINT_CLASSIFICATION requires is_arabic_letter wasf."""
+    assert "is_arabic_letter" in LETTER_CODEPOINT_CLASSIFICATION.required_effective_wasf
+
+
+def test_letter_rule_requires_belongs_to_letter_class_illah():
+    """Test that LETTER_CODEPOINT_CLASSIFICATION requires belongs_to_letter_class illah."""
+    assert "belongs_to_letter_class" in LETTER_CODEPOINT_CLASSIFICATION.required_illah
+
+
+def test_haraka_rule_requires_is_arabic_haraka_wasf():
+    """Test that HARAKA_CODEPOINT_CLASSIFICATION requires is_arabic_haraka wasf."""
+    assert "is_arabic_haraka" in HARAKA_CODEPOINT_CLASSIFICATION.required_effective_wasf
+
+
+def test_haraka_rule_requires_belongs_to_haraka_class_illah():
+    """Test that HARAKA_CODEPOINT_CLASSIFICATION requires belongs_to_haraka_class illah."""
+    assert "belongs_to_haraka_class" in HARAKA_CODEPOINT_CLASSIFICATION.required_illah
+
+
+def test_boundary_rule_requires_is_whitespace_boundary_wasf():
+    """Test that BOUNDARY_CODEPOINT_CLASSIFICATION requires is_whitespace_boundary wasf."""
+    assert "is_whitespace_boundary" in BOUNDARY_CODEPOINT_CLASSIFICATION.required_effective_wasf
+
+
+def test_boundary_rule_requires_belongs_to_boundary_class_illah():
+    """Test that BOUNDARY_CODEPOINT_CLASSIFICATION requires belongs_to_boundary_class illah."""
+    assert "belongs_to_boundary_class" in BOUNDARY_CODEPOINT_CLASSIFICATION.required_illah
+
+
+def test_punctuation_rule_requires_is_arabic_punctuation_wasf():
+    """Test that PUNCTUATION_CODEPOINT_CLASSIFICATION requires is_arabic_punctuation wasf."""
+    assert "is_arabic_punctuation" in PUNCTUATION_CODEPOINT_CLASSIFICATION.required_effective_wasf
+
+
+def test_punctuation_rule_requires_belongs_to_punctuation_class_illah():
+    """Test that PUNCTUATION_CODEPOINT_CLASSIFICATION requires belongs_to_punctuation_class illah."""
+    assert "belongs_to_punctuation_class" in PUNCTUATION_CODEPOINT_CLASSIFICATION.required_illah
+
+
+def test_residual_rule_requires_is_unclassified_codepoint_wasf():
+    """Test that RESIDUAL_CODEPOINT_CLASSIFICATION requires is_unclassified_codepoint wasf."""
+    assert "is_unclassified_codepoint" in RESIDUAL_CODEPOINT_CLASSIFICATION.required_effective_wasf
+
+
+def test_residual_rule_requires_belongs_to_residual_class_illah():
+    """Test that RESIDUAL_CODEPOINT_CLASSIFICATION requires belongs_to_residual_class illah."""
+    assert "belongs_to_residual_class" in RESIDUAL_CODEPOINT_CLASSIFICATION.required_illah
+
+
+def test_letter_rule_blocks_when_specific_letter_wasf_missing():
+    """
+    CRITICAL TEST: LetterCodePoint should NOT be produced if wasf:is_arabic_letter is missing.
+
+    This tests that the rule requirement is enforced by QiyasKernel, not just that
+    evidence happens to contain the wasf.
+    """
+    from qiyas_core.evidence import Evidence, EvidenceSet
+    from qiyas_core.kernel import QiyasContext, QiyasRequest
+    from qiyas_core.node import QiyasNodeRef
+    import uuid
+
+    kernel = QiyasKernel()
+    codepoint = 0x0628  # ب (Arabic letter Ba)
+
+    # Build evidence WITHOUT type-specific wasf:is_arabic_letter
+    # Only include generic wasf:is_classifiable_codepoint
+    proves = [
+        "asl:established",
+        "far:determined",
+        "wasf:is_classifiable_codepoint:evidenced",  # Generic only - MISSING is_arabic_letter!
+        "illah:belongs_to_typed_domain:verified",
+        "illah:belongs_to_letter_class:verified",
+        "wadi:sabab:established",
+        "wadi:shart:satisfied",
+        "wadi:mani:absent",
+        "wadi:sihha:valid",
+        "wadi:fasad:absent",
+        "wadi:butlan:absent",
+    ]
+
+    evidence = EvidenceSet(
+        items=(
+            Evidence(
+                evidence_id=f"ev:test:{uuid.uuid4().hex[:8]}",
+                source_layer="TypedCodePointClassificationQiyas",
+                proves=tuple(proves),
+                rank=EvidenceRank.FORM,
+                trace_ids=("test:missing_wasf",),
+            ),
+        )
+    )
+
+    asl = QiyasNodeRef(
+        node_id="asl:typed_codepoint_classification_domain",
+        node_type="TypedCodePointClassificationDomain",
+        identity_ids=("identity:typed_codepoint_domain",),
+        trace_ids=("test:asl",),
+        rank=EvidenceRank.FORM,
+    )
+
+    far = QiyasNodeRef(
+        node_id=f"far:unicode_candidate:{codepoint:04x}",
+        node_type="UnicodeCandidate",
+        identity_ids=(f"identity:codepoint:{codepoint:04x}",),
+        trace_ids=("test:far",),
+        rank=EvidenceRank.FORM,
+    )
+
+    request = QiyasRequest(
+        rule=LETTER_CODEPOINT_CLASSIFICATION,  # Uses rule that REQUIRES is_arabic_letter
+        asl=asl,
+        far=far,
+        evidence=evidence,
+        context=QiyasContext(layer="TypedCodePointClassificationQiyas"),
+    )
+
+    result = kernel.apply(request)
+
+    # The request should be BLOCKED because wasf:is_arabic_letter is missing
+    assert len(result.accepted) == 0, "LetterCodePoint should NOT be produced when is_arabic_letter wasf is missing"
+    assert len(result.blocked) > 0, "Request should be blocked when required wasf is missing"
+
+
+def test_haraka_rule_blocks_when_specific_haraka_wasf_missing():
+    """
+    CRITICAL TEST: HarakaCodePoint should NOT be produced if wasf:is_arabic_haraka is missing.
+    """
+    from qiyas_core.evidence import Evidence, EvidenceSet
+    from qiyas_core.kernel import QiyasContext, QiyasRequest
+    from qiyas_core.node import QiyasNodeRef
+    import uuid
+
+    kernel = QiyasKernel()
+    codepoint = 0x064E  # Fatha
+
+    proves = [
+        "asl:established",
+        "far:determined",
+        "wasf:is_classifiable_codepoint:evidenced",  # Generic only - MISSING is_arabic_haraka!
+        "illah:belongs_to_typed_domain:verified",
+        "illah:belongs_to_haraka_class:verified",
+        "wadi:sabab:established",
+        "wadi:shart:satisfied",
+        "wadi:mani:absent",
+        "wadi:sihha:valid",
+        "wadi:fasad:absent",
+        "wadi:butlan:absent",
+    ]
+
+    evidence = EvidenceSet(
+        items=(
+            Evidence(
+                evidence_id=f"ev:test:{uuid.uuid4().hex[:8]}",
+                source_layer="TypedCodePointClassificationQiyas",
+                proves=tuple(proves),
+                rank=EvidenceRank.FORM,
+                trace_ids=("test:missing_wasf",),
+            ),
+        )
+    )
+
+    asl = QiyasNodeRef(
+        node_id="asl:typed_codepoint_classification_domain",
+        node_type="TypedCodePointClassificationDomain",
+        identity_ids=("identity:typed_codepoint_domain",),
+        trace_ids=("test:asl",),
+        rank=EvidenceRank.FORM,
+    )
+
+    far = QiyasNodeRef(
+        node_id=f"far:unicode_candidate:{codepoint:04x}",
+        node_type="UnicodeCandidate",
+        identity_ids=(f"identity:codepoint:{codepoint:04x}",),
+        trace_ids=("test:far",),
+        rank=EvidenceRank.FORM,
+    )
+
+    request = QiyasRequest(
+        rule=HARAKA_CODEPOINT_CLASSIFICATION,
+        asl=asl,
+        far=far,
+        evidence=evidence,
+        context=QiyasContext(layer="TypedCodePointClassificationQiyas"),
+    )
+
+    result = kernel.apply(request)
+
+    assert len(result.accepted) == 0, "HarakaCodePoint should NOT be produced when is_arabic_haraka wasf is missing"
+    assert len(result.blocked) > 0, "Request should be blocked when required wasf is missing"
 
