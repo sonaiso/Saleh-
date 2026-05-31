@@ -23,6 +23,7 @@ ATOMIC_UNIT_BINDING = QiyasRule(
     required_wadi_gates=ALL_WADI,
     invalidating_differences=(
         "carrier_is_not_arabic_letter",
+        "mark_is_not_arabic_diacritic",
         "mark_without_carrier",
         "carrier_rejects_mark",
     ),

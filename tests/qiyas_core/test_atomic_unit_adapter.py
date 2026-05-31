@@ -475,7 +475,144 @@ def test_multiple_arabic_letters_with_same_mark():
         assert candidate.candidate_type == "AtomicUnitCandidate"
 
 
+def test_ba_plus_latin_a_blocked():
+    """Test that Arabic letter Ba + Latin A is blocked (mark is not a diacritic)."""
+    adapter = AtomicUnitLayerAdapter(kernel=QiyasKernel())
+
+    # U+0628 is Arabic letter Ba (ب)
+    # U+0041 is Latin capital letter A (not a diacritic)
+    result = adapter.process_binding(0x0628, 0x0041)
+
+    assert len(result.blocked) == 1
+    assert len(result.accepted) == 0
+    assert len(result.deferred) == 0
+
+    candidate = result.blocked[0]
+    assert candidate.status == CandidateStatus.BLOCKED
+    assert candidate.candidate_type == "AtomicUnitCandidate"
+    assert candidate.rank == EvidenceRank.ZERO
+
+    # Should have a residual about mark not being a diacritic
+    assert len(candidate.residuals) > 0
+    residual_types = [r.residual_type for r in candidate.residuals]
+    assert "blocking_fariq_present" in residual_types
+
+
+def test_ba_plus_arabic_letter_blocked():
+    """Test that Arabic letter Ba + Arabic letter Ya is blocked (mark is not a diacritic)."""
+    adapter = AtomicUnitLayerAdapter(kernel=QiyasKernel())
+
+    # U+0628 is Arabic letter Ba (ب)
+    # U+064A is Arabic letter Ya (ي) - not a diacritic
+    result = adapter.process_binding(0x0628, 0x064A)
+
+    assert len(result.blocked) == 1
+    assert len(result.accepted) == 0
+
+    candidate = result.blocked[0]
+    assert candidate.status == CandidateStatus.BLOCKED
+    assert candidate.rank == EvidenceRank.ZERO
+
+    # Should have a residual about mark not being a diacritic
+    residual_types = [r.residual_type for r in candidate.residuals]
+    assert "blocking_fariq_present" in residual_types
+
+
+def test_ba_plus_arabic_digit_blocked():
+    """Test that Arabic letter Ba + Arabic digit is blocked (mark is not a diacritic)."""
+    adapter = AtomicUnitLayerAdapter(kernel=QiyasKernel())
+
+    # U+0628 is Arabic letter Ba (ب)
+    # U+0660 is Arabic-Indic digit zero (not a diacritic)
+    result = adapter.process_binding(0x0628, 0x0660)
+
+    assert len(result.blocked) == 1
+    assert len(result.accepted) == 0
+
+    candidate = result.blocked[0]
+    assert candidate.status == CandidateStatus.BLOCKED
+    assert candidate.rank == EvidenceRank.ZERO
+
+    # Should have a residual about mark not being a diacritic
+    residual_types = [r.residual_type for r in candidate.residuals]
+    assert "blocking_fariq_present" in residual_types
+
+
+def test_ba_plus_non_diacritic_codepoint_blocked():
+    """Test that Arabic letter Ba + non-diacritic codepoint is blocked."""
+    adapter = AtomicUnitLayerAdapter(kernel=QiyasKernel())
+
+    # U+0628 is Arabic letter Ba (ب)
+    # U+0020 is space (not a diacritic)
+    result = adapter.process_binding(0x0628, 0x0020)
+
+    assert len(result.blocked) == 1
+    assert len(result.accepted) == 0
+
+    candidate = result.blocked[0]
+    assert candidate.status == CandidateStatus.BLOCKED
+    assert candidate.rank == EvidenceRank.ZERO
+
+    # Should have a residual about mark not being a diacritic
+    residual_types = [r.residual_type for r in candidate.residuals]
+    assert "blocking_fariq_present" in residual_types
+
+
+def test_invalid_mark_blocked_residuals_are_clean():
+    """
+    Test that invalid marks have clean blocking residuals.
+
+    Invalid marks should be blocked due to:
+    - blocking_fariq_present (the fariq: mark_is_not_arabic_diacritic)
+    - effective_wasf_missing (wasf not evidenced for non-diacritic)
+    - shared_illah_missing (illah not verified for non-diacritic)
+
+    But NOT due to wadi failures, since wadi conditions are satisfied.
+    """
+    adapter = AtomicUnitLayerAdapter(kernel=QiyasKernel())
+
+    # U+0628 is Arabic letter Ba (ب)
+    # U+0041 is Latin A (not a diacritic)
+    result = adapter.process_binding(0x0628, 0x0041)
+
+    assert len(result.blocked) == 1
+    candidate = result.blocked[0]
+    assert candidate.status == CandidateStatus.BLOCKED
+
+    # Get all residual types
+    residual_types = [r.residual_type for r in candidate.residuals]
+
+    # Should have fariq blocking
+    assert "blocking_fariq_present" in residual_types, (
+        "Expected blocking_fariq_present in residuals"
+    )
+
+    # Should have wasf and illah missing (genuinely not applicable)
+    assert "effective_wasf_missing" in residual_types, (
+        "Expected effective_wasf_missing in residuals"
+    )
+    assert "shared_illah_missing" in residual_types, (
+        "Expected shared_illah_missing in residuals"
+    )
+
+    # Should NOT have wadi failures (wadi conditions are satisfied)
+    wadi_failure_types = [
+        "wadi_sabab_failed",
+        "wadi_shart_failed",
+        "wadi_mani_failed",
+        "wadi_sihha_failed",
+        "wadi_fasad_failed",
+        "wadi_butlan_failed",
+    ]
+    for wadi_failure in wadi_failure_types:
+        assert wadi_failure not in residual_types, (
+            f"Did not expect {wadi_failure} in residuals for invalid mark. "
+            f"Blocking should be clean: only due to fariq/wasf/illah, not wadi failures."
+        )
+
+
 def test_same_letter_with_different_marks():
+
     """Test that the same Arabic letter can bind with different marks."""
     adapter = AtomicUnitLayerAdapter(kernel=QiyasKernel())
 

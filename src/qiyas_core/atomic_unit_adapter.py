@@ -4,6 +4,7 @@ import uuid
 from .candidate import Candidate, CandidateSet
 from .enums import CandidateStatus, EvidenceRank
 from .evidence import Evidence, EvidenceSet
+from .haraka_adapter import classify_diacritic
 from .kernel import QiyasContext, QiyasKernel, QiyasRequest
 from .node import QiyasNodeRef
 from .rules.atomic_unit_rules import ATOMIC_UNIT_BINDING
@@ -74,9 +75,10 @@ class AtomicUnitLayerAdapter:
 
         # Build evidence based on whether binding is valid
         carrier_is_letter = is_arabic_letter(carrier_codepoint)
+        mark_is_diacritic = classify_diacritic(mark_codepoint) is not None
 
-        if carrier_is_letter:
-            # Valid Arabic letter carrier - all checks pass
+        if carrier_is_letter and mark_is_diacritic:
+            # Valid Arabic letter carrier + valid diacritic mark - all checks pass
             proves = [
                 "asl:established",
                 "far:determined",
@@ -90,8 +92,8 @@ class AtomicUnitLayerAdapter:
                 "wadi:butlan:absent",
             ]
             proves = tuple(proves)
-        else:
-            # Invalid carrier (not an Arabic letter) - establish basics but add fariq
+        elif not carrier_is_letter and not mark_is_diacritic:
+            # Both invalid - establish basics but add both fariq
             proves = (
                 "asl:established",
                 "far:determined",
@@ -102,6 +104,33 @@ class AtomicUnitLayerAdapter:
                 "wadi:fasad:absent",
                 "wadi:butlan:absent",
                 "fariq:carrier_is_not_arabic_letter:present",
+                "fariq:mark_is_not_arabic_diacritic:present",
+            )
+        elif not carrier_is_letter:
+            # Invalid carrier only - establish basics but add fariq
+            proves = (
+                "asl:established",
+                "far:determined",
+                "wadi:sabab:established",
+                "wadi:shart:satisfied",
+                "wadi:mani:absent",
+                "wadi:sihha:valid",
+                "wadi:fasad:absent",
+                "wadi:butlan:absent",
+                "fariq:carrier_is_not_arabic_letter:present",
+            )
+        else:
+            # Invalid mark only - establish basics but add fariq
+            proves = (
+                "asl:established",
+                "far:determined",
+                "wadi:sabab:established",
+                "wadi:shart:satisfied",
+                "wadi:mani:absent",
+                "wadi:sihha:valid",
+                "wadi:fasad:absent",
+                "wadi:butlan:absent",
+                "fariq:mark_is_not_arabic_diacritic:present",
             )
 
         evidence = EvidenceSet(
@@ -154,8 +183,11 @@ class AtomicUnitLayerAdapter:
         """
         Process a binding between existing Candidate objects.
 
-        This method allows binding UnicodeCandidate and HarakaCandidate objects
-        that have already been processed through their respective layers.
+        This method is currently not implemented because it requires extracting
+        and validating the actual codepoint values from the candidates' identity/evidence,
+        which is not yet safely implemented. An accepted UnicodeCandidate does not
+        necessarily mean it's an Arabic letter carrier, and an accepted HarakaCandidate
+        does not necessarily mean it's suitable for atomic binding.
 
         Args:
             carrier: A UnicodeCandidate representing the carrier
@@ -164,70 +196,12 @@ class AtomicUnitLayerAdapter:
 
         Returns:
             CandidateSet with the result of applying ATOMIC_UNIT_BINDING rule
+
+        Raises:
+            NotImplementedError: This method is not yet safely implemented
         """
-        if carrier.candidate_type != "UnicodeCandidate":
-            raise ValueError(f"carrier must be UnicodeCandidate, got {carrier.candidate_type}")
-        if mark.candidate_type != "HarakaCandidate":
-            raise ValueError(f"mark must be HarakaCandidate, got {mark.candidate_type}")
-        if carrier.status != CandidateStatus.ACCEPTED:
-            raise ValueError(f"carrier must be ACCEPTED, got {carrier.status}")
-        if mark.status != CandidateStatus.ACCEPTED:
-            raise ValueError(f"mark must be ACCEPTED, got {mark.status}")
-
-        if not trace_prefix:
-            trace_prefix = f"atomic:from_candidates"
-
-        # Create asl node from carrier candidate
-        asl = QiyasNodeRef(
-            node_id=f"asl:carrier:{carrier.candidate_id}",
-            node_type="UnicodeCandidate",
-            identity_ids=carrier.identity_ids,
-            trace_ids=(f"{trace_prefix}:asl",),
-            rank=carrier.rank,
+        raise NotImplementedError(
+            "process_from_candidates is not yet implemented. "
+            "Use process_binding(carrier_codepoint, mark_codepoint) instead, "
+            "which properly validates both carrier and mark codepoints."
         )
-
-        # Create far node from mark candidate
-        far = QiyasNodeRef(
-            node_id=f"far:mark:{mark.candidate_id}",
-            node_type="HarakaCandidate",
-            identity_ids=mark.identity_ids,
-            trace_ids=(f"{trace_prefix}:far",),
-            rank=mark.rank,
-        )
-
-        # Build evidence - assume valid binding if both candidates are accepted
-        proves = (
-            "asl:established",
-            "far:determined",
-            "wasf:carrier_accepts_mark:evidenced",
-            "illah:licensed_atomic_binding:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
-        )
-
-        evidence = EvidenceSet(
-            items=(
-                Evidence(
-                    evidence_id=f"ev:atomic:from_candidates:{uuid.uuid4().hex[:8]}",
-                    source_layer="AtomicUnitQiyas",
-                    proves=proves,
-                    rank=EvidenceRank.FORM,
-                    trace_ids=(f"{trace_prefix}:ev",),
-                ),
-            )
-        )
-
-        # Build and apply request
-        request = QiyasRequest(
-            rule=ATOMIC_UNIT_BINDING,
-            asl=asl,
-            far=far,
-            evidence=evidence,
-            context=QiyasContext(layer="AtomicUnitQiyas"),
-        )
-
-        return self.kernel.apply(request)
