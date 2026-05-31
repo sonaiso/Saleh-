@@ -28,6 +28,10 @@ def classify_closure_readiness(
 
     Returns:
         ClosureReadiness classification
+
+    Note:
+        Conflicting mabni+murab evidence should be handled by caller
+        and produce a blocking fariq or unknown closure state
     """
     # Closure law: mabni evidence => MABNI_CLOSURE_READY
     if has_mabni_evidence:
@@ -114,10 +118,17 @@ class ClosureReadinessLayerAdapter:
         )
 
         # Classify closure readiness
-        closure = classify_closure_readiness(
-            has_mabni_evidence, has_murab_evidence, has_case_evidence,
-            has_waqf_evidence, has_continuation_evidence
-        )
+        # First check for conflicting evidence
+        if has_mabni_evidence and has_murab_evidence:
+            # Conflicting evidence - cannot determine closure
+            closure = ClosureReadiness.UNKNOWN_CLOSURE
+            has_conflict = True
+        else:
+            closure = classify_closure_readiness(
+                has_mabni_evidence, has_murab_evidence, has_case_evidence,
+                has_waqf_evidence, has_continuation_evidence
+            )
+            has_conflict = False
 
         proves = [
             "asl:established",
@@ -132,20 +143,24 @@ class ClosureReadinessLayerAdapter:
             "wadi:butlan:absent",
         ]
 
+        # Add conflicting evidence fariq if detected
+        if has_conflict:
+            proves.append("fariq:conflicting_mabni_murab_evidence:present")
+
         # Add closure-specific evidence
         if closure == ClosureReadiness.PAUSE_CLOSURE_READY:
             proves.append("wasf:pause_closure_ready:evidenced")
         elif closure == ClosureReadiness.CONTINUATION_CLOSURE_DEFERRED:
-            proves.append("residual:continuation_closure_deferred:deferred")
+            proves.append("defer:continuation_closure_deferred:present")
         elif closure == ClosureReadiness.UNKNOWN_CLOSURE:
             # Unknown closure must be deferred
-            proves.append("residual:unknown_closure_deferred:deferred")
+            proves.append("defer:unknown_closure_deferred:present")
         elif closure == ClosureReadiness.MABNI_CLOSURE_READY:
             # Mabni closure may be structurally stable (if we had evidence)
             proves.append("wasf:mabni_closure_ready:evidenced")
         elif closure == ClosureReadiness.MURAB_CLOSURE_DEFERRED:
             # Muʿrab closure must remain deferred
-            proves.append("residual:murab_closure_deferred:deferred")
+            proves.append("defer:murab_closure_deferred:present")
 
         proves = tuple(proves)
 

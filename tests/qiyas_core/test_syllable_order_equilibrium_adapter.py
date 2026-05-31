@@ -108,6 +108,10 @@ def test_order_equilibrium_blocked_when_left_demand_deferred():
     assert candidate.candidate_type == "SyllableOrderEquilibriumCandidate"
     assert candidate.status == CandidateStatus.BLOCKED
 
+    # Verify blocking_fariq_present residual exists
+    residual_types = {r.residual_type for r in candidate.residuals}
+    assert "blocking_fariq_present" in residual_types
+
 
 def test_order_equilibrium_blocked_when_right_capability_deferred():
     """Order equilibrium must be blocked when right capability is deferred."""

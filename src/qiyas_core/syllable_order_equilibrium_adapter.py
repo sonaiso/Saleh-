@@ -75,14 +75,14 @@ class SyllableOrderEquilibriumLayerAdapter:
             proves.append("wasf:left_demand_resolved:evidenced")
         else:
             # Left demand unresolved - this is an invalidating difference
-            proves.append("diff:left_demand_unresolved:detected")
+            proves.append("fariq:left_demand_unresolved:present")
 
         # Only prove right_capability_resolved if explicitly accepted
         if right_capability_accepted:
             proves.append("wasf:right_capability_resolved:evidenced")
         else:
             # Right capability unresolved - this is an invalidating difference
-            proves.append("diff:right_capability_unresolved:detected")
+            proves.append("fariq:right_capability_unresolved:present")
 
         # Only prove equilibrium and order fit if BOTH are accepted
         if left_demand_accepted and right_capability_accepted:
@@ -90,7 +90,7 @@ class SyllableOrderEquilibriumLayerAdapter:
             proves.append("illah:left_right_order_fit:verified")
         else:
             # Order imbalance - cannot prove equilibrium without both sides
-            proves.append("diff:order_imbalance:detected")
+            proves.append("fariq:order_imbalance:present")
 
         proves = tuple(proves)
 
