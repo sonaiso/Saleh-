@@ -52,3 +52,23 @@ class DiacriticKind(Enum):
     SHADDA = "shadda"  # Gemination/consonant doubling (0651)
     SUKUN = "sukun"  # Vowel absence marker (0652)
     ADDITIONAL = "additional"  # Maddah, hamza variants, etc. (0653-065F)
+
+
+class CarrierFunction(Enum):
+    """Classification of carrier letter phonotactic function."""
+    ARABIC_CONSONANT_CARRIER = "arabic_consonant_carrier"
+    WEAK_LETTER_CARRIER = "weak_letter_carrier"
+    LONG_VOWEL_LETTER = "long_vowel_letter"
+    HAMZA_CARRIER = "hamza_carrier"
+    NON_CARRIER = "non_carrier"
+    UNKNOWN_CARRIER_FUNCTION = "unknown_carrier_function"
+
+
+class MarkFunction(Enum):
+    """Classification of diacritic mark phonotactic function."""
+    SHORT_VOWEL_MARK = "short_vowel_mark"
+    TANWIN_MARK = "tanwin_mark"
+    SUKUN_MARK = "sukun_mark"
+    SHADDA_MARK = "shadda_mark"
+    ADDITIONAL_DIACRITIC_MARK = "additional_diacritic_mark"
+    UNKNOWN_MARK_FUNCTION = "unknown_mark_function"

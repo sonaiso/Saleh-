@@ -1,0 +1,44 @@
+from qiyas_core.enums import EvidenceRank, QiyasPattern, WadiGate
+from qiyas_core.rule import QiyasRule
+
+
+ALL_WADI = (
+    WadiGate.SABAB,
+    WadiGate.SHART,
+    WadiGate.MANI,
+    WadiGate.SIHHA,
+    WadiGate.FASAD,
+    WadiGate.BUTLAN,
+)
+
+
+SYLLABLE_READINESS_VALIDATION = QiyasRule(
+    rule_id="syllable_readiness.validation",
+    layer="SyllableReadinessQiyas",
+    pattern=QiyasPattern.CAPABILITY,
+    asl_type="PhonoFunctionalUnitCandidate",
+    far_type="SyllableContext",
+    required_effective_wasf=("minimal_syllabic_structure",),
+    required_illah=("minimal_syllable_readiness",),
+    required_wadi_gates=ALL_WADI,
+    invalidating_differences=(
+        "mark_without_carrier",
+        "shadda_without_carrier",
+        "initial_sukun",
+        "additional_diacritic_as_vowel",
+        "non_letter_carrier_in_syllable",
+    ),
+    neutral_identity_domain="syllable_readiness_identity",
+    output_candidate_type="SyllableReadinessCandidate",
+    forbidden_outputs=(
+        "SyllableCandidate",
+        "PronunciationCandidate",
+        "DalCandidate",
+        "WordCandidate",
+        "MeaningCandidate",
+        "HukmCandidate",
+        "RealityClaim",
+        "FinalMeaning",
+    ),
+    rank_ceiling=EvidenceRank.FORM,
+)
