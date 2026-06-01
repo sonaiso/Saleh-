@@ -116,10 +116,10 @@ class TestCandidateBoundaries:
             status=CandidateStatus.ACCEPTED,
             layer="AtomicUnitQiyas",  # Wrong layer for this type
             source_rule_id="rule:atomic",
-            asl_id="asl:1",
-            far_id="far:1",
+            asl_id="اصل:1",
+            far_id="فرع:1",
             identity_ids=("id:1",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             residuals=(),
             trace_ids=(),
             output_flags=frozenset(),

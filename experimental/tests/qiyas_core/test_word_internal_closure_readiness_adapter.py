@@ -106,4 +106,4 @@ def test_word_closure_rank_does_not_exceed_form():
 
     assert len(result.candidates) == 1
     candidate = result.candidates[0]
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE

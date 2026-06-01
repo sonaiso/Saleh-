@@ -35,35 +35,35 @@ class PhonotacticEconomyReadinessLayerAdapter:
 
         # Create asl node - representing PhonoFunctionalUnitCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"اصل:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="PhonoFunctionalUnitCandidate",
             identity_ids=(f"identity:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing phonotactic economy context
         far = QiyasNodeRef(
-            node_id=f"far:phono_econ_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"فرع:phono_econ_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="PhonotacticEconomyContext",
             identity_ids=(f"identity:phono_econ_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Minimal phonotactic economy: carrier+mark is sufficient
         # No redundant structure detected at this level
         proves = (
-            "asl:established",
-            "far:determined",
-            "wasf:minimal_phonotactic_economy:evidenced",
-            "illah:phonotactic_economy_sufficient:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:minimal_phonotactic_economy:evidenced",
+            "علة:phonotactic_economy_sufficient:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         )
 
         evidence = EvidenceSet(
@@ -72,7 +72,7 @@ class PhonotacticEconomyReadinessLayerAdapter:
                     evidence_id=f"ev:phono_econ:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="PhonotacticEconomyReadinessQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

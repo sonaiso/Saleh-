@@ -190,12 +190,12 @@ def test_all_layers_preserve_rank_ceiling():
 
     for result in [carrier_result, mark_result, phono_result]:
         candidate = result.accepted[0]
-        assert candidate.rank == EvidenceRank.FORM, \
+        assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE, \
             f"Rank ceiling violated in {candidate.candidate_type}"
 
     # Syllable layer is blocked after PR #10, rank is ZERO
     candidate = syllable_result.blocked[0]
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
 
 def test_all_layers_forbid_syllable_candidate():

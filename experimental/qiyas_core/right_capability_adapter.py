@@ -36,20 +36,20 @@ class RightCapabilityLayerAdapter:
 
         # Create asl node - representing PhonoFunctionalUnitCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"اصل:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="PhonoFunctionalUnitCandidate",
             identity_ids=(f"identity:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing right context
         far = QiyasNodeRef(
-            node_id=f"far:right_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"فرع:right_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="RightContext",
             identity_ids=(f"identity:right_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Analyze right capability based on mark function
@@ -59,33 +59,33 @@ class RightCapabilityLayerAdapter:
         # Short vowels and tanwin allow continuation or closure
         if mark_fn == MarkFunction.SUKUN_MARK:
             proves = (
-                "asl:established",
-                "far:determined",
-                "wasf:right_position_analyzed:evidenced",
-                "wasf:right_continuation_capable:evidenced",
-                "illah:right_capability_determinable:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:right_position_analyzed:evidenced",
+                "وصف:right_continuation_capable:evidenced",
+                "علة:right_capability_determinable:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             )
         else:
             # Short vowels/tanwin: can continue or close
             proves = (
-                "asl:established",
-                "far:determined",
-                "wasf:right_position_analyzed:evidenced",
-                "wasf:right_continuation_capable:evidenced",
-                "wasf:right_closure_capable:evidenced",
-                "illah:right_capability_determinable:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:right_position_analyzed:evidenced",
+                "وصف:right_continuation_capable:evidenced",
+                "وصف:right_closure_capable:evidenced",
+                "علة:right_capability_determinable:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             )
 
         evidence = EvidenceSet(
@@ -94,7 +94,7 @@ class RightCapabilityLayerAdapter:
                     evidence_id=f"ev:right_cap:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="RightCapabilityQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

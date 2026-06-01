@@ -28,37 +28,37 @@ class TestRuleConstitution:
 
     def test_missing_sabab_fails(self):
         """Rules missing SABAB gate must fail"""
-        rule = make_rule_missing_wadi("sabab")
+        rule = make_rule_missing_wadi("cause")
         with pytest.raises(AssertionError, match="Missing.*sabab"):
             assert_wadi_gates_complete(rule)
 
     def test_missing_shart_fails(self):
         """Rules missing SHART gate must fail"""
-        rule = make_rule_missing_wadi("shart")
+        rule = make_rule_missing_wadi("condition")
         with pytest.raises(AssertionError, match="Missing.*shart"):
             assert_wadi_gates_complete(rule)
 
     def test_missing_mani_fails(self):
         """Rules missing MANI gate must fail"""
-        rule = make_rule_missing_wadi("mani")
+        rule = make_rule_missing_wadi("obstacle")
         with pytest.raises(AssertionError, match="Missing.*mani"):
             assert_wadi_gates_complete(rule)
 
     def test_missing_sihha_fails(self):
         """Rules missing SIHHA gate must fail"""
-        rule = make_rule_missing_wadi("sihha")
+        rule = make_rule_missing_wadi("validity")
         with pytest.raises(AssertionError, match="Missing.*sihha"):
             assert_wadi_gates_complete(rule)
 
     def test_missing_fasad_fails(self):
         """Rules missing FASAD gate must fail"""
-        rule = make_rule_missing_wadi("fasad")
+        rule = make_rule_missing_wadi("corruption")
         with pytest.raises(AssertionError, match="Missing.*fasad"):
             assert_wadi_gates_complete(rule)
 
     def test_missing_butlan_fails(self):
         """Rules missing BUTLAN gate must fail"""
-        rule = make_rule_missing_wadi("butlan")
+        rule = make_rule_missing_wadi("nullity")
         with pytest.raises(AssertionError, match="Missing.*butlan"):
             assert_wadi_gates_complete(rule)
 
@@ -103,9 +103,9 @@ class TestRuleConstitution:
 
         # Verify all 6 gates are present
         gates = set(rule.required_wadi_gates)
-        assert WadiGate.SABAB in gates
-        assert WadiGate.SHART in gates
-        assert WadiGate.MANI in gates
-        assert WadiGate.SIHHA in gates
-        assert WadiGate.FASAD in gates
-        assert WadiGate.BUTLAN in gates
+        assert WadiGate.CAUSE in gates
+        assert WadiGate.CONDITION in gates
+        assert WadiGate.OBSTACLE in gates
+        assert WadiGate.VALIDITY in gates
+        assert WadiGate.CORRUPTION in gates
+        assert WadiGate.NULLITY in gates

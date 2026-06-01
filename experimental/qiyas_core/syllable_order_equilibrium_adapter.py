@@ -41,56 +41,56 @@ class SyllableOrderEquilibriumLayerAdapter:
 
         # Create asl node - representing LeftDemandCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:left_demand:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"اصل:left_demand:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="LeftDemandCandidate",
             identity_ids=(f"identity:left_demand:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing RightCapabilityCandidate
         far = QiyasNodeRef(
-            node_id=f"far:right_cap:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"فرع:right_cap:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="RightCapabilityCandidate",
             identity_ids=(f"identity:right_cap:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Order equilibrium requires explicit evidence from both left and right
         # Cannot prove equilibrium automatically - must verify both demands are met
         proves = [
-            "asl:established",
-            "far:determined",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         # Only prove left_demand_resolved if explicitly accepted
         if left_demand_accepted:
-            proves.append("wasf:left_demand_resolved:evidenced")
+            proves.append("وصف:left_demand_resolved:evidenced")
         else:
             # Left demand unresolved - this is an invalidating difference
-            proves.append("fariq:left_demand_unresolved:present")
+            proves.append("فارق:left_demand_unresolved:present")
 
         # Only prove right_capability_resolved if explicitly accepted
         if right_capability_accepted:
-            proves.append("wasf:right_capability_resolved:evidenced")
+            proves.append("وصف:right_capability_resolved:evidenced")
         else:
             # Right capability unresolved - this is an invalidating difference
-            proves.append("fariq:right_capability_unresolved:present")
+            proves.append("فارق:right_capability_unresolved:present")
 
         # Only prove equilibrium and order fit if BOTH are accepted
         if left_demand_accepted and right_capability_accepted:
-            proves.append("wasf:syllable_order_equilibrium:evidenced")
-            proves.append("illah:left_right_order_fit:verified")
+            proves.append("وصف:syllable_order_equilibrium:evidenced")
+            proves.append("علة:left_right_order_fit:verified")
         else:
             # Order imbalance - cannot prove equilibrium without both sides
-            proves.append("fariq:order_imbalance:present")
+            proves.append("فارق:order_imbalance:present")
 
         proves = tuple(proves)
 
@@ -100,7 +100,7 @@ class SyllableOrderEquilibriumLayerAdapter:
                     evidence_id=f"ev:order_eq:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="SyllableOrderEquilibriumQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

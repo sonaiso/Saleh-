@@ -140,7 +140,7 @@ def test_carrier_function_rank_not_exceeds_form():
 
     candidate = result.accepted[0]
     from qiyas_core.enums import EvidenceRank
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_carrier_function_forbidden_outputs_enforced():

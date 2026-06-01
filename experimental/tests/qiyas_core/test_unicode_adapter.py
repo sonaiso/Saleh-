@@ -26,7 +26,7 @@ def test_arabic_letter_ba_produces_accepted_candidate():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "UnicodeCandidate"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
     assert candidate.layer == "UnicodeQiyas"
     assert candidate.source_rule_id == "unicode.arabic.membership"
 
@@ -45,7 +45,7 @@ def test_non_arabic_symbol_produces_blocked_candidate():
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
     assert candidate.candidate_type == "UnicodeCandidate"
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
     # Should have a residual about non-Arabic codepoint
     assert len(candidate.residuals) > 0

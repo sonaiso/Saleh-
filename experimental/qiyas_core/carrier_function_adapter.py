@@ -69,20 +69,20 @@ class CarrierFunctionLayerAdapter:
 
         # Create asl node - representing an AtomicUnitCandidate context
         asl = QiyasNodeRef(
-            node_id=f"asl:atomic_unit:{carrier_codepoint:04x}",
+            node_id=f"اصل:atomic_unit:{carrier_codepoint:04x}",
             node_type="AtomicUnitCandidate",
             identity_ids=(f"identity:atomic_unit:{carrier_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing the carrier codepoint
         far = QiyasNodeRef(
-            node_id=f"far:carrier:{carrier_codepoint:04x}",
+            node_id=f"فرع:carrier:{carrier_codepoint:04x}",
             node_type="CarrierCodepoint",
             identity_ids=(f"identity:carrier:{carrier_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Classify carrier function
@@ -91,41 +91,41 @@ class CarrierFunctionLayerAdapter:
         if carrier_fn == CarrierFunction.NON_CARRIER:
             # Non-carrier: establish basics but add fariq
             proves = (
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
-                "fariq:non_carrier_codepoint:present",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
+                "فارق:non_carrier_codepoint:present",
             )
         else:
             # Valid carrier with determinable function
             proves = [
-                "asl:established",
-                "far:determined",
-                "wasf:carrier_has_phonotactic_role:evidenced",
-                "illah:carrier_function_determinable:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:carrier_has_phonotactic_role:evidenced",
+                "علة:carrier_function_determinable:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             ]
 
             # Add function-specific classification evidence
             if carrier_fn == CarrierFunction.ARABIC_CONSONANT_CARRIER:
-                proves.append("wasf:arabic_consonant_carrier:evidenced")
+                proves.append("وصف:arabic_consonant_carrier:evidenced")
             elif carrier_fn == CarrierFunction.WEAK_LETTER_CARRIER:
-                proves.append("wasf:weak_letter_carrier:evidenced")
+                proves.append("وصف:weak_letter_carrier:evidenced")
                 proves.append("residual:possible_long_vowel_context:deferred")
             elif carrier_fn == CarrierFunction.HAMZA_CARRIER:
-                proves.append("wasf:hamza_carrier:evidenced")
+                proves.append("وصف:hamza_carrier:evidenced")
             elif carrier_fn == CarrierFunction.LONG_VOWEL_LETTER:
-                proves.append("wasf:long_vowel_letter:evidenced")
+                proves.append("وصف:long_vowel_letter:evidenced")
 
             # Add augmentation readiness (not a final judgment)
             if carrier_fn in (CarrierFunction.WEAK_LETTER_CARRIER, CarrierFunction.HAMZA_CARRIER):
@@ -139,7 +139,7 @@ class CarrierFunctionLayerAdapter:
                     evidence_id=f"ev:carrier_fn:{carrier_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="CarrierFunctionQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

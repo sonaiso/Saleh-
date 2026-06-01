@@ -89,20 +89,20 @@ class HarakaLayerAdapter:
 
         # Create asl node representing the Arabic diacritic domain
         asl = QiyasNodeRef(
-            node_id="asl:arabic_diacritic_domain",
+            node_id="اصل:arabic_diacritic_domain",
             node_type="ArabicDiacriticDomain",
             identity_ids=("identity:arabic_diacritic_domain",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node representing the input codepoint
         far = QiyasNodeRef(
-            node_id=f"far:{codepoint:04x}",
+            node_id=f"فرع:{codepoint:04x}",
             node_type="InputCodepoint",
             identity_ids=(f"identity:codepoint:{codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Build evidence based on whether codepoint is a haraka
@@ -112,27 +112,27 @@ class HarakaLayerAdapter:
         if is_haraka:
             # Base proves for all harakat codepoints
             proves = [
-                "asl:established",
-                "far:determined",
-                "wasf:codepoint_is_arabic_combining_mark:evidenced",
-                "illah:belongs_to_haraka_vocalization_domain:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:codepoint_is_arabic_combining_mark:evidenced",
+                "علة:belongs_to_haraka_vocalization_domain:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             ]
 
             # Add kind-specific classification evidence
             if diacritic_kind == DiacriticKind.CORE_HARAKA:
-                proves.append("wasf:core_haraka:evidenced")
+                proves.append("وصف:core_haraka:evidenced")
             elif diacritic_kind == DiacriticKind.SHADDA:
-                proves.append("wasf:shadda_mark:evidenced")
+                proves.append("وصف:shadda_mark:evidenced")
             elif diacritic_kind == DiacriticKind.SUKUN:
-                proves.append("wasf:sukun_mark:evidenced")
+                proves.append("وصف:sukun_mark:evidenced")
             elif diacritic_kind == DiacriticKind.ADDITIONAL:
-                proves.append("wasf:additional_arabic_diacritic:evidenced")
+                proves.append("وصف:additional_arabic_diacritic:evidenced")
 
             proves = tuple(proves)
         else:
@@ -140,15 +140,15 @@ class HarakaLayerAdapter:
             # The fariq (invalidating difference) will block, but wadi conditions are satisfied
             # This keeps blocking clean: only due to domain mismatch, not wadi failures
             proves = (
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
-                "fariq:non_haraka_codepoint:present",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
+                "فارق:non_haraka_codepoint:present",
             )
 
         evidence = EvidenceSet(
@@ -157,7 +157,7 @@ class HarakaLayerAdapter:
                     evidence_id=f"ev:haraka:{codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="HarakaQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

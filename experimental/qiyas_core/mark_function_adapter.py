@@ -77,20 +77,20 @@ class MarkFunctionLayerAdapter:
 
         # Create asl node - representing an AtomicUnitCandidate context
         asl = QiyasNodeRef(
-            node_id=f"asl:atomic_unit:{mark_codepoint:04x}",
+            node_id=f"اصل:atomic_unit:{mark_codepoint:04x}",
             node_type="AtomicUnitCandidate",
             identity_ids=(f"identity:atomic_unit:{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing the mark codepoint
         far = QiyasNodeRef(
-            node_id=f"far:mark:{mark_codepoint:04x}",
+            node_id=f"فرع:mark:{mark_codepoint:04x}",
             node_type="MarkCodepoint",
             identity_ids=(f"identity:mark:{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Classify mark function
@@ -99,46 +99,46 @@ class MarkFunctionLayerAdapter:
         if mark_fn == MarkFunction.UNKNOWN_MARK_FUNCTION:
             # Unknown mark: establish basics but add fariq
             proves = (
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
-                "fariq:mark_function_indeterminate:present",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
+                "فارق:mark_function_indeterminate:present",
             )
         else:
             # Valid mark with determinable function
             proves = [
-                "asl:established",
-                "far:determined",
-                "wasf:mark_has_phonotactic_role:evidenced",
-                "illah:mark_function_determinable:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:mark_has_phonotactic_role:evidenced",
+                "علة:mark_function_determinable:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             ]
 
             # Add function-specific classification evidence
             if mark_fn == MarkFunction.SHORT_VOWEL_MARK:
-                proves.append("wasf:short_vowel_mark:evidenced")
+                proves.append("وصف:short_vowel_mark:evidenced")
             elif mark_fn == MarkFunction.TANWIN_MARK:
-                proves.append("wasf:tanwin_mark:evidenced")
+                proves.append("وصف:tanwin_mark:evidenced")
             elif mark_fn == MarkFunction.SUKUN_MARK:
-                proves.append("wasf:sukun_mark:evidenced")
+                proves.append("وصف:sukun_mark:evidenced")
                 # Sukun may be problematic at word start
                 proves.append("residual:initial_sukun_check:deferred")
             elif mark_fn == MarkFunction.SHADDA_MARK:
-                proves.append("wasf:shadda_mark:evidenced")
+                proves.append("وصف:shadda_mark:evidenced")
                 # Shadda requires carrier validation
                 proves.append("residual:shadda_carrier_validation:deferred")
             elif mark_fn == MarkFunction.ADDITIONAL_DIACRITIC_MARK:
-                proves.append("wasf:additional_diacritic_mark:evidenced")
+                proves.append("وصف:additional_diacritic_mark:evidenced")
                 # Additional marks should not be treated as short vowels
                 proves.append("residual:additional_not_vowel:constraint")
 
@@ -150,7 +150,7 @@ class MarkFunctionLayerAdapter:
                     evidence_id=f"ev:mark_fn:{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="MarkFunctionQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

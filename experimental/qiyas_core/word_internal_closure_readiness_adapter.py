@@ -38,47 +38,47 @@ class WordInternalClosureReadinessLayerAdapter:
 
         # Create asl node - representing LafzInternalClosureReadinessCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:lafz_closure_ready:{trace_prefix}",
+            node_id=f"اصل:lafz_closure_ready:{trace_prefix}",
             node_type="LafzInternalClosureReadinessCandidate",
             identity_ids=(f"identity:lafz_closure_set:{trace_prefix}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing word closure context
         far = QiyasNodeRef(
-            node_id=f"far:word_closure_ctx:{trace_prefix}",
+            node_id=f"فرع:word_closure_ctx:{trace_prefix}",
             node_type="WordClosureContext",
             identity_ids=(f"identity:word_closure_ctx:{trace_prefix}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Build evidence
         proves = [
-            "asl:established",
-            "far:determined",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         # Check if we have lafz closure readiness evidence
         if not lafz_closure_readiness_candidates or len(lafz_closure_readiness_candidates) == 0:
             # Missing lafz closure readiness - this blocks word closure
-            proves.append("fariq:lafz_closure_readiness_missing:present")
+            proves.append("فارق:lafz_closure_readiness_missing:present")
         else:
             # We have lafz closure readiness evidence
-            proves.append("wasf:lafz_closure_readiness_available:evidenced")
+            proves.append("وصف:lafz_closure_readiness_available:evidenced")
 
             # Check word boundary capability
             if has_word_boundary_capability:
-                proves.append("wasf:word_boundary_capability:evidenced")
-                proves.append("wasf:word_internal_closure_ready:evidenced")
-                proves.append("illah:word_internal_closure_fit:verified")
+                proves.append("وصف:word_boundary_capability:evidenced")
+                proves.append("وصف:word_internal_closure_ready:evidenced")
+                proves.append("علة:word_internal_closure_fit:verified")
             else:
                 # Word boundary not established - defer
                 proves.append("defer:word_boundary_pending:present")
@@ -91,7 +91,7 @@ class WordInternalClosureReadinessLayerAdapter:
                     evidence_id=f"ev:word_closure:{trace_prefix}:{uuid.uuid4().hex[:8]}",
                     source_layer="WordInternalClosureReadinessQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

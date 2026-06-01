@@ -29,7 +29,7 @@ def test_ba_plus_fatha_produces_accepted_candidate():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "AtomicUnitCandidate"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
     assert candidate.layer == "AtomicUnitQiyas"
     assert candidate.source_rule_id == "atomic_unit.binding"
 
@@ -49,7 +49,7 @@ def test_ba_plus_damma_produces_accepted_candidate():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "AtomicUnitCandidate"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_ba_plus_kasra_produces_accepted_candidate():
@@ -103,10 +103,10 @@ def test_shadda_evidence_distinct():
     request = adapter.build_request_for_binding(0x0628, 0x0651)
 
     # Verify evidence is established
-    assert request.evidence.proves("asl:established")
-    assert request.evidence.proves("far:determined")
-    assert request.evidence.proves("wasf:carrier_accepts_mark:evidenced")
-    assert request.evidence.proves("illah:licensed_atomic_binding:verified")
+    assert request.evidence.proves("اصل:established")
+    assert request.evidence.proves("فرع:determined")
+    assert request.evidence.proves("وصف:carrier_accepts_mark:evidenced")
+    assert request.evidence.proves("علة:licensed_atomic_binding:verified")
 
 
 def test_latin_carrier_plus_fatha_blocked():
@@ -124,7 +124,7 @@ def test_latin_carrier_plus_fatha_blocked():
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
     assert candidate.candidate_type == "AtomicUnitCandidate"
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
     # Should have a residual about carrier not being Arabic letter
     assert len(candidate.residuals) > 0
@@ -145,7 +145,7 @@ def test_arabic_digit_plus_fatha_blocked():
 
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
 
 def test_additional_diacritic_not_treated_as_core_haraka():
@@ -391,7 +391,7 @@ def test_rank_ceiling_is_form():
         candidate = result.accepted[0]
 
         # Rank must not exceed FORM
-        assert candidate.rank == EvidenceRank.FORM, (
+        assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE, (
             f"Binding {carrier:04x}+{mark:04x} has rank {candidate.rank}, expected FORM"
         )
 
@@ -404,16 +404,16 @@ def test_evidence_claims_for_valid_binding():
     request = adapter.build_request_for_binding(0x0628, 0x064E)
 
     # Verify all required claims are present
-    assert request.evidence.proves("asl:established")
-    assert request.evidence.proves("far:determined")
-    assert request.evidence.proves("wasf:carrier_accepts_mark:evidenced")
-    assert request.evidence.proves("illah:licensed_atomic_binding:verified")
-    assert request.evidence.proves("wadi:sabab:established")
-    assert request.evidence.proves("wadi:shart:satisfied")
-    assert request.evidence.proves("wadi:mani:absent")
-    assert request.evidence.proves("wadi:sihha:valid")
-    assert request.evidence.proves("wadi:fasad:absent")
-    assert request.evidence.proves("wadi:butlan:absent")
+    assert request.evidence.proves("اصل:established")
+    assert request.evidence.proves("فرع:determined")
+    assert request.evidence.proves("وصف:carrier_accepts_mark:evidenced")
+    assert request.evidence.proves("علة:licensed_atomic_binding:verified")
+    assert request.evidence.proves("وادي:cause:established")
+    assert request.evidence.proves("وادي:condition:satisfied")
+    assert request.evidence.proves("وادي:obstacle:absent")
+    assert request.evidence.proves("وادي:validity:valid")
+    assert request.evidence.proves("وادي:corruption:absent")
+    assert request.evidence.proves("وادي:nullity:absent")
 
 
 def test_evidence_claims_for_invalid_binding():
@@ -490,7 +490,7 @@ def test_ba_plus_latin_a_blocked():
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
     assert candidate.candidate_type == "AtomicUnitCandidate"
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
     # Should have a residual about mark not being a diacritic
     assert len(candidate.residuals) > 0
@@ -511,7 +511,7 @@ def test_ba_plus_arabic_letter_blocked():
 
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
     # Should have a residual about mark not being a diacritic
     residual_types = [r.residual_type for r in candidate.residuals]
@@ -531,7 +531,7 @@ def test_ba_plus_arabic_digit_blocked():
 
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
     # Should have a residual about mark not being a diacritic
     residual_types = [r.residual_type for r in candidate.residuals]
@@ -551,7 +551,7 @@ def test_ba_plus_non_diacritic_codepoint_blocked():
 
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
     # Should have a residual about mark not being a diacritic
     residual_types = [r.residual_type for r in candidate.residuals]

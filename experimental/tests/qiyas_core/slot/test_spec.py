@@ -61,8 +61,8 @@ def create_minimal_slot_spec() -> SlotSpec:
         ),
         # Policies
         evidence_profile=SlotEvidenceProfile(
-            rank_floor=EvidenceRank.FORM,
-            rank_ceiling=EvidenceRank.QIYAS,
+            rank_floor=EvidenceRank.FORMAL_STRUCTURE,
+            rank_ceiling=EvidenceRank.ANALOGICAL,
             required_evidence_claims=(),
             optional_evidence_claims=(),
             evidence_merge_policy="min",
@@ -90,7 +90,7 @@ def create_minimal_slot_spec() -> SlotSpec:
             closes_on=(),
         ),
         rank_policy=SlotRankPolicy(
-            minimum_required_rank=EvidenceRank.FORM,
+            minimum_required_rank=EvidenceRank.FORMAL_STRUCTURE,
             rank_merge_strategy="min",
             rank_degradation_factors=(),
         ),

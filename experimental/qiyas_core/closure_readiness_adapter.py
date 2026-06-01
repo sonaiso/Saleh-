@@ -101,20 +101,20 @@ class ClosureReadinessLayerAdapter:
 
         # Create asl node - representing PhonoFunctionalUnitCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"اصل:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="PhonoFunctionalUnitCandidate",
             identity_ids=(f"identity:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing closure context
         far = QiyasNodeRef(
-            node_id=f"far:closure_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"فرع:closure_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="ClosureContext",
             identity_ids=(f"identity:closure_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Classify closure readiness
@@ -131,25 +131,25 @@ class ClosureReadinessLayerAdapter:
             has_conflict = False
 
         proves = [
-            "asl:established",
-            "far:determined",
-            "wasf:closure_readiness_analyzed:evidenced",
-            "illah:closure_readiness_determinable:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:closure_readiness_analyzed:evidenced",
+            "علة:closure_readiness_determinable:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         # Add conflicting evidence fariq if detected
         if has_conflict:
-            proves.append("fariq:conflicting_mabni_murab_evidence:present")
+            proves.append("فارق:conflicting_mabni_murab_evidence:present")
 
         # Add closure-specific evidence
         if closure == ClosureReadiness.PAUSE_CLOSURE_READY:
-            proves.append("wasf:pause_closure_ready:evidenced")
+            proves.append("وصف:pause_closure_ready:evidenced")
         elif closure == ClosureReadiness.CONTINUATION_CLOSURE_DEFERRED:
             proves.append("defer:continuation_closure_deferred:present")
         elif closure == ClosureReadiness.UNKNOWN_CLOSURE:
@@ -157,7 +157,7 @@ class ClosureReadinessLayerAdapter:
             proves.append("defer:unknown_closure_deferred:present")
         elif closure == ClosureReadiness.MABNI_CLOSURE_READY:
             # Mabni closure may be structurally stable (if we had evidence)
-            proves.append("wasf:mabni_closure_ready:evidenced")
+            proves.append("وصف:mabni_closure_ready:evidenced")
         elif closure == ClosureReadiness.MURAB_CLOSURE_DEFERRED:
             # Muʿrab closure must remain deferred
             proves.append("defer:murab_closure_deferred:present")
@@ -170,7 +170,7 @@ class ClosureReadinessLayerAdapter:
                     evidence_id=f"ev:closure:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="ClosureReadinessQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

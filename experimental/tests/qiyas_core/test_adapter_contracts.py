@@ -72,17 +72,17 @@ class TestAdapterContracts:
         from tests.qiyas_core.fixtures.evidence import make_evidence_set
 
         blocking_evidence = make_evidence_set(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
-            "fariq:test_diff:present",  # Blocking
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
+            "فارق:test_diff:present",  # Blocking
         )
 
         from qiyas_core.kernel import QiyasRequest, QiyasContext
@@ -111,16 +111,16 @@ class TestAdapterContracts:
         from qiyas_core.kernel import QiyasRequest, QiyasContext
 
         defer_evidence = make_evidence_set(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
             "defer:test_reason:present",  # Deferral
         )
 
@@ -193,10 +193,10 @@ class TestAdapterContracts:
                 status=CandidateStatus.ACCEPTED,
                 layer="TestLayer",
                 source_rule_id="rule:test",
-                asl_id="asl:1",
-                far_id="far:1",
+                asl_id="اصل:1",
+                far_id="فرع:1",
                 identity_ids=("id:1",),
-                rank=EvidenceRank.QIYAS,
+                rank=EvidenceRank.ANALOGICAL,
                 residuals=(),
                 trace_ids=(),
                 output_flags=frozenset(["HukmCandidate"]),  # Forbidden

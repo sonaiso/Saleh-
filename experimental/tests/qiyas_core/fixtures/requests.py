@@ -36,29 +36,29 @@ def make_qiyas_request(
 
     if asl is None:
         asl = make_unicode_node(
-            node_id="asl:test",
+            node_id="اصل:test",
             identity_ids=("id:asl:test",),
         )
 
     if far is None:
         far = make_haraka_node(
-            node_id="far:test",
+            node_id="فرع:test",
             identity_ids=("id:far:test",),
         )
 
     if evidence is None:
         # Create complete evidence with all required claims
         evidence = make_evidence_set(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
             evidence_id="ev:complete",
             source_layer=rule.layer,
         )
@@ -78,7 +78,7 @@ def make_request_with_evidence(
     *claims: str,
     evidence_id: str = "ev:custom",
     rule: QiyasRule | None = None,
-    rank: EvidenceRank = EvidenceRank.QIYAS,
+    rank: EvidenceRank = EvidenceRank.ANALOGICAL,
 ) -> QiyasRequest:
     """Create a QiyasRequest with specific evidence claims.
 

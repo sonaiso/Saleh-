@@ -27,12 +27,12 @@ def test_registry_rejects_rule_missing_wadi_gates():
         far_type="FarType",
         required_effective_wasf=("wasf",),
         required_illah=("illah",),
-        required_wadi_gates=(WadiGate.SABAB,),  # Missing 5 gates
+        required_wadi_gates=(WadiGate.CAUSE,),  # Missing 5 gates
         invalidating_differences=("diff",),
         neutral_identity_domain="domain",
         output_candidate_type="Candidate",
         forbidden_outputs=("HukmCandidate", "RealityClaim", "FinalMeaning"),
-        rank_ceiling=EvidenceRank.QIYAS,
+        rank_ceiling=EvidenceRank.ANALOGICAL,
     )
 
     with pytest.raises(ValidationError, match="Rule must require exactly the six WadiGates"):

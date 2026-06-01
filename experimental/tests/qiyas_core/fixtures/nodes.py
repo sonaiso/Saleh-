@@ -10,7 +10,7 @@ def make_unicode_node(
     *,
     identity_ids: tuple[str, ...] = ("id:unicode:1",),
     trace_ids: tuple[str, ...] = (),
-    rank: EvidenceRank = EvidenceRank.FORM,
+    rank: EvidenceRank = EvidenceRank.FORMAL_STRUCTURE,
 ) -> QiyasNodeRef:
     """Create a UnicodeCandidate node for testing.
 
@@ -39,7 +39,7 @@ def make_haraka_node(
     *,
     identity_ids: tuple[str, ...] = ("id:haraka:1",),
     trace_ids: tuple[str, ...] = (),
-    rank: EvidenceRank = EvidenceRank.FORM,
+    rank: EvidenceRank = EvidenceRank.FORMAL_STRUCTURE,
 ) -> QiyasNodeRef:
     """Create a HarakaCandidate node for testing.
 
@@ -69,7 +69,7 @@ def make_atomic_unit_node(
     *,
     identity_ids: tuple[str, ...] = ("id:atomic:1",),
     trace_ids: tuple[str, ...] = (),
-    rank: EvidenceRank = EvidenceRank.FORM,
+    rank: EvidenceRank = EvidenceRank.FORMAL_STRUCTURE,
 ) -> QiyasNodeRef:
     """Create an AtomicUnitCandidate node for testing.
 

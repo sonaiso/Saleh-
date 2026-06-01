@@ -14,54 +14,54 @@ class TestEvidenceClaimGrammar:
     """Test that evidence claims follow constitutional grammar."""
 
     def test_asl_established_allowed(self):
-        """asl:established claim is allowed"""
-        assert_evidence_claim_grammar("asl:established")
+        """اصل:established claim is allowed"""
+        assert_evidence_claim_grammar("اصل:established")
 
     def test_far_determined_allowed(self):
-        """far:determined claim is allowed"""
-        assert_evidence_claim_grammar("far:determined")
+        """فرع:determined claim is allowed"""
+        assert_evidence_claim_grammar("فرع:determined")
 
     def test_wasf_claims_allowed(self):
-        """wasf:*:evidenced claims are allowed"""
-        assert_evidence_claim_grammar("wasf:carrier_accepts_mark:evidenced")
-        assert_evidence_claim_grammar("wasf:valid_haraka:evidenced")
-        assert_evidence_claim_grammar("wasf:anything:evidenced")
+        """وصف:*:evidenced claims are allowed"""
+        assert_evidence_claim_grammar("وصف:carrier_accepts_mark:evidenced")
+        assert_evidence_claim_grammar("وصف:valid_haraka:evidenced")
+        assert_evidence_claim_grammar("وصف:anything:evidenced")
 
     def test_illah_claims_allowed(self):
-        """illah:*:verified claims are allowed"""
-        assert_evidence_claim_grammar("illah:licensed_atomic_binding:verified")
-        assert_evidence_claim_grammar("illah:phonological_fit:verified")
-        assert_evidence_claim_grammar("illah:anything:verified")
+        """علة:*:verified claims are allowed"""
+        assert_evidence_claim_grammar("علة:licensed_atomic_binding:verified")
+        assert_evidence_claim_grammar("علة:phonological_fit:verified")
+        assert_evidence_claim_grammar("علة:anything:verified")
 
     def test_wadi_sabab_allowed(self):
-        """wadi:sabab:established claim is allowed"""
-        assert_evidence_claim_grammar("wadi:sabab:established")
+        """وادي:cause:established claim is allowed"""
+        assert_evidence_claim_grammar("وادي:cause:established")
 
     def test_wadi_shart_allowed(self):
-        """wadi:shart:satisfied claim is allowed"""
-        assert_evidence_claim_grammar("wadi:shart:satisfied")
+        """وادي:condition:satisfied claim is allowed"""
+        assert_evidence_claim_grammar("وادي:condition:satisfied")
 
     def test_wadi_mani_allowed(self):
-        """wadi:mani:absent claim is allowed"""
-        assert_evidence_claim_grammar("wadi:mani:absent")
+        """وادي:obstacle:absent claim is allowed"""
+        assert_evidence_claim_grammar("وادي:obstacle:absent")
 
     def test_wadi_sihha_allowed(self):
-        """wadi:sihha:valid claim is allowed"""
-        assert_evidence_claim_grammar("wadi:sihha:valid")
+        """وادي:validity:valid claim is allowed"""
+        assert_evidence_claim_grammar("وادي:validity:valid")
 
     def test_wadi_fasad_allowed(self):
-        """wadi:fasad:absent claim is allowed"""
-        assert_evidence_claim_grammar("wadi:fasad:absent")
+        """وادي:corruption:absent claim is allowed"""
+        assert_evidence_claim_grammar("وادي:corruption:absent")
 
     def test_wadi_butlan_allowed(self):
-        """wadi:butlan:absent claim is allowed"""
-        assert_evidence_claim_grammar("wadi:butlan:absent")
+        """وادي:nullity:absent claim is allowed"""
+        assert_evidence_claim_grammar("وادي:nullity:absent")
 
     def test_fariq_claims_allowed(self):
-        """fariq:*:present claims are allowed"""
-        assert_evidence_claim_grammar("fariq:carrier_is_not_arabic_letter:present")
-        assert_evidence_claim_grammar("fariq:mark_is_not_arabic_diacritic:present")
-        assert_evidence_claim_grammar("fariq:anything:present")
+        """فارق:*:present claims are allowed"""
+        assert_evidence_claim_grammar("فارق:carrier_is_not_arabic_letter:present")
+        assert_evidence_claim_grammar("فارق:mark_is_not_arabic_diacritic:present")
+        assert_evidence_claim_grammar("فارق:anything:present")
 
     def test_defer_claims_allowed(self):
         """defer:*:present claims are allowed"""
