@@ -37,5 +37,5 @@ class EvidenceSet:
 
     def minimum_rank(self) -> EvidenceRank:
         if not self.items:
-            return EvidenceRank.ZERO
+            return EvidenceRank.NO_EVIDENCE
         return min((item.rank for item in self.items), key=lambda r: r.value)

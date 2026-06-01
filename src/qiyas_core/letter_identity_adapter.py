@@ -76,15 +76,15 @@ class LetterIdentityLayerAdapter:
             trace_prefix = f"letter_identity:{cp_hex}"
 
         asl = QiyasNodeRef(
-            node_id="asl:letter_identity_domain",
+            node_id="اصل:letter_identity_domain",
             node_type="LetterIdentityDomain",
             identity_ids=("identity:letter_identity_domain",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         far = QiyasNodeRef(
-            node_id=f"far:letter_codepoint:{cp_hex}",
+            node_id=f"فرع:letter_codepoint:{cp_hex}",
             node_type="LetterCodePoint",
             identity_ids=letter_candidate.identity_ids,
             trace_ids=(f"{trace_prefix}:far",),
@@ -93,24 +93,24 @@ class LetterIdentityLayerAdapter:
 
         # Build proves list from the phonetic profile
         proves = [
-            "asl:established",
-            "far:determined",
+            "اصل:established",
+            "فرع:determined",
             # Generic + type-specific wasf
-            "wasf:has_letter_codepoint:evidenced",
-            f"wasf:has_unicode_identity:{cp_hex}:evidenced",
-            f"wasf:has_script_identity:{profile.arabic_name}:evidenced",
-            f"wasf:has_sound_identity:{profile.sound_identity.lower()}:evidenced",
-            f"wasf:has_makhraj:{profile.makhraj.spatial_source.lower()}:evidenced",
+            "وصف:has_letter_codepoint:evidenced",
+            f"وصف:has_unicode_identity:{cp_hex}:evidenced",
+            f"وصف:has_script_identity:{profile.arabic_name}:evidenced",
+            f"وصف:has_sound_identity:{profile.sound_identity.lower()}:evidenced",
+            f"وصف:has_makhraj:{profile.makhraj.spatial_source.lower()}:evidenced",
             # Illah
-            "illah:belongs_to_letter_identity_domain:verified",
-            f"illah:letter_identity_is:{profile.arabic_name}:verified",
+            "علة:belongs_to_letter_identity_domain:verified",
+            f"علة:letter_identity_is:{profile.arabic_name}:verified",
             # Wadi gates
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         evidence = EvidenceSet(
@@ -119,7 +119,7 @@ class LetterIdentityLayerAdapter:
                     evidence_id=f"ev:letter_identity:{cp_hex}:{uuid.uuid4().hex[:8]}",
                     source_layer="LetterIdentityQiyas",
                     proves=tuple(proves),
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )
@@ -161,10 +161,10 @@ class LetterIdentityLayerAdapter:
             status=CandidateStatus.ACCEPTED,
             layer="TypedCodePointClassificationQiyas",
             source_rule_id="typed_codepoint.letter_classification",
-            asl_id="asl:typed_codepoint_classification_domain",
-            far_id=f"far:unicode_candidate:{cp_hex}",
+            asl_id="اصل:typed_codepoint_classification_domain",
+            far_id=f"فرع:unicode_candidate:{cp_hex}",
             identity_ids=(f"identity:codepoint:{cp_hex}",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             residuals=(),
             trace_ids=(f"test:letter_codepoint:{cp_hex}",),
             output_flags=frozenset(),

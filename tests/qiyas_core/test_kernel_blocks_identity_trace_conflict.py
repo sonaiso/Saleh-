@@ -10,16 +10,16 @@ def test_kernel_blocks_identity_trace_conflict():
         far=far,
         evidence=build_evidence(
             proves=(
-                "asl:established",
-                "far:determined",
-                "wasf:shared_wasf:evidenced",
-                "illah:shared_illah:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:shared_wasf:evidenced",
+                "علة:shared_illah:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             )
         ),
     )
@@ -41,16 +41,16 @@ def test_blocked_candidate_from_identity_conflict_has_disjoint_ids():
         far=far,
         evidence=build_evidence(
             proves=(
-                "asl:established",
-                "far:determined",
-                "wasf:shared_wasf:evidenced",
-                "illah:shared_illah:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:shared_wasf:evidenced",
+                "علة:shared_illah:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             )
         ),
     )

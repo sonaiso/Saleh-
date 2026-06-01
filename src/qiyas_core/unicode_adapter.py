@@ -49,20 +49,20 @@ class UnicodeLayerAdapter:
 
         # Create asl node representing the Arabic Unicode block
         asl = QiyasNodeRef(
-            node_id="asl:arabic_unicode_block",
+            node_id="اصل:arabic_unicode_block",
             node_type="ArabicUnicodeBlock",
             identity_ids=("identity:arabic_unicode_block",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node representing the input codepoint
         far = QiyasNodeRef(
-            node_id=f"far:{codepoint:04x}",
+            node_id=f"فرع:{codepoint:04x}",
             node_type="InputCodepoint",
             identity_ids=(f"identity:codepoint:{codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Build evidence based on whether codepoint is Arabic
@@ -71,31 +71,31 @@ class UnicodeLayerAdapter:
         if is_arabic:
             # All checks pass for Arabic codepoints
             proves = (
-                "asl:established",
-                "far:determined",
-                "wasf:unicode_codepoint_in_arabic_range:evidenced",
-                "illah:belongs_to_arabic_script_domain:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:unicode_codepoint_in_arabic_range:evidenced",
+                "علة:belongs_to_arabic_script_domain:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             )
         else:
             # Non-Arabic: establish asl, far, and all wadi conditions
             # The fariq (invalidating difference) will block, but wadi conditions are satisfied
             # This keeps blocking clean: only due to domain mismatch, not wadi failures
             proves = (
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
-                "fariq:non_arabic_codepoint:present",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
+                "فارق:non_arabic_codepoint:present",
             )
 
         evidence = EvidenceSet(
@@ -104,7 +104,7 @@ class UnicodeLayerAdapter:
                     evidence_id=f"ev:unicode:{codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="UnicodeQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

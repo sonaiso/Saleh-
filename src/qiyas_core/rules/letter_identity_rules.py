@@ -14,12 +14,12 @@ from qiyas_core.forbidden_outputs import FORBIDDEN_LETTER_IDENTITY
 from qiyas_core.rule import QiyasRule
 
 _ALL_WADI = (
-    WadiGate.SABAB,
-    WadiGate.SHART,
-    WadiGate.MANI,
-    WadiGate.SIHHA,
-    WadiGate.FASAD,
-    WadiGate.BUTLAN,
+    WadiGate.CAUSE,
+    WadiGate.CONDITION,
+    WadiGate.OBSTACLE,
+    WadiGate.VALIDITY,
+    WadiGate.CORRUPTION,
+    WadiGate.NULLITY,
 )
 
 # ---------------------------------------------------------------------------
@@ -59,7 +59,7 @@ def _make_letter_identity_rule(
         neutral_identity_domain="letter_identity",
         output_candidate_type="LetterIdentityCarrier",
         forbidden_outputs=FORBIDDEN_LETTER_IDENTITY,
-        rank_ceiling=EvidenceRank.FORM,
+        rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
     )
 
 

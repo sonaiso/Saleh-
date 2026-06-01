@@ -18,12 +18,12 @@ def validate_rule(rule: QiyasRule) -> None:
 
     # Enforce all six constitutional WadiGate requirements (exact equality)
     required_gates = {
-        WadiGate.SABAB,
-        WadiGate.SHART,
-        WadiGate.MANI,
-        WadiGate.SIHHA,
-        WadiGate.FASAD,
-        WadiGate.BUTLAN,
+        WadiGate.CAUSE,
+        WadiGate.CONDITION,
+        WadiGate.OBSTACLE,
+        WadiGate.VALIDITY,
+        WadiGate.CORRUPTION,
+        WadiGate.NULLITY,
     }
     actual_gates = set(rule.required_wadi_gates)
 

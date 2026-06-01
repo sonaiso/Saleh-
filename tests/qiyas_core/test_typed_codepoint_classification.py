@@ -43,7 +43,7 @@ def test_classify_baa_returns_letter_codepoint():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "LetterCodePoint"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_classify_fatha_returns_haraka_codepoint():
@@ -55,7 +55,7 @@ def test_classify_fatha_returns_haraka_codepoint():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "HarakaCodePoint"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_classify_space_returns_boundary_codepoint():
@@ -67,7 +67,7 @@ def test_classify_space_returns_boundary_codepoint():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "BoundaryCodePoint"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_classify_arabic_comma_returns_punctuation_codepoint():
@@ -79,7 +79,7 @@ def test_classify_arabic_comma_returns_punctuation_codepoint():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "PunctuationCodePoint"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_classify_unknown_returns_residual_codepoint():
@@ -91,7 +91,7 @@ def test_classify_unknown_returns_residual_codepoint():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "ResidualCodePoint"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_classification_preserves_unicode_identity():
@@ -167,7 +167,7 @@ def test_classification_has_rank():
     result = adapter.classify_codepoint(0x0628)
 
     candidate = result.accepted[0]
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_classification_has_residuals():
@@ -363,10 +363,10 @@ def test_letter_classification_proves_type_specific_wasf():
         status=CandidateStatus.ACCEPTED,
         layer="UnicodeQiyas",
         source_rule_id="unicode.arabic.membership",
-        asl_id="asl:arabic_unicode_block",
-        far_id=f"far:{codepoint:04x}",
+        asl_id="اصل:arabic_unicode_block",
+        far_id=f"فرع:{codepoint:04x}",
         identity_ids=(f"identity:codepoint:{codepoint:04x}",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
         residuals=(),
         trace_ids=(f"test:unicode:{codepoint:04x}",),
         output_flags=frozenset(),
@@ -379,7 +379,7 @@ def test_letter_classification_proves_type_specific_wasf():
     for evidence in request.evidence.items:
         evidence_proves.update(evidence.proves)
 
-    assert "wasf:is_arabic_letter:evidenced" in evidence_proves
+    assert "وصف:is_arabic_letter:evidenced" in evidence_proves
 
 
 def test_haraka_classification_proves_type_specific_illah():
@@ -393,10 +393,10 @@ def test_haraka_classification_proves_type_specific_illah():
         status=CandidateStatus.ACCEPTED,
         layer="UnicodeQiyas",
         source_rule_id="unicode.arabic.membership",
-        asl_id="asl:arabic_unicode_block",
-        far_id=f"far:{codepoint:04x}",
+        asl_id="اصل:arabic_unicode_block",
+        far_id=f"فرع:{codepoint:04x}",
         identity_ids=(f"identity:codepoint:{codepoint:04x}",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
         residuals=(),
         trace_ids=(f"test:unicode:{codepoint:04x}",),
         output_flags=frozenset(),
@@ -408,7 +408,7 @@ def test_haraka_classification_proves_type_specific_illah():
     for evidence in request.evidence.items:
         evidence_proves.update(evidence.proves)
 
-    assert "illah:belongs_to_haraka_class:verified" in evidence_proves
+    assert "علة:belongs_to_haraka_class:verified" in evidence_proves
 
 
 def test_boundary_classification_proves_type_specific_wasf_and_illah():
@@ -422,10 +422,10 @@ def test_boundary_classification_proves_type_specific_wasf_and_illah():
         status=CandidateStatus.ACCEPTED,
         layer="UnicodeQiyas",
         source_rule_id="unicode.arabic.membership",
-        asl_id="asl:arabic_unicode_block",
-        far_id=f"far:{codepoint:04x}",
+        asl_id="اصل:arabic_unicode_block",
+        far_id=f"فرع:{codepoint:04x}",
         identity_ids=(f"identity:codepoint:{codepoint:04x}",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
         residuals=(),
         trace_ids=(f"test:unicode:{codepoint:04x}",),
         output_flags=frozenset(),
@@ -437,8 +437,8 @@ def test_boundary_classification_proves_type_specific_wasf_and_illah():
     for evidence in request.evidence.items:
         evidence_proves.update(evidence.proves)
 
-    assert "wasf:is_whitespace_boundary:evidenced" in evidence_proves
-    assert "illah:belongs_to_boundary_class:verified" in evidence_proves
+    assert "وصف:is_whitespace_boundary:evidenced" in evidence_proves
+    assert "علة:belongs_to_boundary_class:verified" in evidence_proves
 
 
 def test_classification_uses_kernel_apply_verifiably():
@@ -512,10 +512,10 @@ def test_all_classification_types_prove_specific_evidence():
             status=CandidateStatus.ACCEPTED,
             layer="UnicodeQiyas",
             source_rule_id="unicode.arabic.membership",
-            asl_id="asl:arabic_unicode_block",
-            far_id=f"far:{codepoint:04x}",
+            asl_id="اصل:arabic_unicode_block",
+            far_id=f"فرع:{codepoint:04x}",
             identity_ids=(f"identity:codepoint:{codepoint:04x}",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             residuals=(),
             trace_ids=(f"test:unicode:{codepoint:04x}",),
             output_flags=frozenset(),
@@ -527,9 +527,9 @@ def test_all_classification_types_prove_specific_evidence():
         for evidence in request.evidence.items:
             evidence_proves.update(evidence.proves)
 
-        assert f"wasf:{expected_wasf}:evidenced" in evidence_proves, \
+        assert f"وصف:{expected_wasf}:evidenced" in evidence_proves, \
             f"Codepoint {codepoint:04x} should prove wasf:{expected_wasf}"
-        assert f"illah:{expected_illah}:verified" in evidence_proves, \
+        assert f"علة:{expected_illah}:verified" in evidence_proves, \
             f"Codepoint {codepoint:04x} should prove illah:{expected_illah}"
 
 
@@ -604,17 +604,17 @@ def test_letter_rule_blocks_when_specific_letter_wasf_missing():
     # Build evidence WITHOUT type-specific wasf:is_arabic_letter
     # Only include generic wasf:is_classifiable_codepoint
     proves = [
-        "asl:established",
-        "far:determined",
-        "wasf:is_classifiable_codepoint:evidenced",  # Generic only - MISSING is_arabic_letter!
-        "illah:belongs_to_typed_domain:verified",
-        "illah:belongs_to_letter_class:verified",
-        "wadi:sabab:established",
-        "wadi:shart:satisfied",
-        "wadi:mani:absent",
-        "wadi:sihha:valid",
-        "wadi:fasad:absent",
-        "wadi:butlan:absent",
+        "اصل:established",
+        "فرع:determined",
+        "وصف:is_classifiable_codepoint:evidenced",  # Generic only - MISSING is_arabic_letter!
+        "علة:belongs_to_typed_domain:verified",
+        "علة:belongs_to_letter_class:verified",
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
     ]
 
     evidence = EvidenceSet(
@@ -623,26 +623,26 @@ def test_letter_rule_blocks_when_specific_letter_wasf_missing():
                 evidence_id=f"ev:test:{uuid.uuid4().hex[:8]}",
                 source_layer="TypedCodePointClassificationQiyas",
                 proves=tuple(proves),
-                rank=EvidenceRank.FORM,
+                rank=EvidenceRank.FORMAL_STRUCTURE,
                 trace_ids=("test:missing_wasf",),
             ),
         )
     )
 
     asl = QiyasNodeRef(
-        node_id="asl:typed_codepoint_classification_domain",
+        node_id="اصل:typed_codepoint_classification_domain",
         node_type="TypedCodePointClassificationDomain",
         identity_ids=("identity:typed_codepoint_domain",),
         trace_ids=("test:asl",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
 
     far = QiyasNodeRef(
-        node_id=f"far:unicode_candidate:{codepoint:04x}",
+        node_id=f"فرع:unicode_candidate:{codepoint:04x}",
         node_type="UnicodeCandidate",
         identity_ids=(f"identity:codepoint:{codepoint:04x}",),
         trace_ids=("test:far",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
 
     request = QiyasRequest(
@@ -673,17 +673,17 @@ def test_haraka_rule_blocks_when_specific_haraka_wasf_missing():
     codepoint = 0x064E  # Fatha
 
     proves = [
-        "asl:established",
-        "far:determined",
-        "wasf:is_classifiable_codepoint:evidenced",  # Generic only - MISSING is_arabic_haraka!
-        "illah:belongs_to_typed_domain:verified",
-        "illah:belongs_to_haraka_class:verified",
-        "wadi:sabab:established",
-        "wadi:shart:satisfied",
-        "wadi:mani:absent",
-        "wadi:sihha:valid",
-        "wadi:fasad:absent",
-        "wadi:butlan:absent",
+        "اصل:established",
+        "فرع:determined",
+        "وصف:is_classifiable_codepoint:evidenced",  # Generic only - MISSING is_arabic_haraka!
+        "علة:belongs_to_typed_domain:verified",
+        "علة:belongs_to_haraka_class:verified",
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
     ]
 
     evidence = EvidenceSet(
@@ -692,26 +692,26 @@ def test_haraka_rule_blocks_when_specific_haraka_wasf_missing():
                 evidence_id=f"ev:test:{uuid.uuid4().hex[:8]}",
                 source_layer="TypedCodePointClassificationQiyas",
                 proves=tuple(proves),
-                rank=EvidenceRank.FORM,
+                rank=EvidenceRank.FORMAL_STRUCTURE,
                 trace_ids=("test:missing_wasf",),
             ),
         )
     )
 
     asl = QiyasNodeRef(
-        node_id="asl:typed_codepoint_classification_domain",
+        node_id="اصل:typed_codepoint_classification_domain",
         node_type="TypedCodePointClassificationDomain",
         identity_ids=("identity:typed_codepoint_domain",),
         trace_ids=("test:asl",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
 
     far = QiyasNodeRef(
-        node_id=f"far:unicode_candidate:{codepoint:04x}",
+        node_id=f"فرع:unicode_candidate:{codepoint:04x}",
         node_type="UnicodeCandidate",
         identity_ids=(f"identity:codepoint:{codepoint:04x}",),
         trace_ids=("test:far",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
 
     request = QiyasRequest(

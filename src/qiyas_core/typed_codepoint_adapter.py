@@ -144,16 +144,16 @@ class TypedCodePointLayerAdapter:
 
         # Create asl node representing the classification domain
         asl = QiyasNodeRef(
-            node_id="asl:typed_codepoint_classification_domain",
+            node_id="اصل:typed_codepoint_classification_domain",
             node_type="TypedCodePointClassificationDomain",
             identity_ids=("identity:typed_codepoint_domain",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node from unicode_candidate (preserving its identity)
         far = QiyasNodeRef(
-            node_id=f"far:unicode_candidate:{codepoint:04x}",
+            node_id=f"فرع:unicode_candidate:{codepoint:04x}",
             node_type="UnicodeCandidate",
             identity_ids=unicode_candidate.identity_ids,  # Preserve identity!
             trace_ids=(f"{trace_prefix}:far",),
@@ -166,18 +166,18 @@ class TypedCodePointLayerAdapter:
 
         # Build evidence with both generic and type-specific wasf/illah
         proves = [
-            "asl:established",
-            "far:determined",
-            f"wasf:is_classifiable_codepoint:evidenced",  # Generic wasf
-            f"wasf:{wasf}:evidenced",  # Type-specific wasf
-            f"illah:belongs_to_typed_domain:verified",  # Generic illah
-            f"illah:{illah}:verified",  # Type-specific illah
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            f"وصف:is_classifiable_codepoint:evidenced",  # Generic wasf
+            f"وصف:{wasf}:evidenced",  # Type-specific wasf
+            f"علة:belongs_to_typed_domain:verified",  # Generic illah
+            f"علة:{illah}:verified",  # Type-specific illah
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         evidence = EvidenceSet(
@@ -186,7 +186,7 @@ class TypedCodePointLayerAdapter:
                     evidence_id=f"ev:typed:{codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="TypedCodePointClassificationQiyas",
                     proves=tuple(proves),
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )
@@ -257,10 +257,10 @@ class TypedCodePointLayerAdapter:
             status=CandidateStatus.ACCEPTED,
             layer="UnicodeQiyas",
             source_rule_id="unicode.arabic.membership",
-            asl_id="asl:arabic_unicode_block",
-            far_id=f"far:{codepoint:04x}",
+            asl_id="اصل:arabic_unicode_block",
+            far_id=f"فرع:{codepoint:04x}",
             identity_ids=(f"identity:codepoint:{codepoint:04x}",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             residuals=(),
             trace_ids=(f"test:unicode:{codepoint:04x}",),
             output_flags=frozenset(),

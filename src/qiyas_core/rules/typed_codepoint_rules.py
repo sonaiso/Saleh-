@@ -1,31 +1,23 @@
 from qiyas_core.enums import EvidenceRank, QiyasPattern, WadiGate
+from qiyas_core.forbidden_outputs import FORBIDDEN_TYPED_CODEPOINT
 from qiyas_core.rule import QiyasRule
 
 
 ALL_WADI = (
-    WadiGate.SABAB,
-    WadiGate.SHART,
-    WadiGate.MANI,
-    WadiGate.SIHHA,
-    WadiGate.FASAD,
-    WadiGate.BUTLAN,
+    WadiGate.CAUSE,
+    WadiGate.CONDITION,
+    WadiGate.OBSTACLE,
+    WadiGate.VALIDITY,
+    WadiGate.CORRUPTION,
+    WadiGate.NULLITY,
 )
 
 
-FORBIDDEN_TYPED_CODEPOINT_OUTPUTS = (
-    "AtomicUnitCandidate",
-    "SyllableCandidate",
-    "PronunciationCandidate",
-    "RootCandidate",
-    "WeightCandidate",
-    "FormCandidate",
-    "MeaningCandidate",
-    "DalalahCandidate",
-    "IfadahCandidate",
-    "HukmCandidate",
-    "RealityClaim",
-    "FinalMeaning",
-)
+# PR #29 source-of-truth fix: the previous local tuple
+# `FORBIDDEN_TYPED_CODEPOINT` has been removed. Every rule below
+# now uses `FORBIDDEN_TYPED_CODEPOINT` imported from
+# `qiyas_core.forbidden_outputs`, so the global recursion closure
+# (SlotCandidate, SlotGeometry) propagates here automatically.
 
 
 LETTER_CODEPOINT_CLASSIFICATION = QiyasRule(
@@ -50,8 +42,8 @@ LETTER_CODEPOINT_CLASSIFICATION = QiyasRule(
     ),
     neutral_identity_domain="unicode_identity",
     output_candidate_type="LetterCodePoint",
-    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
-    rank_ceiling=EvidenceRank.FORM,
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT,
+    rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )
 
 
@@ -77,8 +69,8 @@ HARAKA_CODEPOINT_CLASSIFICATION = QiyasRule(
     ),
     neutral_identity_domain="unicode_identity",
     output_candidate_type="HarakaCodePoint",
-    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
-    rank_ceiling=EvidenceRank.FORM,
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT,
+    rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )
 
 
@@ -104,8 +96,8 @@ BOUNDARY_CODEPOINT_CLASSIFICATION = QiyasRule(
     ),
     neutral_identity_domain="unicode_identity",
     output_candidate_type="BoundaryCodePoint",
-    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
-    rank_ceiling=EvidenceRank.FORM,
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT,
+    rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )
 
 
@@ -131,8 +123,8 @@ PUNCTUATION_CODEPOINT_CLASSIFICATION = QiyasRule(
     ),
     neutral_identity_domain="unicode_identity",
     output_candidate_type="PunctuationCodePoint",
-    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
-    rank_ceiling=EvidenceRank.FORM,
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT,
+    rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )
 
 
@@ -157,6 +149,6 @@ RESIDUAL_CODEPOINT_CLASSIFICATION = QiyasRule(
     ),
     neutral_identity_domain="unicode_identity",
     output_candidate_type="ResidualCodePoint",
-    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
-    rank_ceiling=EvidenceRank.FORM,
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT,
+    rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )
