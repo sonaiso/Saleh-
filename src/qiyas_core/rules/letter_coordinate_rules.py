@@ -65,6 +65,7 @@ def _make_letter_coordinate_rule(
     emphasis: str,
     invalidating_diffs: tuple[str, ...],
     has_abjad: bool = True,
+    abjad_value: int | None = None,
     morpho_role_bits: str | None = None,
 ) -> QiyasRule:
     """
@@ -74,90 +75,147 @@ def _make_letter_coordinate_rule(
       - Sound identity (phonetic proxy)
       - Makhraj (articulation place)
       - Sifat (voicing, manner, emphasis)
-      - Abjad numeric (if applicable)
+      - Abjad numeric (if applicable) - VALUE-SPECIFIC
       - Morphological role bits (if applicable)
 
     Proves invalidating_differences absence (fariq) in evidence.
 
     Args:
-        letter_name: Lowercase Latin letter name (e.g., \"baa\", \"taa\")
+        letter_name: Lowercase Latin letter name (e.g., "baa", "taa")
         codepoint: Unicode codepoint
-        sound_identity: Phonetic description (e.g., \"VOICED_BILABIAL_STOP\")
-        makhraj: Articulation place (e.g., \"BILABIAL\")
-        voicing: Voice quality (e.g., \"VOICED\")
-        manner: Manner of articulation (e.g., \"STOP\")
-        emphasis: Emphasis (\"EMPHATIC\" or \"NON_EMPHATIC\")
-        invalidating_diffs: Tuple of fariq identifiers (e.g., (\"baa_vs_meem\",))
+        sound_identity: Phonetic description (e.g., "VOICED_BILABIAL_STOP")
+        makhraj: Articulation place (e.g., "BILABIAL")
+        voicing: Voice quality (e.g., "VOICED")
+        manner: Manner of articulation (e.g., "STOP")
+        emphasis: Emphasis ("EMPHATIC" or "NON_EMPHATIC")
+        invalidating_diffs: Tuple of fariq identifiers (e.g., ("baa_vs_meem",))
         has_abjad: Whether letter has Abjad numeric value (default True)
-        morpho_role_bits: Morphological role classification (e.g., \"SAALATAMUUNIIHA\", \"PURE_STEM\")
+        abjad_value: Specific Abjad numeric value (e.g., 2 for BAA)
+        morpho_role_bits: Morphological role classification (e.g., "SAALATAMUUNIIHA", "EXPANDED_MULTI_ROLE")
     """
-    cp_hex = f\"{codepoint:04x}\"
+    cp_hex = f"{codepoint:04x}"
 
     # Build required wasf (inherits identity from Layer 1, adds coordinates)
     required_wasf = [
-        \"has_letter_codepoint\",
-        f\"has_unicode_identity:{cp_hex}\",
-        f\"has_script_identity:{letter_name}\",
-        f\"has_latin_name:{letter_name}\",
+        "has_letter_codepoint",
+        f"has_unicode_identity:{cp_hex}",
+        f"has_script_identity:{letter_name}",
+        f"has_latin_name:{letter_name}",
         # Layer 2 coordinates
-        f\"has_sound_identity:{sound_identity}\",
-        f\"has_makhraj:{makhraj}\",
-        f\"has_voicing:{voicing}\",
-        f\"has_manner:{manner}\",
-        f\"has_emphasis:{emphasis}\",
+        f"has_sound_identity:{sound_identity}",
+        f"has_makhraj:{makhraj}",
+        f"has_voicing:{voicing}",
+        f"has_manner:{manner}",
+        f"has_emphasis:{emphasis}",
     ]
 
     if has_abjad:
-        required_wasf.append(\"has_abjad_coordinate\")
+        required_wasf.append("has_abjad_system:ABJAD")
+        if abjad_value is not None:
+            required_wasf.append(f"has_abjad_value:{abjad_value}")
+        required_wasf.append("abjad_semantic_force:FORBIDDEN")
 
     if morpho_role_bits:
-        required_wasf.append(f\"has_morpho_role:{morpho_role_bits}\")
+        required_wasf.append(f"has_morpho_role:{morpho_role_bits}")
 
     # Build required illah
     required_illah = [
-        \"belongs_to_letter_identity_domain\",
-        f\"letter_identity_is:{letter_name}\",
-        \"belongs_to_letter_coordinate_domain\",
+        "belongs_to_letter_identity_domain",
+        f"letter_identity_is:{letter_name}",
+        "belongs_to_letter_coordinate_domain",
     ]
 
     return QiyasRule(
-        rule_id=f\"letter_coordinate.{letter_name}\",
-        layer=\"ArabicLetterCoordinateQiyas\",
+        rule_id=f"letter_coordinate.{letter_name}",
+        layer="ArabicLetterCoordinateQiyas",
         pattern=QiyasPattern.MEMBERSHIP,
-        asl_type=\"LetterCoordinateDomain\",
-        far_type=\"LetterIdentityCarrier\",
+        asl_type="LetterCoordinateDomain",
+        far_type="LetterIdentityCarrier",
         required_effective_wasf=tuple(required_wasf),
         required_illah=tuple(required_illah),
         required_wadi_gates=ALL_WADI,
         invalidating_differences=invalidating_diffs,
-        neutral_identity_domain=\"letter_coordinate\",
-        output_candidate_type=\"ArabicLetterCoordinateCarrier\",
+        neutral_identity_domain="letter_coordinate",
+        output_candidate_type="ArabicLetterCoordinateCarrier",
         forbidden_outputs=FORBIDDEN_COORDINATE_OUTPUTS,
         rank_ceiling=EvidenceRank.FORM,
     )
 
 
 # ---------------------------------------------------------------------------
-# Placeholder: Coordinate rules will be generated here
-# TODO: Generate all 37+ letter coordinate rules
+# Letter coordinate rules (minimal slice: BAA, TAA, SEEN, KAF)
 # ---------------------------------------------------------------------------
 
-# Example rule for BAA (will be completed in next step)
-# BAA_COORDINATE_RULE = _make_letter_coordinate_rule(
-#     \"baa\", 0x0628, \"VOICED_BILABIAL_STOP\",
-#     \"BILABIAL\", \"VOICED\", \"STOP\", \"NON_EMPHATIC\",
-#     (\"baa_vs_meem\", \"baa_vs_faa\", \"baa_vs_taa\", \"baa_vs_waw\"),
-#     has_abjad=True,
-#     morpho_role_bits=\"PURE_STEM\",
-# )
+# BAA - EXPANDED_MULTI_ROLE
+BAA_COORDINATE_RULE = _make_letter_coordinate_rule(
+    letter_name="baa",
+    codepoint=0x0628,
+    sound_identity="VOICED_BILABIAL_STOP",
+    makhraj="BILABIAL",
+    voicing="VOICED",
+    manner="STOP",
+    emphasis="NON_EMPHATIC",
+    invalidating_diffs=("baa_vs_meem", "baa_vs_faa", "baa_vs_taa", "baa_vs_waw"),
+    has_abjad=True,
+    abjad_value=2,
+    morpho_role_bits="EXPANDED_MULTI_ROLE",
+)
+
+# TAA - SAALATAMUUNIIHA
+TAA_COORDINATE_RULE = _make_letter_coordinate_rule(
+    letter_name="taa",
+    codepoint=0x062A,
+    sound_identity="VOICELESS_DENTAL_STOP",
+    makhraj="DENTAL",
+    voicing="VOICELESS",
+    manner="STOP",
+    emphasis="NON_EMPHATIC",
+    invalidating_diffs=("taa_vs_baa", "taa_vs_daal", "taa_vs_taa_emphatic"),
+    has_abjad=True,
+    abjad_value=400,
+    morpho_role_bits="SAALATAMUUNIIHA",
+)
+
+# SEEN - SAALATAMUUNIIHA
+SEEN_COORDINATE_RULE = _make_letter_coordinate_rule(
+    letter_name="seen",
+    codepoint=0x0633,
+    sound_identity="VOICELESS_ALVEOLAR_FRICATIVE",
+    makhraj="ALVEOLAR",
+    voicing="VOICELESS",
+    manner="FRICATIVE",
+    emphasis="NON_EMPHATIC",
+    invalidating_diffs=("seen_vs_saad", "seen_vs_sheen", "seen_vs_zay"),
+    has_abjad=True,
+    abjad_value=60,
+    morpho_role_bits="SAALATAMUUNIIHA",
+)
+
+# KAF - EXPANDED_MULTI_ROLE
+KAF_COORDINATE_RULE = _make_letter_coordinate_rule(
+    letter_name="kaf",
+    codepoint=0x0643,
+    sound_identity="VOICELESS_VELAR_STOP",
+    makhraj="VELAR",
+    voicing="VOICELESS",
+    manner="STOP",
+    emphasis="NON_EMPHATIC",
+    invalidating_diffs=("kaf_vs_qaf", "kaf_vs_ghayn"),
+    has_abjad=True,
+    abjad_value=20,
+    morpho_role_bits="EXPANDED_MULTI_ROLE",
+)
 
 
 # Map: codepoint → coordinate rule
 LETTER_COORDINATE_RULES: dict[int, QiyasRule] = {
-    # TODO: Populate with all letter coordinate rules
+    0x0628: BAA_COORDINATE_RULE,
+    0x062A: TAA_COORDINATE_RULE,
+    0x0633: SEEN_COORDINATE_RULE,
+    0x0643: KAF_COORDINATE_RULE,
 }
 
 
 def get_letter_coordinate_rule(codepoint: int) -> QiyasRule | None:
-    \"\"\"Return the ArabicLetterCoordinateQiyas rule for the given letter codepoint.\"\"\"
+    """Return the ArabicLetterCoordinateQiyas rule for the given letter codepoint."""
     return LETTER_COORDINATE_RULES.get(codepoint)

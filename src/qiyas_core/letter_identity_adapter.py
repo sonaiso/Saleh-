@@ -9,8 +9,8 @@ This is an INDEPENDENT atomic path that does NOT require:
   - PositionCarrier
   - SlotCandidate
 
-It proves letter identity (BAA, TAA, SEEN, etc.) from LetterCodePoint alone,
-using Unicode identity, script identity, phonetic identity, makhraj, and sifat.
+It proves PURE letter identity (BAA, TAA, SEEN, etc.) from LetterCodePoint alone,
+using ONLY Unicode identity, script identity, and name identity (Latin + Arabic).
 
 Constitutional Compliance:
   - Uses kernel.apply() not execute_qiyas()
@@ -18,7 +18,7 @@ Constitutional Compliance:
   - Uses QiyasNodeRef with identity_ids, trace_ids, rank
   - Preserves identity_ids through transformation
   - Proves invalidating_differences absence in evidence
-  - Separates digital/script/name/phonetic/makhraj/sifat identities
+  - Layer 1 proves ONLY digital/script/name identity (NOT phonetic/makhraj/sifat)
 """
 
 from dataclasses import dataclass
@@ -196,11 +196,17 @@ class LetterIdentityLayerAdapter:
         if not trace_prefix:
             trace_prefix = f"letter_identity:{letter_name.lower()}"
 
-        # Create asl node (letter identity domain)
+        # Build identity_ids for asl node including the proven identities
+        asl_identity_ids = (
+            "identity:letter_identity_domain",
+            f"identity:codepoint:{codepoint:04x}",
+            f"identity:letter:{letter_name}",
+        )
+
         asl = QiyasNodeRef(
             node_id=f"asl:letter_identity_domain:{letter_name.lower()}",
             node_type="LetterIdentityDomain",
-            identity_ids=("identity:letter_identity_domain",),
+            identity_ids=asl_identity_ids,
             trace_ids=(f"{trace_prefix}:asl",),
             rank=EvidenceRank.FORM,
         )
