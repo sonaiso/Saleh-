@@ -231,7 +231,35 @@ _______________
 - [ ] NO experimental files modified (canonical PR)
 - [ ] OR: Experimental files modified because _______________ (must justify)
 
-### 13. Final Verification (MANDATORY)
+### 13. Doc-Code Consistency Check (MANDATORY for governance/documentation PRs)
+
+**If adding or modifying governance documents:**
+
+**Path/API Consistency:**
+- [ ] Every referenced file path exists in canonical code, OR is marked "planned"
+- [ ] Every referenced class/function exists in canonical code, OR is marked "planned"
+- [ ] No parallel APIs created to match stale documentation examples
+
+**Executable Claim Syntax:**
+- [ ] Executable claim strings match QiyasKernel expectations
+- [ ] Arabic-prefixed claims used where required: اصل:/فرع:/وصف:/علة:/وادي:/فارق:/defer:
+- [ ] English terms (fariq/asl/etc.) used only in prose, NOT in executable claim examples
+
+**Data Model Accuracy:**
+- [ ] Pseudo-code matches current dataclass fields
+- [ ] EvidenceSet.items (not .claims or .source)
+- [ ] Evidence.source_layer, Evidence.proves, Evidence.rank, Evidence.trace_ids
+
+**Status Vocabulary:**
+- [ ] Status labels distinguish: Documented / Implemented / Tested / Enforced
+- [ ] Not collapsed into single "canonical" or "needed" label
+
+**Authority Principle:**
+- [ ] Architecture principles govern code meaning
+- [ ] Current canonical code governs API names, file paths, and field names
+- [ ] If docs disagree with code on names, docs updated (not code created to match docs)
+
+### 14. Final Verification (MANDATORY)
 
 - [ ] All above sections completed
 - [ ] All checkboxes checked or justified

@@ -217,10 +217,10 @@ ConceptSet + Evidence + IdentityPreservation → QiyasRule
 **This is the complete architectural ladder:**
 
 ### 0. Governance Layer (Current)
-- Architecture Control Frame ✓
-- Layer Registry ✓
-- Experimental-to-Canonical Map ✓
-- Source-of-Truth Registry (needed)
+- Architecture Control Frame ✓ Documented ✓ Enforced (via PR review)
+- Layer Registry ✓ Documented ✓ Enforced (via PR review)
+- Experimental-to-Canonical Map ✓ Documented ✓ Enforced (via PR review)
+- Source-of-Truth Registry ✓ Documented, ⚠️ Not enforced (manual compliance only)
 
 ### 1. Foundation (Canonical Now)
 - QiyasKernel ✓
@@ -422,11 +422,11 @@ source = LAYER_REGISTRY.md or layer_registry.py
 
 ### Required Before New Layers
 
-1. **PR-A: Architecture Control Frame** ✓ (completed)
-2. **PR-B: Layer Registry** ✓ (completed)
-3. **PR-C: Experimental-to-Canonical Map** ✓ (completed)
-4. **PR-D: Source-of-Truth Registry** (needed)
-5. **PR-E: Full Layer 2 Constitutional Planning** (needed)
+1. **PR-A: Architecture Control Frame** ✓ Documented ✓ Implemented ✓ Enforced
+2. **PR-B: Layer Registry** ✓ Documented ✓ Implemented ✓ Enforced
+3. **PR-C: Experimental-to-Canonical Map** ✓ Documented ✓ Implemented ✓ Enforced
+4. **PR-D: Source-of-Truth Registry** ✓ Documented, ⚠️ Not enforced (manual only)
+5. **PR-E: Full Layer 2 Constitutional Planning** ✓ Documented (FULL_LAYER_2_PLAN.md), ⚠️ Not implemented
 
 ### Then (After Governance Complete)
 

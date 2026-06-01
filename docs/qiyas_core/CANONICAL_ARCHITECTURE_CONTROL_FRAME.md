@@ -134,6 +134,63 @@ Components that exist in canonical src/ but are incomplete:
 
 ---
 
+## 1.5 API Authority Principle
+
+**Governance documents must align with executable code reality.**
+
+### Authority Hierarchy for Names
+
+**Architectural principles govern code meaning:**
+- Layer boundaries, transition requirements, evidence obligations
+- Identity preservation, trace separation, residual handling
+- Algebraic composition rules, rank meet semantics
+
+**Current canonical code governs API names:**
+- File paths, module names, directory structure
+- Class names, function names, dataclass field names
+- Import paths, callable signatures
+
+### The Rule
+
+```
+If governance docs and canonical code disagree on file/class/function names:
+→ Update docs to match code
+→ Do NOT create parallel APIs to satisfy stale docs
+
+Exception: Explicit migration PR changes code after constitutional approval.
+```
+
+### Examples
+
+**Correct:**
+```
+Doc says: src/qiyas_core/systems/abjad_system.py with AbjadSystem class
+Reality: src/qiyas_core/abjad_system.py with get_abjad_coordinate function
+→ Update doc to match reality
+```
+
+**Incorrect:**
+```
+Doc says: src/qiyas_core/systems/abjad_system.py with AbjadSystem class
+Reality: src/qiyas_core/abjad_system.py with get_abjad_coordinate function
+→ Create systems/abjad_system.py with AbjadSystem to match doc ❌ FORBIDDEN
+```
+
+### Rationale
+
+Governance documents are prompts for AI agents. If docs reference non-existent APIs, agents may:
+1. Create parallel implementations to match stale docs (layer duplication)
+2. Use non-functional claim syntax (silent failures)
+3. Misunderstand implementation status
+
+**The correct sequence:**
+1. Constitutional docs define architectural principles
+2. Code implements those principles
+3. Governance docs cite actual file paths, APIs, and field names from code
+4. If migration needed, constitutional approval → code change → doc update
+
+---
+
 ## 2. Duplicate Prevention Table
 
 **This is the most critical section.**
