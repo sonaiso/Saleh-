@@ -169,6 +169,10 @@ class LetterIdentityLayerAdapter:
       - HarakaFunctionCarrier
       - PositionCarrier
       - SlotCandidate
+    Adapter that proves LetterIdentityCarrier for a given LetterCodePoint.
+
+    Constitutional path:
+        LetterCodePoint → [LetterIdentityLayerAdapter] → LetterIdentityCarrier
     """
 
     kernel: QiyasKernel
