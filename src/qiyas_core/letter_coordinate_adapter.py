@@ -140,7 +140,7 @@ def build_letter_coordinate_evidence(
                 evidence_id=f"ev:letter_coordinate:{letter_name}:{uuid.uuid4().hex[:8]}",
                 source_layer="ArabicLetterCoordinateQiyas",
                 proves=tuple(proves),
-                rank=EvidenceRank.FORM,
+                rank=EvidenceRank.FORMAL_STRUCTURE,
                 trace_ids=(f"{trace_prefix}:ev",),
             ),
         )
@@ -242,7 +242,7 @@ class ArabicLetterCoordinateAdapter:
             node_type="LetterCoordinateDomain",
             identity_ids=("identity:letter_coordinate_domain",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Build far node from letter_identity (preserving identity!)
@@ -281,13 +281,30 @@ class ArabicLetterCoordinateAdapter:
         request = self.build_request_for_letter_coordinates(letter_identity, trace_prefix)
 
         if request is None:
-            # Coordinate enrichment not supported yet - return empty
+            # Coordinate enrichment not supported yet - return CandidateSet with residual
+            # Extract codepoint for residual message
+            codepoint_hex = "unknown"
+            for identity_id in letter_identity.identity_ids:
+                if identity_id.startswith("identity:codepoint:"):
+                    codepoint_hex = identity_id.split(":")[-1]
+                    break
+
+            residual = Residual(
+                residual_type="coordinate_enrichment_not_supported",
+                severity=ResidualSeverity.BLOCKER,
+                effect=ResidualEffect.DEFER,
+                message=f"Coordinate enrichment not yet supported for letter U+{codepoint_hex}",
+                source_rule_id="letter_coordinate.unsupported",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"letter_coordinate:{codepoint_hex}:unsupported",),
+            )
+
             return CandidateSet(
-                set_id=f"letter_coordinate:empty:{uuid.uuid4().hex[:8]}",
+                set_id=f"letter_coordinate:unsupported:{uuid.uuid4().hex[:8]}",
                 layer="ArabicLetterCoordinateQiyas",
                 candidates=(),
-                residuals=(),
-                trace_ids=(),
+                residuals=(residual,),
+                trace_ids=(f"letter_coordinate:{codepoint_hex}:deferred",),
             )
 
         # Execute qiyas through kernel.apply() (canonical interface)

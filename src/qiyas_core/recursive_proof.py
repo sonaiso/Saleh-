@@ -135,8 +135,8 @@ LETTER_IDENTITY_CONTRACT = RecursiveProofContract(
         "has_letter_codepoint",
         "has_unicode_identity:{hex}",
         "has_script_identity:{name}",
-        "has_sound_identity:{sound}",
-        "has_makhraj:{place}",
+        "has_latin_name:{name}",
+        "has_arabic_name:{arabic_name}",
     ),
     jami_illah=(
         "belongs_to_letter_identity_domain",
@@ -145,7 +145,7 @@ LETTER_IDENTITY_CONTRACT = RecursiveProofContract(
     invalidating_fariq=(
         "{name}_vs_{other_letter}",
     ),
-    evidence=("phonetic profile proven: makhraj + sifat + sound identity",),
+    evidence=("letter identity proven: unicode + script + latin name + arabic name",),
     identity_preservation=(
         "identity:codepoint:{hex}",
         "identity:letter_identity_domain",
@@ -155,9 +155,56 @@ LETTER_IDENTITY_CONTRACT = RecursiveProofContract(
     forbidden_outputs=(
         "HukmCandidate", "RealityClaim", "FinalMeaning",
         "RootCandidate", "WeightCandidate", "MeaningCandidate",
+        "SlotCandidate", "SlotGeometry",
     ),
     trace=("letter_identity:{hex}:ev",),
     output="LetterIdentityCarrier",
+)
+
+LETTER_COORDINATE_CONTRACT = RecursiveProofContract(
+    layer_name="ArabicLetterCoordinateQiyas",
+    rule_id="letter_coordinate.{arabic_name}",
+    inputs=("LetterIdentityCarrier",),
+    effective_wasf=(
+        # Layer 1 identity (inherited)
+        "has_letter_codepoint",
+        "has_unicode_identity:{hex}",
+        "has_script_identity:{name}",
+        "has_latin_name:{name}",
+        # Layer 2 coordinates (added)
+        "has_sound_identity:{sound}",
+        "has_makhraj:{place}",
+        "has_voicing:{voicing}",
+        "has_manner:{manner}",
+        "has_emphasis:{emphasis}",
+        "has_abjad_system:{system}",
+        "has_abjad_value:{value}",
+        "abjad_semantic_force:FORBIDDEN",
+        "has_morpho_role:{role}",
+    ),
+    jami_illah=(
+        "belongs_to_letter_identity_domain",
+        "letter_identity_is:{name}",
+        "belongs_to_letter_coordinate_domain",
+    ),
+    invalidating_fariq=(
+        "{name}_vs_{other_letter}",
+    ),
+    evidence=("phonetic coordinates proven: sound_identity + makhraj + sifat + abjad + morpho_role + fariq",),
+    identity_preservation=(
+        "identity:codepoint:{hex}",
+        "identity:letter_identity_domain",
+        "identity:letter_coordinate_domain",
+    ),
+    economy=True,
+    minimal_sufficiency=True,
+    forbidden_outputs=(
+        "HukmCandidate", "RealityClaim", "FinalMeaning",
+        "RootCandidate", "WeightCandidate", "MeaningCandidate",
+        "SlotCandidate", "SlotGeometry",
+    ),
+    trace=("letter_coordinate:{hex}:ev",),
+    output="ArabicLetterCoordinateCarrier",
 )
 
 HARAKA_FUNCTION_CONTRACT = RecursiveProofContract(
@@ -266,6 +313,7 @@ SLOT_CONTRACT = RecursiveProofContract(
 PHASE1_CONTRACTS: tuple[RecursiveProofContract, ...] = (
     TYPED_CODEPOINT_CONTRACT,
     LETTER_IDENTITY_CONTRACT,
+    LETTER_COORDINATE_CONTRACT,
     HARAKA_FUNCTION_CONTRACT,
     POSITION_CONTRACT,
     SLOT_CONTRACT,
