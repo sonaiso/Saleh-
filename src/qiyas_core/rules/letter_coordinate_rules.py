@@ -64,7 +64,7 @@ def _make_letter_coordinate_rule(
     manner: str,
     emphasis: str,
     invalidating_diffs: tuple[str, ...],
-    has_abjad: bool = True,
+    abjad_value: int | None = None,
     morpho_role_bits: str | None = None,
 ) -> QiyasRule:
     """
@@ -74,7 +74,7 @@ def _make_letter_coordinate_rule(
       - Sound identity (phonetic proxy)
       - Makhraj (articulation place)
       - Sifat (voicing, manner, emphasis)
-      - Abjad numeric (if applicable)
+      - Abjad numeric value (if applicable)
       - Morphological role bits (if applicable)
 
     Proves invalidating_differences absence (fariq) in evidence.
@@ -88,8 +88,8 @@ def _make_letter_coordinate_rule(
         manner: Manner of articulation (e.g., \"STOP\")
         emphasis: Emphasis (\"EMPHATIC\" or \"NON_EMPHATIC\")
         invalidating_diffs: Tuple of fariq identifiers (e.g., (\"baa_vs_meem\",))
-        has_abjad: Whether letter has Abjad numeric value (default True)
-        morpho_role_bits: Morphological role classification (e.g., \"SAALATAMUUNIIHA\", \"PURE_STEM\")
+        abjad_value: Specific Abjad numeric value (e.g., 2 for BAA)
+        morpho_role_bits: Morphological role classification (e.g., \"SAALATAMUUNIIHA\", \"EXPANDED_MULTI_ROLE\")
     """
     cp_hex = f\"{codepoint:04x}\"
 
@@ -107,8 +107,10 @@ def _make_letter_coordinate_rule(
         f\"has_emphasis:{emphasis}\",
     ]
 
-    if has_abjad:
-        required_wasf.append(\"has_abjad_coordinate\")
+    if abjad_value is not None:
+        required_wasf.append(\"has_abjad_system:ABJAD\")
+        required_wasf.append(f\"has_abjad_value:{abjad_value}\")
+        required_wasf.append(\"abjad_semantic_force:FORBIDDEN\")
 
     if morpho_role_bits:
         required_wasf.append(f\"has_morpho_role:{morpho_role_bits}\")
@@ -145,15 +147,15 @@ BAA_COORDINATE_RULE = _make_letter_coordinate_rule(
     "baa", 0x0628, "VOICED_BILABIAL_STOP",
     "BILABIAL", "VOICED", "STOP", "NON_EMPHATIC",
     ("baa_vs_meem", "baa_vs_faa", "baa_vs_taa", "baa_vs_waw"),
-    has_abjad=True,
-    morpho_role_bits="PURE_STEM",
+    abjad_value=2,
+    morpho_role_bits="EXPANDED_MULTI_ROLE",  # ب has prepositional and root potential
 )
 
 TAA_COORDINATE_RULE = _make_letter_coordinate_rule(
     "taa", 0x062A, "VOICELESS_DENTAL_STOP",
     "DENTAL", "VOICELESS", "STOP", "NON_EMPHATIC",
     ("taa_vs_baa", "taa_vs_thaa", "taa_vs_daal"),
-    has_abjad=True,
+    abjad_value=400,
     morpho_role_bits="SAALATAMUUNIIHA",  # ت is part of سألتمونيها
 )
 
@@ -161,7 +163,7 @@ SEEN_COORDINATE_RULE = _make_letter_coordinate_rule(
     "seen", 0x0633, "VOICELESS_ALVEOLAR_FRICATIVE",
     "ALVEOLAR", "VOICELESS", "FRICATIVE", "NON_EMPHATIC",
     ("seen_vs_sheen", "seen_vs_zay", "seen_vs_saad"),
-    has_abjad=True,
+    abjad_value=60,
     morpho_role_bits="SAALATAMUUNIIHA",  # س is part of سألتمونيها
 )
 
@@ -169,8 +171,8 @@ KAF_COORDINATE_RULE = _make_letter_coordinate_rule(
     "kaf", 0x0643, "VOICELESS_VELAR_STOP",
     "VELAR", "VOICELESS", "STOP", "NON_EMPHATIC",
     ("kaf_vs_qaf", "kaf_vs_gaf"),
-    has_abjad=True,
-    morpho_role_bits="PURE_STEM",
+    abjad_value=20,
+    morpho_role_bits="EXPANDED_MULTI_ROLE",  # ك has similative/pronoun and root potential
 )
 
 

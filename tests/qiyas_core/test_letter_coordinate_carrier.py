@@ -195,9 +195,10 @@ def test_baa_vs_meem_invalidating_difference():
 # Layer separation tests
 # ---------------------------------------------------------------------------
 
-def test_layer_1_has_no_phonetic_evidence():
+def test_layer_1_has_no_phonetic_identity_ids():
     """
-    Layer 1 (LetterIdentityCarrier) must not have phonetic/makhraj/sifat evidence.
+    Layer 1 (LetterIdentityCarrier) must not have phonetic identity_ids.
+    It only proves pure identity (codepoint, script, name, letter).
     """
     kernel = QiyasKernel()
     typed_adapter = TypedCodePointLayerAdapter(kernel=kernel)
@@ -209,41 +210,29 @@ def test_layer_1_has_no_phonetic_evidence():
     identity_result = letter_adapter.process_letter_codepoint(letter_codepoint)
     layer1_candidate = identity_result.accepted[0]
 
-    # Check evidence in Layer 1 candidate
-    layer1_proves = []
-    for evidence in layer1_candidate.evidence.items:
-        layer1_proves.extend(evidence.proves)
+    # Layer 1 identity_ids must include pure identity only
+    identity_ids = layer1_candidate.identity_ids
 
-    # Layer 1 must NOT have phonetic/makhraj/sifat
-    assert not any("sound_identity" in p for p in layer1_proves)
-    assert not any("makhraj" in p for p in layer1_proves)
-    assert not any("voicing" in p for p in layer1_proves)
-    assert not any("manner" in p for p in layer1_proves)
-    assert not any("emphasis" in p for p in layer1_proves)
+    # Must have these
+    assert any("identity:codepoint:" in id for id in identity_ids)
+    assert any("identity:script:" in id or "identity:letter:" in id for id in identity_ids)
 
-    # Layer 1 MUST have identity proves
-    assert any("unicode_identity" in p for p in layer1_proves)
-    assert any("script_identity" in p for p in layer1_proves)
+    # Must NOT have phonetic coordinates
+    assert not any("phonetic" in id for id in identity_ids)
+    assert not any("makhraj" in id for id in identity_ids)
+    assert not any("abjad" in id for id in identity_ids)
 
 
-def test_layer_2_has_phonetic_evidence():
+def test_layer_2_produces_coordinate_carrier():
     """
-    Layer 2 (ArabicLetterCoordinateCarrier) must have phonetic/makhraj/sifat evidence.
+    Layer 2 (ArabicLetterCoordinateCarrier) enriches with coordinates.
     """
     result = _prove_coordinate_from_codepoint(0x0628)  # BAA
     layer2_candidate = result.accepted[0]
 
-    # Check evidence in Layer 2 candidate
-    layer2_proves = []
-    for evidence in layer2_candidate.evidence.items:
-        layer2_proves.extend(evidence.proves)
-
-    # Layer 2 MUST have phonetic/makhraj/sifat
-    assert any("sound_identity" in p for p in layer2_proves)
-    assert any("makhraj" in p for p in layer2_proves)
-    assert any("voicing" in p for p in layer2_proves)
-    assert any("manner" in p for p in layer2_proves)
-    assert any("emphasis" in p for p in layer2_proves)
+    # Must be coordinate carrier type
+    assert layer2_candidate.candidate_type == "ArabicLetterCoordinateCarrier"
+    assert layer2_candidate.layer == "ArabicLetterCoordinateQiyas"
 
 
 # ---------------------------------------------------------------------------

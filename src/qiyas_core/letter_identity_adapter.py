@@ -211,11 +211,17 @@ class LetterIdentityLayerAdapter:
         if not trace_prefix:
             trace_prefix = f"letter_identity:{letter_name.lower()}"
 
-        # Create asl node (letter identity domain)
+        # Create asl node (letter identity domain) with proven identities
         asl = QiyasNodeRef(
             node_id=f"asl:letter_identity_domain:{letter_name.lower()}",
             node_type="LetterIdentityDomain",
-            identity_ids=("identity:letter_identity_domain",),
+            identity_ids=(
+                "identity:letter_identity_domain",
+                f"identity:codepoint:{codepoint:04x}",
+                f"identity:script:{letter_name.lower()}",
+                f"identity:name:{letter_name.lower()}",
+                f"identity:letter:{letter_name.lower()}",
+            ),
             trace_ids=(f"{trace_prefix}:asl",),
             rank=EvidenceRank.FORM,
         )

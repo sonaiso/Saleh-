@@ -78,7 +78,10 @@ def build_letter_coordinate_evidence(
     ]
 
     if abjad_coord is not None:
-        proves.append("wasf:has_abjad_coordinate:evidenced")
+        proves.append(f"wasf:has_abjad_system:{abjad_coord.system}:evidenced")
+        proves.append(f"wasf:has_abjad_value:{abjad_coord.numeric_value}:evidenced")
+        proves.append(f"wasf:abjad_semantic_force:{abjad_coord.semantic_force}:evidenced")
+        proves.append(f"coordinate:abjad:{letter_name}:{abjad_coord.numeric_value}:proven")
 
     # Add illah
     proves.extend([
@@ -249,6 +252,7 @@ class ArabicLetterCoordinateAdapter:
         if request is None:
             # Coordinate enrichment not supported - return DEFERRED with residuals
             from .residual import Residual
+            from .enums import ResidualSeverity, ResidualEffect
 
             # Extract letter info for residual
             letter_info = "unknown"
@@ -257,20 +261,26 @@ class ArabicLetterCoordinateAdapter:
                     letter_info = identity_id.split(":")[-1]
                     break
 
+            trace_id = f"letter_coordinate:deferred:{uuid.uuid4().hex[:8]}"
+
             residuals = (
                 Residual(
-                    residual_id=f"residual:letter_coordinate:deferred:{uuid.uuid4().hex[:8]}",
                     residual_type="letter_coordinate_not_implemented",
-                    blocking_reason=f"Coordinate enrichment not yet implemented for letter: {letter_info}",
-                    source_layer="ArabicLetterCoordinateQiyas",
-                    trace_ids=(f"letter_coordinate:deferred:{uuid.uuid4().hex[:8]}",),
+                    severity=ResidualSeverity.WARNING,
+                    effect=ResidualEffect.DEFER,
+                    message=f"Coordinate enrichment not yet implemented for letter: {letter_info}",
+                    source_rule_id="letter_coordinate.adapter",
+                    layer="ArabicLetterCoordinateQiyas",
+                    trace_ids=(trace_id,),
                 ),
                 Residual(
-                    residual_id=f"residual:phonetic_profile:missing:{uuid.uuid4().hex[:8]}",
                     residual_type="phonetic_profile_missing",
-                    blocking_reason=f"Phonetic profile missing for letter: {letter_info}",
-                    source_layer="ArabicLetterCoordinateQiyas",
-                    trace_ids=(f"phonetic_profile:missing:{uuid.uuid4().hex[:8]}",),
+                    severity=ResidualSeverity.WARNING,
+                    effect=ResidualEffect.DEFER,
+                    message=f"Phonetic profile missing for letter: {letter_info}",
+                    source_rule_id="letter_coordinate.adapter",
+                    layer="ArabicLetterCoordinateQiyas",
+                    trace_ids=(trace_id,),
                 ),
             )
 
@@ -279,7 +289,7 @@ class ArabicLetterCoordinateAdapter:
                 layer="ArabicLetterCoordinateQiyas",
                 candidates=(),
                 residuals=residuals,
-                trace_ids=(f"letter_coordinate:deferred:{uuid.uuid4().hex[:8]}",),
+                trace_ids=(trace_id,),
             )
 
         # Execute qiyas through kernel.apply() (canonical interface)
