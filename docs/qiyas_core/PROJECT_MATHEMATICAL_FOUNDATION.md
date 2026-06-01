@@ -140,9 +140,9 @@ BindSlot:
 **Failure conditions:**
 - Missing alignment evidence → defer:alignment_missing:present
 - Missing position → defer:position_missing:present
-- Letter/haraka conflict → fariq:incompatible_binding:present
+- Letter/haraka conflict → فارق:incompatible_binding:present
 - Missing evidence → defer:insufficient_evidence:present
-- Invalidating difference present → fariq:{difference}:present
+- Invalidating difference present → فارق:{difference}:present
 
 **Success conditions:**
 - identity_ids preserved

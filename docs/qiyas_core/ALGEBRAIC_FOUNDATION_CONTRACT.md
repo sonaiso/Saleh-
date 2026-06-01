@@ -439,7 +439,7 @@ RecursiveProofContract = {
     inputs: Input types,
     effective_wasf: Required wasf claims,
     jami_illah: Required illah claims,
-    invalidating_fariq: Blocking differences,
+    invalidating_فارق: Blocking differences,
     evidence: EvidenceSet,
     identity_preservation: Identity rules,
     economy: Economy check,

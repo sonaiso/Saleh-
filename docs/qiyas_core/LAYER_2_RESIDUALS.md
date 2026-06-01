@@ -52,7 +52,7 @@ defer:script_identity_uncertain:present
   Example: Arabic presentation forms, compatibility characters
   Resolution: Normalize Unicode or defer
 
-fariq:letter_identity_conflict:present
+فارق:letter_identity_conflict:present
   Scope: letter_identity
   Cause: Invalidating difference detected (wrong letter claimed)
   Example: Claimed BAA but codepoint is TAA
@@ -94,7 +94,7 @@ defer:haraka_function_context_dependent:present
   Example: Sukun as closure vs pause
   Resolution: Requires sequence context from ConditionedTypedSequence
 
-fariq:haraka_function_conflict:present
+فارق:haraka_function_conflict:present
   Scope: haraka_function
   Cause: Claimed function contradicts Unicode identity
   Example: Claimed FATHA_OPENING but codepoint is DAMMA
@@ -150,7 +150,7 @@ defer:carrier_binding_incomplete:present
   Example: Shadda without carrier
   Resolution: Block or defer slot formation
 
-fariq:alignment_conflict:present
+فارق:alignment_conflict:present
   Scope: alignment
   Cause: Letter-haraka combination forbidden
   Example: Hamza with tanwin in non-terminal position
@@ -214,7 +214,7 @@ defer:makhraj_coordinate_ambiguous:present
   Example: ج (JEEM) as affricate vs fricative
   Resolution: Specify dialect system or defer
 
-fariq:makhraj_coordinate_conflict:present
+فارق:makhraj_coordinate_conflict:present
   Scope: makhraj_coordinate
   Cause: Assigned makhraj conflicts with letter identity
   Example: Bilabial makhraj claimed for alveolar letter
@@ -236,7 +236,7 @@ defer:sifat_axis_ambiguous:{axis}:present
   Example: Emphasis for ر (RAA) context-dependent
   Resolution: Specify context or defer
 
-fariq:sifat_conflict:present
+فارق:sifat_conflict:present
   Scope: sifat_vector
   Cause: Sifat value contradicts letter identity
   Example: VOICED claimed for inherently voiceless letter
@@ -258,7 +258,7 @@ defer:abjad_system_ambiguous:present
   Example: ج = 3 (eastern) vs 5 (maghrebi)
   Resolution: Specify system or defer
 
-fariq:abjad_semantic_force_violated:present
+فارق:abjad_semantic_force_violated:present
   Scope: abjad_coordinate
   Cause: Attempt to derive meaning from numeric value
   Example: Code tries to generate meaning from BAA=2
@@ -304,29 +304,29 @@ defer:phonetic_proxy_approximate_only:present
 ### General Fariq Pattern
 
 ```
-fariq:{letter1}_vs_{letter2}_{axis}:present
+فارق:{letter1}_vs_{letter2}_{axis}:present
   Scope: fariq_negation
   Cause: Invalidating difference detected between claimed letter and alternative
-  Example: fariq:baa_vs_meem_nasality:present
+  Example: فارق:baa_vs_meem_nasality:present
   Resolution: Identity claim is wrong, correct it
 ```
 
 ### Specific Fariq Examples
 
 ```
-fariq:baa_vs_meem_nasality:present
+فارق:baa_vs_meem_nasality:present
   Cause: Claimed BAA but nasality axis shows NASAL (should be ORAL)
   Resolution: Correct to MEEM
 
-fariq:seen_vs_saad_emphasis:present
+فارق:seen_vs_saad_emphasis:present
   Cause: Claimed SEEN but emphasis axis shows EMPHATIC (should be NON_EMPHATIC)
   Resolution: Correct to SAAD
 
-fariq:taa_vs_taa_emphatic_emphasis:present
+فارق:taa_vs_taa_emphatic_emphasis:present
   Cause: Claimed plain TAA but emphasis axis shows EMPHATIC
   Resolution: Correct to emphatic TAA (ط)
 
-fariq:waw_vs_faa_frication:present
+فارق:waw_vs_faa_frication:present
   Cause: Claimed WAW but frication axis shows FRICATIVE (should be NON_FRICATIVE)
   Resolution: Correct to FAA
 ```
@@ -382,7 +382,7 @@ defer:evidence_source_missing:present
 - No candidate produced
 - Must be resolved before continuing
 
-**Fariq (fariq:*:present):**
+**Fariq (فارق:*:present):**
 - Invalidating difference detected
 - Identity claim is wrong
 - BLOCKS candidate production
@@ -445,7 +445,7 @@ class ArabicLetterCoordinateAdapter(QiyasKernelAdapter):
         Condition: One or more axes unknown
         Resolution: Complete axes or defer
 
-      fariq:{letter1}_vs_{letter2}_{axis}:present
+      فارق:{letter1}_vs_{letter2}_{axis}:present
         Condition: Invalidating difference detected
         Resolution: Correct identity claim (BLOCKING)
 
@@ -465,7 +465,7 @@ class ArabicLetterCoordinateAdapter(QiyasKernelAdapter):
 
 - [ ] Letter identity success (canonical case)
 - [ ] Letter identity with defer:letter_identity_ambiguous
-- [ ] Letter identity with fariq:letter_identity_conflict (blocking)
+- [ ] Letter identity with فارق:letter_identity_conflict (blocking)
 
 ### Coordinate Layer Tests
 
@@ -473,10 +473,10 @@ class ArabicLetterCoordinateAdapter(QiyasKernelAdapter):
 - [ ] Makhraj coordinate with defer:makhraj_coordinate_unknown
 - [ ] Sifat vector success (6 axes complete)
 - [ ] Sifat vector with defer:sifat_vector_incomplete
-- [ ] Sifat vector with fariq:sifat_conflict (blocking)
+- [ ] Sifat vector with فارق:sifat_conflict (blocking)
 - [ ] Abjad coordinate success with semantic_force=FORBIDDEN
 - [ ] Abjad coordinate with defer:abjad_value_undefined
-- [ ] Abjad coordinate blocking fariq:abjad_semantic_force_violated
+- [ ] Abjad coordinate blocking فارق:abjad_semantic_force_violated
 
 ### Glyph Classification Tests
 
@@ -488,9 +488,9 @@ class ArabicLetterCoordinateAdapter(QiyasKernelAdapter):
 
 ### Fariq Negation Tests
 
-- [ ] fariq:baa_vs_meem_nasality correctly negated for BAA
-- [ ] fariq:baa_vs_meem_nasality present blocks MEEM claim for BAA
-- [ ] fariq:seen_vs_saad_emphasis correctly negated for SEEN
+- [ ] فارق:baa_vs_meem_nasality correctly negated for BAA
+- [ ] فارق:baa_vs_meem_nasality present blocks MEEM claim for BAA
+- [ ] فارق:seen_vs_saad_emphasis correctly negated for SEEN
 - [ ] All 28+ letters have complete fariq sets
 
 ---

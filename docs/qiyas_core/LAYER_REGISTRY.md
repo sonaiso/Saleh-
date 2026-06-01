@@ -79,7 +79,7 @@ Each layer entry follows this template:
 - `علة:arabic_unicode_membership:verified`
 
 **Invalidating Differences:**
-- `fariq:non_arabic_codepoint:present` (blocks non-Arabic codepoints)
+- `فارق:non_arabic_codepoint:present` (blocks non-Arabic codepoints)
 
 **Forbidden Outputs:**
 - TypedCodePoint
@@ -120,10 +120,10 @@ Each layer entry follows this template:
 - Residual: `وصف:is_unclassified_codepoint:evidenced`, `علة:belongs_to_residual_class:verified`
 
 **Invalidating Differences (PR #23, disjoint union proof):**
-- `fariq:multiple_classes_claimed:present`
-- `fariq:ambiguous_classification:present`
-- `fariq:letter_haraka_overlap:present`
-- `fariq:boundary_punctuation_overlap:present`
+- `فارق:multiple_classes_claimed:present`
+- `فارق:ambiguous_classification:present`
+- `فارق:letter_haraka_overlap:present`
+- `فارق:boundary_punctuation_overlap:present`
 
 **Forbidden Outputs:**
 - AtomicUnitCandidate (old experimental name)
@@ -349,7 +349,7 @@ SlotCandidate = LetterIdentityCarrier ⊗ HarakaFunctionCarrier ⊗ PositionCarr
 - Missing haraka function → `defer:haraka_function_missing:present`
 - Missing position → `defer:position_missing:present`
 - Missing alignment → `defer:alignment_missing:present`
-- Invalidating difference → `fariq:{difference}:present`
+- Invalidating difference → `فارق:{difference}:present`
 
 **Forbidden Outputs:**
 - SlotGeometry (not canonical, experimental only)
@@ -410,7 +410,7 @@ SlotCandidate = LetterIdentityCarrier ⊗ HarakaFunctionCarrier ⊗ PositionCarr
 - `وصف:has_manner:stop:evidenced`
 - `وصف:has_nasal:false:evidenced`
 - `وصف:has_abjad_value:2:evidenced` (if applicable)
-- `fariq:{difference}:absent` (for each invalidating difference)
+- `فارق:{difference}:absent` (for each invalidating difference)
 
 **Forbidden Outputs:**
 - SlotCandidate (requires composition with Haraka + Position + Alignment)

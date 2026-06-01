@@ -473,7 +473,7 @@ defer:letter_identity_ambiguous:present
 defer:script_identity_uncertain:present
   Cause: Non-standard Unicode sequence
 
-fariq:letter_identity_conflict:present
+فارق:letter_identity_conflict:present
   Cause: Invalidating difference detected
 ```
 

@@ -131,7 +131,7 @@ _______________
 - (list all)
 
 **Invalidating Differences:**
-- fariq:_______________:present blocks when _______________
+- فارق:_______________:present blocks when _______________
 - (list all)
 
 **Residual Behavior:**
@@ -141,7 +141,7 @@ _______________
 - (list all)
 
 **Blocking conditions:**
-- fariq:_______________:present when _______________
+- فارق:_______________:present when _______________
 - (list all)
 
 ### 7. Architectural Compliance (MANDATORY)
