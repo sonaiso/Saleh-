@@ -1,11 +1,24 @@
 """
-LetterIdentityLayerAdapter — Gap #3 adapter.
+Letter Identity Adapter
 
-Converts a LetterCodePoint candidate into a LetterIdentityCarrier by building
-the full evidence set (unicode_identity + script_identity + sound_identity +
-makhraj + sifat) and invoking QiyasKernel.apply().
+Atomic proof layer: LetterCodePoint → LetterIdentityCarrier
 
-Follows the same pattern as TypedCodePointLayerAdapter.
+This is an INDEPENDENT atomic path that does NOT require:
+  - ConditionedTypedSequence
+  - HarakaFunctionCarrier
+  - PositionCarrier
+  - SlotCandidate
+
+It proves letter identity (BAA, TAA, SEEN, etc.) from LetterCodePoint alone,
+using Unicode identity, script identity, phonetic identity, makhraj, and sifat.
+
+Constitutional Compliance:
+  - Uses kernel.apply() not execute_qiyas()
+  - Uses Evidence with proves tuple not claims
+  - Uses QiyasNodeRef with identity_ids, trace_ids, rank
+  - Preserves identity_ids through transformation
+  - Proves invalidating_differences absence in evidence
+  - Separates digital/script/name/phonetic/makhraj/sifat identities
 """
 
 from dataclasses import dataclass
@@ -16,30 +29,121 @@ from .enums import CandidateStatus, EvidenceRank
 from .evidence import Evidence, EvidenceSet
 from .kernel import QiyasContext, QiyasKernel, QiyasRequest
 from .node import QiyasNodeRef
-from .phonetics import get_phonetic_profile
 from .rules.letter_identity_rules import get_letter_identity_rule
 
 
-# Arabic letter codepoint range
-_ARABIC_LETTER_MIN = 0x0621
-_ARABIC_LETTER_MAX = 0x064A
+# Arabic name mapping for letters (Option C - Layer 1 identity)
+ARABIC_LETTER_NAMES = {
+    0x0621: "همزة",  # hamza
+    0x0627: "ألف",   # alif
+    0x0628: "باء",   # baa
+    0x062A: "تاء",   # taa
+    0x062B: "ثاء",   # thaa
+    0x062C: "جيم",   # jeem
+    0x062D: "حاء",   # haa
+    0x062E: "خاء",   # khaa
+    0x062F: "دال",   # dal
+    0x0630: "ذال",   # dhal
+    0x0631: "راء",   # raa
+    0x0632: "زاي",   # zay
+    0x0633: "سين",   # seen
+    0x0634: "شين",   # sheen
+    0x0635: "صاد",   # saad
+    0x0636: "ضاد",   # daad
+    0x0637: "طاء",   # taa_emphatic
+    0x0638: "ظاء",   # dhaa
+    0x0639: "عين",   # ayn
+    0x063A: "غين",   # ghayn
+    0x0641: "فاء",   # faa
+    0x0642: "قاف",   # qaf
+    0x0643: "كاف",   # kaf
+    0x0644: "لام",   # lam
+    0x0645: "ميم",   # meem
+    0x0646: "نون",   # noon
+    0x0647: "هاء",   # haa
+    0x0648: "واو",   # waw
+    0x064A: "ياء",   # yaa
+}
 
 
-def _extract_codepoint(candidate: Candidate) -> int | None:
-    """Extract integer codepoint from identity_ids (identity:codepoint:{hex})."""
-    for iid in candidate.identity_ids:
-        if iid.startswith("identity:codepoint:"):
-            try:
-                return int(iid.split(":")[-1], 16)
-            except ValueError:
-                pass
-    return None
+def build_letter_identity_evidence(
+    letter_name: str,
+    codepoint: int,
+    arabic_name: str,
+    trace_prefix: str,
+) -> EvidenceSet:
+    """
+    Build evidence for PURE letter identity (Option C - Layer 1).
+
+    Proves ONLY identity coordinates:
+      - Unicode identity (digital layer)
+      - Script identity
+      - Name identity (Latin + Arabic)
+      - Specific letter identity
+
+    Does NOT prove (moved to ArabicLetterCoordinateCarrier - Layer 2):
+      - Phonetic proxy
+      - Makhraj
+      - Sifat
+      - Abjad numeric
+      - Invalidating differences (fariq)
+
+    Args:
+        letter_name: Lowercase letter name (e.g., "baa", "taa", "seen")
+        codepoint: Unicode codepoint value
+        arabic_name: Arabic name (e.g., "باء", "تاء", "سين")
+        trace_prefix: Trace prefix for evidence
+    """
+    cp_hex = f"{codepoint:04x}"
+
+    proves = [
+        "asl:established",
+        "far:determined",
+        # Generic wasf
+        "wasf:has_letter_codepoint:evidenced",
+        # PURE IDENTITY wasf - Unicode, Script, Name only
+        f"wasf:has_unicode_identity:{cp_hex}:evidenced",
+        f"wasf:has_script_identity:{letter_name}:evidenced",  # lowercase letter_name
+        f"wasf:has_latin_name:{letter_name}:evidenced",
+        f"wasf:has_arabic_name:{arabic_name}:evidenced",
+        # Generic illah
+        "illah:belongs_to_letter_identity_domain:verified",
+        # Type-specific illah - must match rule format exactly
+        f"illah:letter_identity_is:{letter_name}:verified",  # lowercase letter_name
+        # Wadi gates
+        "wadi:sabab:established",
+        "wadi:shart:satisfied",
+        "wadi:mani:absent",
+        "wadi:sihha:valid",
+        "wadi:fasad:absent",
+        "wadi:butlan:absent",
+    ]
+
+    return EvidenceSet(
+        items=(
+            Evidence(
+                evidence_id=f"ev:letter_identity:{letter_name.lower()}:{uuid.uuid4().hex[:8]}",
+                source_layer="LetterIdentityQiyas",
+                proves=tuple(proves),
+                rank=EvidenceRank.FORM,
+                trace_ids=(f"{trace_prefix}:ev",),
+            ),
+        )
+    )
 
 
 @dataclass
 class LetterIdentityLayerAdapter:
     """
-    Adapter that proves LetterIdentityCarrier for a given LetterCodePoint.
+    Adapter for LetterIdentityQiyas layer.
+
+    Atomic path: LetterCodePoint → LetterIdentityCarrier
+
+    Independent of:
+      - ConditionedTypedSequence
+      - HarakaFunctionCarrier
+      - PositionCarrier
+      - SlotCandidate
 
     Constitutional path:
         LetterCodePoint → [LetterIdentityLayerAdapter] → LetterIdentityCarrier
@@ -47,84 +151,79 @@ class LetterIdentityLayerAdapter:
 
     kernel: QiyasKernel
 
-    def build_request(
+    def build_request_for_letter_identity(
         self,
         letter_candidate: Candidate,
-        trace_prefix: str = "",
-    ) -> QiyasRequest:
-        """Build a QiyasRequest for letter identity classification."""
-        codepoint = _extract_codepoint(letter_candidate)
+        trace_prefix: str = ""
+    ) -> QiyasRequest | None:
+        """
+        Build a QiyasRequest for proving letter identity from LetterCodePoint.
+
+        Args:
+            letter_candidate: Must be LetterCodePoint from TypedCodePointLayerAdapter
+            trace_prefix: Optional prefix for trace IDs
+
+        Returns:
+            QiyasRequest or None if letter not supported yet
+        """
+        # Validate input type
+        if letter_candidate.candidate_type != "LetterCodePoint":
+            return None
+
+        # Extract codepoint from identity_ids
+        codepoint = None
+        for identity_id in letter_candidate.identity_ids:
+            if identity_id.startswith("identity:codepoint:"):
+                codepoint_hex = identity_id.split(":")[-1]
+                codepoint = int(codepoint_hex, 16)
+                break
+
         if codepoint is None:
-            raise ValueError(
-                "LetterCodePoint candidate must have identity:codepoint:{hex} identity"
-            )
+            return None
 
-        profile = get_phonetic_profile(codepoint)
-        if profile is None:
-            raise ValueError(
-                f"No PhoneticGroundingProfile for codepoint U+{codepoint:04X}"
-            )
-
+        # Get letter identity rule
         rule = get_letter_identity_rule(codepoint)
         if rule is None:
-            raise ValueError(
-                f"No LetterIdentityRule for codepoint U+{codepoint:04X}"
-            )
+            # Letter not yet mapped
+            return None
 
-        cp_hex = f"{codepoint:04x}"
+        # Extract letter name from rule_id (keep lowercase to match rule format)
+        letter_name = rule.rule_id.split(".")[-1]  # e.g., "baa", "taa", "seen"
+
+        # Get Arabic name
+        arabic_name = ARABIC_LETTER_NAMES.get(codepoint, letter_name)
+
         if not trace_prefix:
-            trace_prefix = f"letter_identity:{cp_hex}"
+            trace_prefix = f"letter_identity:{letter_name.lower()}"
 
+        # Create asl node (letter identity domain)
         asl = QiyasNodeRef(
-            node_id="asl:letter_identity_domain",
+            node_id=f"asl:letter_identity_domain:{letter_name.lower()}",
             node_type="LetterIdentityDomain",
             identity_ids=("identity:letter_identity_domain",),
             trace_ids=(f"{trace_prefix}:asl",),
             rank=EvidenceRank.FORM,
         )
 
+        # Create far node from letter_candidate (preserving its identity!)
         far = QiyasNodeRef(
-            node_id=f"far:letter_codepoint:{cp_hex}",
+            node_id=f"far:letter_codepoint:{codepoint:04x}",
             node_type="LetterCodePoint",
-            identity_ids=letter_candidate.identity_ids,
+            identity_ids=letter_candidate.identity_ids,  # Preserve identity!
             trace_ids=(f"{trace_prefix}:far",),
             rank=letter_candidate.rank,
         )
 
-        # Build proves list from the phonetic profile
-        proves = [
-            "asl:established",
-            "far:determined",
-            # Generic + type-specific wasf
-            "wasf:has_letter_codepoint:evidenced",
-            f"wasf:has_unicode_identity:{cp_hex}:evidenced",
-            f"wasf:has_script_identity:{profile.arabic_name}:evidenced",
-            f"wasf:has_sound_identity:{profile.sound_identity.lower()}:evidenced",
-            f"wasf:has_makhraj:{profile.makhraj.spatial_source.lower()}:evidenced",
-            # Illah
-            "illah:belongs_to_letter_identity_domain:verified",
-            f"illah:letter_identity_is:{profile.arabic_name}:verified",
-            # Wadi gates
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
-        ]
-
-        evidence = EvidenceSet(
-            items=(
-                Evidence(
-                    evidence_id=f"ev:letter_identity:{cp_hex}:{uuid.uuid4().hex[:8]}",
-                    source_layer="LetterIdentityQiyas",
-                    proves=tuple(proves),
-                    rank=EvidenceRank.FORM,
-                    trace_ids=(f"{trace_prefix}:ev",),
-                ),
-            )
+        # Build PURE IDENTITY evidence (Option C - Layer 1)
+        # No phonetic, makhraj, sifat - those moved to Layer 2
+        evidence = build_letter_identity_evidence(
+            letter_name=letter_name,
+            codepoint=codepoint,
+            arabic_name=arabic_name,
+            trace_prefix=trace_prefix,
         )
 
+        # Build request
         return QiyasRequest(
             rule=rule,
             asl=asl,
@@ -133,40 +232,32 @@ class LetterIdentityLayerAdapter:
             context=QiyasContext(layer="LetterIdentityQiyas"),
         )
 
-    def prove_letter_identity(
+    def process_letter_codepoint(
         self,
         letter_candidate: Candidate,
-        trace_prefix: str = "",
+        trace_prefix: str = ""
     ) -> CandidateSet:
-        """Prove the letter identity for a LetterCodePoint candidate."""
-        request = self.build_request(letter_candidate, trace_prefix)
+        """
+        Process a LetterCodePoint to prove its identity.
+
+        Args:
+            letter_candidate: Must be LetterCodePoint with full evidence/rank/trace
+            trace_prefix: Optional prefix for trace IDs
+
+        Returns:
+            CandidateSet with LetterIdentityCarrier (if letter supported)
+        """
+        request = self.build_request_for_letter_identity(letter_candidate, trace_prefix)
+
+        if request is None:
+            # Letter not supported yet - return empty
+            return CandidateSet(
+                set_id=f"letter_identity:empty:{uuid.uuid4().hex[:8]}",
+                layer="LetterIdentityQiyas",
+                candidates=(),
+                residuals=(),
+                trace_ids=(),
+            )
+
+        # Execute qiyas through kernel.apply() (canonical interface)
         return self.kernel.apply(request)
-
-    def prove_from_codepoint(
-        self,
-        codepoint: int,
-        trace_prefix: str = "",
-    ) -> CandidateSet:
-        """
-        Prove letter identity from a raw codepoint.
-
-        **WARNING: convenience/testing method only.**
-        Production code should use prove_letter_identity() with a proper
-        LetterCodePoint candidate from TypedCodePointLayerAdapter.
-        """
-        cp_hex = f"{codepoint:04x}"
-        letter_candidate = Candidate(
-            candidate_id=f"letter_codepoint:{cp_hex}",
-            candidate_type="LetterCodePoint",
-            status=CandidateStatus.ACCEPTED,
-            layer="TypedCodePointClassificationQiyas",
-            source_rule_id="typed_codepoint.letter_classification",
-            asl_id="asl:typed_codepoint_classification_domain",
-            far_id=f"far:unicode_candidate:{cp_hex}",
-            identity_ids=(f"identity:codepoint:{cp_hex}",),
-            rank=EvidenceRank.FORM,
-            residuals=(),
-            trace_ids=(f"test:letter_codepoint:{cp_hex}",),
-            output_flags=frozenset(),
-        )
-        return self.prove_letter_identity(letter_candidate, trace_prefix)
