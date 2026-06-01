@@ -98,6 +98,7 @@ def _make_letter_coordinate_rule(
         f"has_unicode_identity:{cp_hex}",
         f"has_script_identity:{letter_name}",
         f"has_latin_name:{letter_name}",
+        # Note: has_arabic_name is optional in Layer 2 rules (not all letters may have it)
         # Layer 2 coordinates
         f"has_sound_identity:{sound_identity}",
         f"has_makhraj:{makhraj}",
