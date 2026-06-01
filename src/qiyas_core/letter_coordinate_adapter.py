@@ -34,6 +34,16 @@ from .phonetics import get_phonetic_profile
 from .rules.letter_coordinate_rules import get_letter_coordinate_rule
 
 
+# Morphological role classification for BAA/TAA/SEEN/KAF
+# This is a minimal mapping for the current coordinate slice
+MORPHO_ROLE_BY_LETTER = {
+    "baa": "EXPANDED_MULTI_ROLE",  # ب has prepositional and root potential
+    "taa": "SAALATAMUUNIIHA",  # ت is part of سألتمونيها
+    "seen": "SAALATAMUUNIIHA",  # س is part of سألتمونيها
+    "kaf": "EXPANDED_MULTI_ROLE",  # ك has similative/pronoun and root potential
+}
+
+
 def build_letter_coordinate_evidence(
     letter_name: str,
     codepoint: int,
@@ -82,6 +92,11 @@ def build_letter_coordinate_evidence(
         proves.append(f"wasf:has_abjad_value:{abjad_coord.numeric_value}:evidenced")
         proves.append(f"wasf:abjad_semantic_force:{abjad_coord.semantic_force}:evidenced")
         proves.append(f"coordinate:abjad:{letter_name}:{abjad_coord.numeric_value}:proven")
+
+    # Add morpho_role if mapped
+    morpho_role = MORPHO_ROLE_BY_LETTER.get(letter_name)
+    if morpho_role:
+        proves.append(f"wasf:has_morpho_role:{morpho_role}:evidenced")
 
     # Add illah
     proves.extend([

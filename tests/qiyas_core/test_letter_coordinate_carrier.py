@@ -149,7 +149,12 @@ def test_baa_vs_meem_invalidating_difference():
         "wasf:has_voicing:VOICED:evidenced",
         "wasf:has_manner:STOP:evidenced",
         "wasf:has_emphasis:NON_EMPHATIC:evidenced",
-        "wasf:has_abjad_coordinate:evidenced",
+        # Abjad wasf (updated to match new requirements)
+        "wasf:has_abjad_system:ABJAD:evidenced",
+        "wasf:has_abjad_value:2:evidenced",
+        "wasf:abjad_semantic_force:FORBIDDEN:evidenced",
+        # Morpho role wasf (new requirement)
+        "wasf:has_morpho_role:EXPANDED_MULTI_ROLE:evidenced",
         # Layer 1 illah
         "illah:belongs_to_letter_identity_domain:verified",
         "illah:letter_identity_is:baa:verified",
@@ -189,6 +194,8 @@ def test_baa_vs_meem_invalidating_difference():
     # Must be blocked due to fariq:baa_vs_meem:present
     assert len(result.blocked) == 1
     assert any(r.residual_type == "blocking_fariq_present" for r in result.residuals)
+    # Must NOT be blocked due to missing wasf (test that all required wasf are present)
+    assert not any(r.residual_type == "effective_wasf_missing" for r in result.residuals)
 
 
 # ---------------------------------------------------------------------------
