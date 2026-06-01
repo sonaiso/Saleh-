@@ -1,7 +1,21 @@
 """
-Letter Identity Adapter
+Letter Identity Adapter (Layer 1)
 
 Atomic proof layer: LetterCodePoint → LetterIdentityCarrier
+
+This is Layer 1 of the letter identity architecture (Option C).
+
+Layer 1 proves PURE IDENTITY ONLY:
+  - Unicode identity (digital layer)
+  - Script identity
+  - Letter name identity (Latin + Arabic)
+
+Layer 1 does NOT prove (moved to Layer 2 - ArabicLetterCoordinateCarrier):
+  - Phonetic proxy (sound identity)
+  - Makhraj (articulation place)
+  - Sifat (phonetic features)
+  - Abjad numeric values
+  - Invalidating differences (fariq)
 
 This is an INDEPENDENT atomic path that does NOT require:
   - ConditionedTypedSequence
@@ -9,16 +23,12 @@ This is an INDEPENDENT atomic path that does NOT require:
   - PositionCarrier
   - SlotCandidate
 
-It proves letter identity (BAA, TAA, SEEN, etc.) from LetterCodePoint alone,
-using Unicode identity, script identity, phonetic identity, makhraj, and sifat.
-
 Constitutional Compliance:
   - Uses kernel.apply() not execute_qiyas()
   - Uses Evidence with proves tuple not claims
   - Uses QiyasNodeRef with identity_ids, trace_ids, rank
   - Preserves identity_ids through transformation
-  - Proves invalidating_differences absence in evidence
-  - Separates digital/script/name/phonetic/makhraj/sifat identities
+  - Outputs identity_ids for proven identities
 """
 
 from dataclasses import dataclass
@@ -106,6 +116,11 @@ def build_letter_identity_evidence(
         f"wasf:has_script_identity:{letter_name}:evidenced",  # lowercase letter_name
         f"wasf:has_latin_name:{letter_name}:evidenced",
         f"wasf:has_arabic_name:{arabic_name}:evidenced",
+        # IDENTITY PROOFS (not just wasf, but actual identity claims)
+        f"identity:codepoint:{cp_hex}:proven",
+        f"identity:script:{letter_name}:proven",
+        f"identity:name:{letter_name}:proven",
+        f"identity:letter:{letter_name}:proven",
         # Generic illah
         "illah:belongs_to_letter_identity_domain:verified",
         # Type-specific illah - must match rule format exactly

@@ -138,23 +138,48 @@ def _make_letter_coordinate_rule(
 
 
 # ---------------------------------------------------------------------------
-# Placeholder: Coordinate rules will be generated here
-# TODO: Generate all 37+ letter coordinate rules
+# Coordinate rules for minimum required letters: BAA, TAA, SEEN, KAF
 # ---------------------------------------------------------------------------
 
-# Example rule for BAA (will be completed in next step)
-# BAA_COORDINATE_RULE = _make_letter_coordinate_rule(
-#     \"baa\", 0x0628, \"VOICED_BILABIAL_STOP\",
-#     \"BILABIAL\", \"VOICED\", \"STOP\", \"NON_EMPHATIC\",
-#     (\"baa_vs_meem\", \"baa_vs_faa\", \"baa_vs_taa\", \"baa_vs_waw\"),
-#     has_abjad=True,
-#     morpho_role_bits=\"PURE_STEM\",
-# )
+BAA_COORDINATE_RULE = _make_letter_coordinate_rule(
+    "baa", 0x0628, "VOICED_BILABIAL_STOP",
+    "BILABIAL", "VOICED", "STOP", "NON_EMPHATIC",
+    ("baa_vs_meem", "baa_vs_faa", "baa_vs_taa", "baa_vs_waw"),
+    has_abjad=True,
+    morpho_role_bits="PURE_STEM",
+)
+
+TAA_COORDINATE_RULE = _make_letter_coordinate_rule(
+    "taa", 0x062A, "VOICELESS_DENTAL_STOP",
+    "DENTAL", "VOICELESS", "STOP", "NON_EMPHATIC",
+    ("taa_vs_baa", "taa_vs_thaa", "taa_vs_daal"),
+    has_abjad=True,
+    morpho_role_bits="SAALATAMUUNIIHA",  # ت is part of سألتمونيها
+)
+
+SEEN_COORDINATE_RULE = _make_letter_coordinate_rule(
+    "seen", 0x0633, "VOICELESS_ALVEOLAR_FRICATIVE",
+    "ALVEOLAR", "VOICELESS", "FRICATIVE", "NON_EMPHATIC",
+    ("seen_vs_sheen", "seen_vs_zay", "seen_vs_saad"),
+    has_abjad=True,
+    morpho_role_bits="SAALATAMUUNIIHA",  # س is part of سألتمونيها
+)
+
+KAF_COORDINATE_RULE = _make_letter_coordinate_rule(
+    "kaf", 0x0643, "VOICELESS_VELAR_STOP",
+    "VELAR", "VOICELESS", "STOP", "NON_EMPHATIC",
+    ("kaf_vs_qaf", "kaf_vs_gaf"),
+    has_abjad=True,
+    morpho_role_bits="PURE_STEM",
+)
 
 
 # Map: codepoint → coordinate rule
 LETTER_COORDINATE_RULES: dict[int, QiyasRule] = {
-    # TODO: Populate with all letter coordinate rules
+    0x0628: BAA_COORDINATE_RULE,
+    0x062A: TAA_COORDINATE_RULE,
+    0x0633: SEEN_COORDINATE_RULE,
+    0x0643: KAF_COORDINATE_RULE,
 }
 
 
