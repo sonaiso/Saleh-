@@ -12,40 +12,151 @@ ALL_WADI = (
 )
 
 
-TYPED_CODEPOINT_CLASSIFICATION = QiyasRule(
-    rule_id="typed_codepoint.classification",
+FORBIDDEN_TYPED_CODEPOINT_OUTPUTS = (
+    "AtomicUnitCandidate",
+    "SyllableCandidate",
+    "PronunciationCandidate",
+    "RootCandidate",
+    "WeightCandidate",
+    "FormCandidate",
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "IfadahCandidate",
+    "HukmCandidate",
+    "RealityClaim",
+    "FinalMeaning",
+)
+
+
+LETTER_CODEPOINT_CLASSIFICATION = QiyasRule(
+    rule_id="typed_codepoint.letter_classification",
     layer="TypedCodePointClassificationQiyas",
     pattern=QiyasPattern.MEMBERSHIP,
     asl_type="TypedCodePointClassificationDomain",
     far_type="UnicodeCandidate",
-    # Generic wasf/illah that applies to all classifications
-    # The specific type is determined by the candidate_type, not by wasf/illah
-    required_effective_wasf=("is_classifiable_codepoint",),
-    required_illah=("belongs_to_typed_domain",),
+    required_effective_wasf=(
+        "is_classifiable_codepoint",
+        "is_arabic_letter",
+    ),
+    required_illah=(
+        "belongs_to_typed_domain",
+        "belongs_to_letter_class",
+    ),
     required_wadi_gates=ALL_WADI,
-    # Disjoint union proof: these differences invalidate classification
-    # if multiple types are claimed simultaneously
     invalidating_differences=(
-        "multiple_classes_claimed",  # If more than one classification type is claimed
-        "ambiguous_classification",  # If classification logic is ambiguous
-        "letter_haraka_overlap",  # If codepoint claims to be both letter and haraka
-        "boundary_punctuation_overlap",  # If codepoint claims to be both boundary and punctuation
+        "multiple_classes_claimed",
+        "ambiguous_classification",
+        "letter_haraka_overlap",
     ),
     neutral_identity_domain="unicode_identity",
-    output_candidate_type="TypedCodePoint",
-    forbidden_outputs=(
-        "AtomicUnitCandidate",
-        "SyllableCandidate",
-        "PronunciationCandidate",
-        "RootCandidate",
-        "WeightCandidate",
-        "FormCandidate",
-        "MeaningCandidate",
-        "DalalahCandidate",
-        "IfadahCandidate",
-        "HukmCandidate",
-        "RealityClaim",
-        "FinalMeaning",
+    output_candidate_type="LetterCodePoint",
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
+    rank_ceiling=EvidenceRank.FORM,
+)
+
+
+HARAKA_CODEPOINT_CLASSIFICATION = QiyasRule(
+    rule_id="typed_codepoint.haraka_classification",
+    layer="TypedCodePointClassificationQiyas",
+    pattern=QiyasPattern.MEMBERSHIP,
+    asl_type="TypedCodePointClassificationDomain",
+    far_type="UnicodeCandidate",
+    required_effective_wasf=(
+        "is_classifiable_codepoint",
+        "is_arabic_haraka",
     ),
+    required_illah=(
+        "belongs_to_typed_domain",
+        "belongs_to_haraka_class",
+    ),
+    required_wadi_gates=ALL_WADI,
+    invalidating_differences=(
+        "multiple_classes_claimed",
+        "ambiguous_classification",
+        "letter_haraka_overlap",
+    ),
+    neutral_identity_domain="unicode_identity",
+    output_candidate_type="HarakaCodePoint",
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
+    rank_ceiling=EvidenceRank.FORM,
+)
+
+
+BOUNDARY_CODEPOINT_CLASSIFICATION = QiyasRule(
+    rule_id="typed_codepoint.boundary_classification",
+    layer="TypedCodePointClassificationQiyas",
+    pattern=QiyasPattern.MEMBERSHIP,
+    asl_type="TypedCodePointClassificationDomain",
+    far_type="UnicodeCandidate",
+    required_effective_wasf=(
+        "is_classifiable_codepoint",
+        "is_whitespace_boundary",
+    ),
+    required_illah=(
+        "belongs_to_typed_domain",
+        "belongs_to_boundary_class",
+    ),
+    required_wadi_gates=ALL_WADI,
+    invalidating_differences=(
+        "multiple_classes_claimed",
+        "ambiguous_classification",
+        "boundary_punctuation_overlap",
+    ),
+    neutral_identity_domain="unicode_identity",
+    output_candidate_type="BoundaryCodePoint",
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
+    rank_ceiling=EvidenceRank.FORM,
+)
+
+
+PUNCTUATION_CODEPOINT_CLASSIFICATION = QiyasRule(
+    rule_id="typed_codepoint.punctuation_classification",
+    layer="TypedCodePointClassificationQiyas",
+    pattern=QiyasPattern.MEMBERSHIP,
+    asl_type="TypedCodePointClassificationDomain",
+    far_type="UnicodeCandidate",
+    required_effective_wasf=(
+        "is_classifiable_codepoint",
+        "is_arabic_punctuation",
+    ),
+    required_illah=(
+        "belongs_to_typed_domain",
+        "belongs_to_punctuation_class",
+    ),
+    required_wadi_gates=ALL_WADI,
+    invalidating_differences=(
+        "multiple_classes_claimed",
+        "ambiguous_classification",
+        "boundary_punctuation_overlap",
+    ),
+    neutral_identity_domain="unicode_identity",
+    output_candidate_type="PunctuationCodePoint",
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
+    rank_ceiling=EvidenceRank.FORM,
+)
+
+
+RESIDUAL_CODEPOINT_CLASSIFICATION = QiyasRule(
+    rule_id="typed_codepoint.residual_classification",
+    layer="TypedCodePointClassificationQiyas",
+    pattern=QiyasPattern.MEMBERSHIP,
+    asl_type="TypedCodePointClassificationDomain",
+    far_type="UnicodeCandidate",
+    required_effective_wasf=(
+        "is_classifiable_codepoint",
+        "is_unclassified_codepoint",
+    ),
+    required_illah=(
+        "belongs_to_typed_domain",
+        "belongs_to_residual_class",
+    ),
+    required_wadi_gates=ALL_WADI,
+    invalidating_differences=(
+        "multiple_classes_claimed",
+        "ambiguous_classification",
+    ),
+    neutral_identity_domain="unicode_identity",
+    output_candidate_type="ResidualCodePoint",
+    forbidden_outputs=FORBIDDEN_TYPED_CODEPOINT_OUTPUTS,
     rank_ceiling=EvidenceRank.FORM,
 )

@@ -7,7 +7,13 @@ from .evidence import Evidence, EvidenceSet
 from .kernel import QiyasContext, QiyasKernel, QiyasRequest
 from .node import QiyasNodeRef
 from .rule import QiyasRule
-from .rules.typed_codepoint_rules import TYPED_CODEPOINT_CLASSIFICATION
+from .rules.typed_codepoint_rules import (
+    LETTER_CODEPOINT_CLASSIFICATION,
+    HARAKA_CODEPOINT_CLASSIFICATION,
+    BOUNDARY_CODEPOINT_CLASSIFICATION,
+    PUNCTUATION_CODEPOINT_CLASSIFICATION,
+    RESIDUAL_CODEPOINT_CLASSIFICATION,
+)
 
 
 # Arabic letter range (main consonants and long vowels)
@@ -80,6 +86,28 @@ def classify_codepoint(codepoint: int) -> tuple[str, str, str]:
         return ("ResidualCodePoint", "is_unclassified_codepoint", "belongs_to_residual_class")
 
 
+def select_rule_for_codepoint(codepoint: int) -> QiyasRule:
+    """
+    Select the appropriate classification rule based on codepoint type.
+
+    Args:
+        codepoint: The Unicode codepoint value
+
+    Returns:
+        The canonical QiyasRule for this codepoint type
+    """
+    if is_arabic_letter(codepoint):
+        return LETTER_CODEPOINT_CLASSIFICATION
+    elif is_arabic_haraka(codepoint):
+        return HARAKA_CODEPOINT_CLASSIFICATION
+    elif is_boundary(codepoint):
+        return BOUNDARY_CODEPOINT_CLASSIFICATION
+    elif is_punctuation(codepoint):
+        return PUNCTUATION_CODEPOINT_CLASSIFICATION
+    else:
+        return RESIDUAL_CODEPOINT_CLASSIFICATION
+
+
 @dataclass
 class TypedCodePointLayerAdapter:
     kernel: QiyasKernel
@@ -132,8 +160,9 @@ class TypedCodePointLayerAdapter:
             rank=unicode_candidate.rank,
         )
 
-        # Classify the codepoint
+        # Classify the codepoint and select the appropriate canonical rule
         candidate_type, wasf, illah = classify_codepoint(codepoint)
+        selected_rule = select_rule_for_codepoint(codepoint)
 
         # Build evidence with both generic and type-specific wasf/illah
         proves = [
@@ -163,35 +192,9 @@ class TypedCodePointLayerAdapter:
             )
         )
 
-        # Build request with custom output candidate type
-        request = QiyasRequest(
-            rule=TYPED_CODEPOINT_CLASSIFICATION,
-            asl=asl,
-            far=far,
-            evidence=evidence,
-            context=QiyasContext(layer="TypedCodePointClassificationQiyas"),
-        )
-
-        # Override the output candidate type based on classification
-        # This is done by modifying the rule temporarily for this request
-        classified_rule = QiyasRule(
-            rule_id=TYPED_CODEPOINT_CLASSIFICATION.rule_id,
-            layer=TYPED_CODEPOINT_CLASSIFICATION.layer,
-            pattern=TYPED_CODEPOINT_CLASSIFICATION.pattern,
-            asl_type=TYPED_CODEPOINT_CLASSIFICATION.asl_type,
-            far_type=TYPED_CODEPOINT_CLASSIFICATION.far_type,
-            required_effective_wasf=TYPED_CODEPOINT_CLASSIFICATION.required_effective_wasf,
-            required_illah=TYPED_CODEPOINT_CLASSIFICATION.required_illah,
-            required_wadi_gates=TYPED_CODEPOINT_CLASSIFICATION.required_wadi_gates,
-            invalidating_differences=TYPED_CODEPOINT_CLASSIFICATION.invalidating_differences,
-            neutral_identity_domain=TYPED_CODEPOINT_CLASSIFICATION.neutral_identity_domain,
-            output_candidate_type=candidate_type,  # Dynamic based on classification
-            forbidden_outputs=TYPED_CODEPOINT_CLASSIFICATION.forbidden_outputs,
-            rank_ceiling=TYPED_CODEPOINT_CLASSIFICATION.rank_ceiling,
-        )
-
+        # Build request with the selected canonical rule
         return QiyasRequest(
-            rule=classified_rule,
+            rule=selected_rule,
             asl=asl,
             far=far,
             evidence=evidence,
