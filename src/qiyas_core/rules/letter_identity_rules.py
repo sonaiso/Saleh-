@@ -187,11 +187,11 @@ def _make_letter_identity_rule(
             "belongs_to_letter_identity_domain",
             f"letter_identity_is:{letter_name}",
         ),
-        required_wadi_gates=_ALL_WADI,
+        required_wadi_gates=ALL_WADI,
         invalidating_differences=invalidating_diffs,
         neutral_identity_domain="letter_identity",
         output_candidate_type="LetterIdentityCarrier",
-        forbidden_outputs=FORBIDDEN_LETTER_IDENTITY,
+        forbidden_outputs=FORBIDDEN_LETTER_IDENTITY_OUTPUTS,
         rank_ceiling=EvidenceRank.FORM,
     )
 

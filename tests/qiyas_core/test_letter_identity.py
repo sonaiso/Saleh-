@@ -10,14 +10,39 @@ Required tests (from contract):
   test_letter_identity_forbids_weight
 """
 
+from qiyas_core.candidate import CandidateSet
 from qiyas_core.enums import CandidateStatus, EvidenceRank
 from qiyas_core.kernel import QiyasKernel
 from qiyas_core.letter_identity_adapter import LetterIdentityLayerAdapter
+from qiyas_core.typed_codepoint_adapter import TypedCodePointLayerAdapter
 from qiyas_core.phonetics import get_phonetic_profile
 
 
 def _adapter() -> LetterIdentityLayerAdapter:
     return LetterIdentityLayerAdapter(kernel=QiyasKernel())
+
+
+def _prove_from_codepoint(codepoint: int) -> CandidateSet:
+    """
+    Helper to process a codepoint through the constitutional path.
+
+    Constitutional path:
+      codepoint → TypedCodePointLayerAdapter → LetterCodePoint →
+      LetterIdentityLayerAdapter → LetterIdentityCarrier
+    """
+    kernel = QiyasKernel()
+    typed_adapter = TypedCodePointLayerAdapter(kernel=kernel)
+    letter_adapter = LetterIdentityLayerAdapter(kernel=kernel)
+
+    # Get LetterCodePoint from TypedCodePointLayerAdapter
+    typed_result = typed_adapter.classify_codepoint(codepoint)
+    if not typed_result.accepted:
+        return typed_result
+
+    letter_codepoint = typed_result.accepted[0]
+
+    # Process through LetterIdentityLayerAdapter
+    return letter_adapter.process_letter_codepoint(letter_codepoint)
 
 
 # ---------------------------------------------------------------------------
@@ -26,7 +51,7 @@ def _adapter() -> LetterIdentityLayerAdapter:
 
 def test_baa_letter_codepoint_proves_baa_identity():
     """Contract test: LetterCodePoint(BAA) → LetterIdentityCarrier(baa)."""
-    result = _adapter().prove_from_codepoint(0x0628)  # ب
+    result = _prove_from_codepoint(0x0628)  # ب
 
     assert len(result.accepted) == 1
     c = result.accepted[0]
@@ -39,7 +64,7 @@ def test_baa_letter_codepoint_proves_baa_identity():
 
 def test_taa_letter_codepoint_proves_taa_identity():
     """Contract test: LetterCodePoint(TAA) → LetterIdentityCarrier(taa)."""
-    result = _adapter().prove_from_codepoint(0x062A)  # ت
+    result = _prove_from_codepoint(0x062A)  # ت
 
     assert len(result.accepted) == 1
     c = result.accepted[0]
@@ -59,12 +84,12 @@ def test_seen_does_not_become_sheen():
     adapter = _adapter()
 
     # SEEN proves SEEN identity — must be accepted
-    seen_result = adapter.prove_from_codepoint(0x0633)
+    seen_result = _prove_from_codepoint(0x0633)
     assert len(seen_result.accepted) == 1
     assert "seen" in seen_result.accepted[0].source_rule_id
 
     # SHEEN proves SHEEN identity — must be accepted
-    sheen_result = adapter.prove_from_codepoint(0x0634)
+    sheen_result = _prove_from_codepoint(0x0634)
     assert len(sheen_result.accepted) == 1
     assert "sheen" in sheen_result.accepted[0].source_rule_id
 
@@ -79,8 +104,8 @@ def test_baa_does_not_become_taa():
     """
     adapter = _adapter()
 
-    baa_result = adapter.prove_from_codepoint(0x0628)
-    taa_result = adapter.prove_from_codepoint(0x062A)
+    baa_result = _prove_from_codepoint(0x0628)
+    taa_result = _prove_from_codepoint(0x062A)
 
     assert "baa" in baa_result.accepted[0].source_rule_id
     assert "taa" in taa_result.accepted[0].source_rule_id
@@ -197,7 +222,7 @@ def test_all_28_arabic_letters_have_identity_rules():
 
 def test_letter_identity_preserves_codepoint_identity():
     """The output candidate must preserve the source codepoint identity_id."""
-    result = _adapter().prove_from_codepoint(0x0628)  # ب
+    result = _prove_from_codepoint(0x0628)  # ب
 
     c = result.accepted[0]
     identity_set = set(c.identity_ids)
@@ -206,14 +231,14 @@ def test_letter_identity_preserves_codepoint_identity():
 
 def test_letter_identity_output_has_candidate_only_flag():
     """Output must have output_flags={CandidateOnly}."""
-    result = _adapter().prove_from_codepoint(0x0628)
+    result = _prove_from_codepoint(0x0628)
     c = result.accepted[0]
     assert "CandidateOnly" in c.output_flags
 
 
 def test_letter_identity_trace_not_in_identity():
     """trace_ids and identity_ids must be disjoint."""
-    result = _adapter().prove_from_codepoint(0x0628)
+    result = _prove_from_codepoint(0x0628)
     c = result.accepted[0]
     assert not (set(c.identity_ids) & set(c.trace_ids))
 
