@@ -10,6 +10,39 @@ All code changes MUST follow the documented theory, the canonical implementation
 
 If there is any uncertainty, STOP and ask before editing.
 
+---
+
+## 0.1 Governance Framework (MANDATORY — Read First)
+
+**BEFORE proposing any new layer, adapter, rule, or component:**
+
+1. **Read** `docs/qiyas_core/CANONICAL_ARCHITECTURE_CONTROL_FRAME.md` — prevents layer duplication
+2. **Check** Duplicate Prevention Table (§ 2) — ensures no name conflicts
+3. **Consult** `docs/qiyas_core/LAYER_REGISTRY.md` — single source of truth for all layers
+4. **Use** `docs/qiyas_core/NEXT_LAYER_DECISION_TREE.md` — systematic decision framework
+5. **Complete** `docs/qiyas_core/AGENT_PR_CHECKLIST.md` — mandatory before implementation
+
+**Do NOT invent new names for existing canonical layers.**
+
+If a concept is already represented by:
+- TypedCodePoint
+- LetterIdentityCarrier
+- HarakaFunctionCarrier
+- PositionCarrier
+- AlignmentEvidence
+- ConditionedTypedSequence
+- SlotCandidate
+- ArabicLetterCoordinateCarrier
+
+then EXTEND that component or document why it is insufficient.
+
+**Do NOT create a parallel adapter/rule with a new name.**
+
+ممنوع إنشاء طبقة جديدة باسم جديد إذا كانت تؤدي وظيفة طبقة canonical قائمة.
+الأصل هو توسيع الطبقة القائمة أو تسجيل بقاياها، لا إعادة اختراعها.
+
+---
+
 ## 1. Authority Order
 
 When working on this repository, follow this authority order strictly:
