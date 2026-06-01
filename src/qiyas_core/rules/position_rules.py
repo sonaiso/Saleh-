@@ -19,12 +19,12 @@ from qiyas_core.forbidden_outputs import FORBIDDEN_POSITION
 from qiyas_core.rule import QiyasRule
 
 _ALL_WADI = (
-    WadiGate.SABAB,
-    WadiGate.SHART,
-    WadiGate.MANI,
-    WadiGate.SIHHA,
-    WadiGate.FASAD,
-    WadiGate.BUTLAN,
+    WadiGate.CAUSE,
+    WadiGate.CONDITION,
+    WadiGate.OBSTACLE,
+    WadiGate.VALIDITY,
+    WadiGate.CORRUPTION,
+    WadiGate.NULLITY,
 )
 
 # Position types
@@ -65,7 +65,7 @@ def _make_position_rule(position_type: str) -> QiyasRule:
         neutral_identity_domain="position_identity",
         output_candidate_type="PositionCarrier",
         forbidden_outputs=FORBIDDEN_POSITION,
-        rank_ceiling=EvidenceRank.FORM,
+        rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
     )
 
 

@@ -24,12 +24,12 @@ from qiyas_core.forbidden_outputs import FORBIDDEN_HARAKA_FUNCTION
 from qiyas_core.rule import QiyasRule
 
 _ALL_WADI = (
-    WadiGate.SABAB,
-    WadiGate.SHART,
-    WadiGate.MANI,
-    WadiGate.SIHHA,
-    WadiGate.FASAD,
-    WadiGate.BUTLAN,
+    WadiGate.CAUSE,
+    WadiGate.CONDITION,
+    WadiGate.OBSTACLE,
+    WadiGate.VALIDITY,
+    WadiGate.CORRUPTION,
+    WadiGate.NULLITY,
 )
 
 
@@ -60,7 +60,7 @@ def _make_haraka_rule(
         neutral_identity_domain="haraka_identity",
         output_candidate_type="HarakaFunctionCarrier",
         forbidden_outputs=FORBIDDEN_HARAKA_FUNCTION,
-        rank_ceiling=EvidenceRank.FORM,
+        rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
     )
 
 

@@ -45,7 +45,7 @@ def test_baa_letter_codepoint_proves_baa_identity():
 
     assert identity.candidate_type == "LetterIdentityCarrier"
     assert identity.status == CandidateStatus.ACCEPTED
-    assert identity.rank == EvidenceRank.FORM
+    assert identity.rank == EvidenceRank.FORMAL_STRUCTURE
 
     # Validate identity_ids preservation
     # Kernel preserves input identities and adds asl identity
@@ -279,7 +279,7 @@ def test_letter_identity_proves_fariq_absence():
         proves_list.extend(evidence_item.proves)
 
     # Must contain fariq:*:absent claims
-    fariq_proofs = [p for p in proves_list if p.startswith("fariq:") and ":absent" in p]
+    fariq_proofs = [p for p in proves_list if p.startswith("فارق:") and ":absent" in p]
     assert len(fariq_proofs) > 0  # At least one invalidating difference proven absent
 
 
@@ -330,10 +330,10 @@ def test_letter_identity_has_representation_contract():
         proves_list.extend(evidence_item.proves)
 
     # Evidence must prove PURE IDENTITY layers (Option C - Layer 1)
-    has_unicode_wasf = any("wasf:has_unicode_identity:" in p for p in proves_list)
-    has_script_wasf = any("wasf:has_script_identity:" in p for p in proves_list)
-    has_latin_name = any("wasf:has_latin_name:" in p for p in proves_list)
-    has_arabic_name = any("wasf:has_arabic_name:" in p for p in proves_list)
+    has_unicode_wasf = any("وصف:has_unicode_identity:" in p for p in proves_list)
+    has_script_wasf = any("وصف:has_script_identity:" in p for p in proves_list)
+    has_latin_name = any("وصف:has_latin_name:" in p for p in proves_list)
+    has_arabic_name = any("وصف:has_arabic_name:" in p for p in proves_list)
 
     assert has_unicode_wasf, "Evidence missing unicode identity proof"
     assert has_script_wasf, "Evidence missing script identity proof"
@@ -341,9 +341,9 @@ def test_letter_identity_has_representation_contract():
     assert has_arabic_name, "Evidence missing Arabic name proof"
 
     # Verify Layer 1 does NOT contain Layer 2 proofs (Option C compliance)
-    has_sound_wasf = any("wasf:has_sound_identity:" in p for p in proves_list)
-    has_makhraj_wasf = any("wasf:has_makhraj:" in p for p in proves_list)
-    has_fariq_proofs = any("fariq:" in p for p in proves_list)
+    has_sound_wasf = any("وصف:has_sound_identity:" in p for p in proves_list)
+    has_makhraj_wasf = any("وصف:has_makhraj:" in p for p in proves_list)
+    has_fariq_proofs = any("فارق:" in p for p in proves_list)
 
     assert not has_sound_wasf, "Layer 1 must NOT contain sound_identity (moved to Layer 2)"
     assert not has_makhraj_wasf, "Layer 1 must NOT contain makhraj (moved to Layer 2)"

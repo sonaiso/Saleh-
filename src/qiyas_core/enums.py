@@ -11,12 +11,12 @@ class QiyasPattern(Enum):
 
 
 class WadiGate(Enum):
-    SABAB = "sabab"
-    SHART = "shart"
-    MANI = "mani"
-    SIHHA = "sihha"
-    FASAD = "fasad"
-    BUTLAN = "butlan"
+    CAUSE = "cause"
+    CONDITION = "condition"
+    OBSTACLE = "obstacle"
+    VALIDITY = "validity"
+    CORRUPTION = "corruption"
+    NULLITY = "nullity"
 
 
 class CandidateStatus(Enum):
@@ -26,12 +26,12 @@ class CandidateStatus(Enum):
 
 
 class EvidenceRank(Enum):
-    ZERO = 0
-    FORM = 1
-    QIYAS = 2
-    SAMA = 3
-    AHAD = 4
-    TAWATUR = 5
+    NO_EVIDENCE = 0
+    FORMAL_STRUCTURE = 1
+    ANALOGICAL = 2
+    DIRECT_HEARING = 3
+    INDIVIDUAL_REPORT = 4
+    MASS_TRANSMISSION = 5
 
 
 class ResidualSeverity(Enum):

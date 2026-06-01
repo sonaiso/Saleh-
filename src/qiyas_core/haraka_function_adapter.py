@@ -75,15 +75,15 @@ class HarakaFunctionLayerAdapter:
             trace_prefix = f"haraka_function:{cp_hex}"
 
         asl = QiyasNodeRef(
-            node_id="asl:haraka_function_domain",
+            node_id="اصل:haraka_function_domain",
             node_type="HarakaFunctionDomain",
             identity_ids=("identity:haraka_function_domain",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         far = QiyasNodeRef(
-            node_id=f"far:haraka_codepoint:{cp_hex}",
+            node_id=f"فرع:haraka_codepoint:{cp_hex}",
             node_type="HarakaCodePoint",
             identity_ids=haraka_candidate.identity_ids,
             trace_ids=(f"{trace_prefix}:far",),
@@ -91,19 +91,19 @@ class HarakaFunctionLayerAdapter:
         )
 
         proves = [
-            "asl:established",
-            "far:determined",
-            "wasf:has_haraka_codepoint:evidenced",
-            f"wasf:has_unicode_identity:{cp_hex}:evidenced",
-            f"wasf:has_vocalic_function:{profile.vocalic_function.lower()}:evidenced",
-            "illah:belongs_to_haraka_function_domain:verified",
-            f"illah:haraka_function_is:{profile.arabic_name}:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:has_haraka_codepoint:evidenced",
+            f"وصف:has_unicode_identity:{cp_hex}:evidenced",
+            f"وصف:has_vocalic_function:{profile.vocalic_function.lower()}:evidenced",
+            "علة:belongs_to_haraka_function_domain:verified",
+            f"علة:haraka_function_is:{profile.arabic_name}:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         evidence = EvidenceSet(
@@ -112,7 +112,7 @@ class HarakaFunctionLayerAdapter:
                     evidence_id=f"ev:haraka_function:{cp_hex}:{uuid.uuid4().hex[:8]}",
                     source_layer="HarakaFunctionQiyas",
                     proves=tuple(proves),
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )
@@ -152,10 +152,10 @@ class HarakaFunctionLayerAdapter:
             status=CandidateStatus.ACCEPTED,
             layer="TypedCodePointClassificationQiyas",
             source_rule_id="typed_codepoint.haraka_classification",
-            asl_id="asl:typed_codepoint_classification_domain",
-            far_id=f"far:unicode_candidate:{cp_hex}",
+            asl_id="اصل:typed_codepoint_classification_domain",
+            far_id=f"فرع:unicode_candidate:{cp_hex}",
             identity_ids=(f"identity:codepoint:{cp_hex}",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             residuals=(),
             trace_ids=(f"test:haraka_codepoint:{cp_hex}",),
             output_flags=frozenset(),

@@ -97,26 +97,26 @@ def build_letter_identity_evidence(
     cp_hex = f"{codepoint:04x}"
 
     proves = [
-        "asl:established",
-        "far:determined",
+        "اصل:established",
+        "فرع:determined",
         # Generic wasf
-        "wasf:has_letter_codepoint:evidenced",
+        "وصف:has_letter_codepoint:evidenced",
         # PURE IDENTITY wasf - Unicode, Script, Name only
-        f"wasf:has_unicode_identity:{cp_hex}:evidenced",
-        f"wasf:has_script_identity:{letter_name}:evidenced",  # lowercase letter_name
-        f"wasf:has_latin_name:{letter_name}:evidenced",
-        f"wasf:has_arabic_name:{arabic_name}:evidenced",
+        f"وصف:has_unicode_identity:{cp_hex}:evidenced",
+        f"وصف:has_script_identity:{letter_name}:evidenced",  # lowercase letter_name
+        f"وصف:has_latin_name:{letter_name}:evidenced",
+        f"وصف:has_arabic_name:{arabic_name}:evidenced",
         # Generic illah
-        "illah:belongs_to_letter_identity_domain:verified",
+        "علة:belongs_to_letter_identity_domain:verified",
         # Type-specific illah - must match rule format exactly
-        f"illah:letter_identity_is:{letter_name}:verified",  # lowercase letter_name
+        f"علة:letter_identity_is:{letter_name}:verified",  # lowercase letter_name
         # Wadi gates
-        "wadi:sabab:established",
-        "wadi:shart:satisfied",
-        "wadi:mani:absent",
-        "wadi:sihha:valid",
-        "wadi:fasad:absent",
-        "wadi:butlan:absent",
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
     ]
 
     return EvidenceSet(
@@ -125,7 +125,7 @@ def build_letter_identity_evidence(
                 evidence_id=f"ev:letter_identity:{letter_name.lower()}:{uuid.uuid4().hex[:8]}",
                 source_layer="LetterIdentityQiyas",
                 proves=tuple(proves),
-                rank=EvidenceRank.FORM,
+                rank=EvidenceRank.FORMAL_STRUCTURE,
                 trace_ids=(f"{trace_prefix}:ev",),
             ),
         )
@@ -204,16 +204,16 @@ class LetterIdentityLayerAdapter:
         )
 
         asl = QiyasNodeRef(
-            node_id=f"asl:letter_identity_domain:{letter_name.lower()}",
+            node_id=f"اصل:letter_identity_domain:{letter_name.lower()}",
             node_type="LetterIdentityDomain",
             identity_ids=asl_identity_ids,
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node from letter_candidate (preserving its identity!)
         far = QiyasNodeRef(
-            node_id=f"far:letter_codepoint:{codepoint:04x}",
+            node_id=f"فرع:letter_codepoint:{codepoint:04x}",
             node_type="LetterCodePoint",
             identity_ids=letter_candidate.identity_ids,  # Preserve identity!
             trace_ids=(f"{trace_prefix}:far",),

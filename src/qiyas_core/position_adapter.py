@@ -67,15 +67,15 @@ class PositionLayerAdapter:
         pos_lower = position_type.lower()
 
         asl = QiyasNodeRef(
-            node_id="asl:position_domain",
+            node_id="اصل:position_domain",
             node_type="PositionDomain",
             identity_ids=("identity:position_domain",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         far = QiyasNodeRef(
-            node_id=f"far:letter_codepoint:{cp_hex}:pos{index}",
+            node_id=f"فرع:letter_codepoint:{cp_hex}:pos{index}",
             node_type="LetterCodePoint",
             identity_ids=letter_candidate.identity_ids,
             trace_ids=(f"{trace_prefix}:far",),
@@ -83,19 +83,19 @@ class PositionLayerAdapter:
         )
 
         proves = [
-            "asl:established",
-            "far:determined",
-            "wasf:has_position_index:evidenced",
-            f"wasf:has_position_type:{pos_lower}:evidenced",
-            "wasf:within_word_determined:evidenced",
-            "illah:belongs_to_position_domain:verified",
-            f"illah:position_type_is:{pos_lower}:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:has_position_index:evidenced",
+            f"وصف:has_position_type:{pos_lower}:evidenced",
+            "وصف:within_word_determined:evidenced",
+            "علة:belongs_to_position_domain:verified",
+            f"علة:position_type_is:{pos_lower}:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         evidence = EvidenceSet(
@@ -104,7 +104,7 @@ class PositionLayerAdapter:
                     evidence_id=f"ev:position:{cp_hex}:{index}:{uuid.uuid4().hex[:8]}",
                     source_layer="PositionQiyas",
                     proves=tuple(proves),
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )
@@ -152,10 +152,10 @@ class PositionLayerAdapter:
             status=CandidateStatus.ACCEPTED,
             layer="TypedCodePointClassificationQiyas",
             source_rule_id="typed_codepoint.letter_classification",
-            asl_id="asl:typed_codepoint_classification_domain",
-            far_id=f"far:unicode_candidate:{cp_hex}",
+            asl_id="اصل:typed_codepoint_classification_domain",
+            far_id=f"فرع:unicode_candidate:{cp_hex}",
             identity_ids=(f"identity:codepoint:{cp_hex}",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             residuals=(),
             trace_ids=(f"test:letter_codepoint:{cp_hex}",),
             output_flags=frozenset(),

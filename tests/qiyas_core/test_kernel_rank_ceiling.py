@@ -4,25 +4,25 @@ from tests.qiyas_core.helpers import build_evidence, build_nodes, build_request,
 
 
 def test_kernel_rank_ceiling():
-    rule = build_rule(rank_ceiling=EvidenceRank.AHAD)
-    asl, far = build_nodes(asl_rank=EvidenceRank.SAMA, far_rank=EvidenceRank.FORM)
+    rule = build_rule(rank_ceiling=EvidenceRank.INDIVIDUAL_REPORT)
+    asl, far = build_nodes(asl_rank=EvidenceRank.DIRECT_HEARING, far_rank=EvidenceRank.FORMAL_STRUCTURE)
     evidence = build_evidence(
         proves=(
-            "asl:established",
-            "far:determined",
-            "wasf:shared_wasf:evidenced",
-            "illah:shared_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:shared_wasf:evidenced",
+            "علة:shared_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ),
-        rank=EvidenceRank.TAWATUR,
+        rank=EvidenceRank.MASS_TRANSMISSION,
     )
 
     result = QiyasKernel().apply(build_request(rule=rule, asl=asl, far=far, evidence=evidence))
 
     assert result.candidates[0].status == CandidateStatus.ACCEPTED
-    assert result.candidates[0].rank == EvidenceRank.FORM
+    assert result.candidates[0].rank == EvidenceRank.FORMAL_STRUCTURE

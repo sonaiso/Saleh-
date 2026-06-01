@@ -58,12 +58,12 @@ def residual(
 
 
 WADI_REQUIRED_CLAIMS = {
-    "sabab": "wadi:sabab:established",
-    "shart": "wadi:shart:satisfied",
-    "mani": "wadi:mani:absent",
-    "sihha": "wadi:sihha:valid",
-    "fasad": "wadi:fasad:absent",
-    "butlan": "wadi:butlan:absent",
+    "cause": "وادي:cause:established",
+    "condition": "وادي:condition:satisfied",
+    "obstacle": "وادي:obstacle:absent",
+    "validity": "وادي:validity:valid",
+    "corruption": "وادي:corruption:absent",
+    "nullity": "وادي:nullity:absent",
 }
 
 
@@ -141,7 +141,7 @@ class QiyasKernel:
         return audit
 
     def _check_asl_established(self, request: QiyasRequest, audit: QiyasAudit) -> QiyasAudit:
-        if not request.evidence.proves("asl:established"):
+        if not request.evidence.proves("اصل:established"):
             return audit.add_residual(
                 residual(
                     request,
@@ -154,7 +154,7 @@ class QiyasKernel:
         return audit
 
     def _check_far_determined(self, request: QiyasRequest, audit: QiyasAudit) -> QiyasAudit:
-        if not request.evidence.proves("far:determined"):
+        if not request.evidence.proves("فرع:determined"):
             return audit.add_residual(
                 residual(
                     request,
@@ -168,7 +168,7 @@ class QiyasKernel:
 
     def _check_effective_wasf(self, request: QiyasRequest, audit: QiyasAudit) -> QiyasAudit:
         for wasf in request.rule.required_effective_wasf:
-            claim = f"wasf:{wasf}:evidenced"
+            claim = f"وصف:{wasf}:evidenced"
             if not request.evidence.proves(claim):
                 audit = audit.add_residual(
                     residual(
@@ -183,7 +183,7 @@ class QiyasKernel:
 
     def _check_illah(self, request: QiyasRequest, audit: QiyasAudit) -> QiyasAudit:
         for illah in request.rule.required_illah:
-            claim = f"illah:{illah}:verified"
+            claim = f"علة:{illah}:verified"
             if not request.evidence.proves(claim):
                 audit = audit.add_residual(
                     residual(
@@ -213,7 +213,7 @@ class QiyasKernel:
 
     def _check_fariq(self, request: QiyasRequest, audit: QiyasAudit) -> QiyasAudit:
         for diff in request.rule.invalidating_differences:
-            if request.evidence.proves(f"fariq:{diff}:present"):
+            if request.evidence.proves(f"فارق:{diff}:present"):
                 audit = audit.add_residual(
                     residual(
                         request,
@@ -281,7 +281,7 @@ class QiyasKernel:
             key=lambda r: r.value,
         )
 
-        if ceiling == EvidenceRank.ZERO:
+        if ceiling == EvidenceRank.NO_EVIDENCE:
             return audit.add_residual(
                 residual(
                     request,
@@ -320,10 +320,10 @@ class QiyasKernel:
         audit: QiyasAudit,
         status: CandidateStatus,
     ) -> CandidateSet:
-        rank = audit.rank_ceiling or EvidenceRank.ZERO
+        rank = audit.rank_ceiling or EvidenceRank.NO_EVIDENCE
 
         if status != CandidateStatus.ACCEPTED:
-            rank = EvidenceRank.ZERO
+            rank = EvidenceRank.NO_EVIDENCE
 
         # Combine identity_ids from both nodes
         identity_ids = request.asl.identity_ids + request.far.identity_ids
