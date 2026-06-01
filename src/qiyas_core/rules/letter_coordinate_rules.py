@@ -24,12 +24,12 @@ from qiyas_core.rule import QiyasRule
 
 
 ALL_WADI = (
-    WadiGate.SABAB,
-    WadiGate.SHART,
-    WadiGate.MANI,
-    WadiGate.SIHHA,
-    WadiGate.FASAD,
-    WadiGate.BUTLAN,
+    WadiGate.CAUSE,
+    WadiGate.CONDITION,
+    WadiGate.OBSTACLE,
+    WadiGate.VALIDITY,
+    WadiGate.CORRUPTION,
+    WadiGate.NULLITY,
 )
 
 
@@ -133,7 +133,7 @@ def _make_letter_coordinate_rule(
         neutral_identity_domain=\"letter_coordinate\",
         output_candidate_type=\"ArabicLetterCoordinateCarrier\",
         forbidden_outputs=FORBIDDEN_COORDINATE_OUTPUTS,
-        rank_ceiling=EvidenceRank.FORM,
+        rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
     )
 
 

@@ -57,7 +57,7 @@ def test_baa_letter_codepoint_proves_baa_identity():
     c = result.accepted[0]
     assert c.status == CandidateStatus.ACCEPTED
     assert c.candidate_type == "LetterIdentityCarrier"
-    assert c.rank == EvidenceRank.FORM
+    assert c.rank == EvidenceRank.FORMAL_STRUCTURE
     assert c.layer == "LetterIdentityQiyas"
     assert "baa" in c.source_rule_id
 
@@ -133,39 +133,39 @@ def test_baa_vs_meem_invalidating_difference():
     kernel = QiyasKernel()
 
     asl = QiyasNodeRef(
-        node_id="asl:letter_identity_domain",
+        node_id="اصل:letter_identity_domain",
         node_type="LetterIdentityDomain",
         identity_ids=("identity:letter_identity_domain",),
         trace_ids=("trace:asl",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
     far = QiyasNodeRef(
-        node_id="far:letter_codepoint:0628",
+        node_id="فرع:letter_codepoint:0628",
         node_type="LetterCodePoint",
         identity_ids=("identity:codepoint:0628",),
         trace_ids=("trace:far",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
 
     # Build proves with all required claims PLUS the invalidating fariq
     proves = (
-        "asl:established",
-        "far:determined",
-        "wasf:has_letter_codepoint:evidenced",
-        "wasf:has_unicode_identity:0628:evidenced",
-        "wasf:has_script_identity:baa:evidenced",
-        "wasf:has_sound_identity:voiced_bilabial_stop:evidenced",
-        "wasf:has_makhraj:bilabial:evidenced",
-        "illah:belongs_to_letter_identity_domain:verified",
-        "illah:letter_identity_is:baa:verified",
-        "wadi:sabab:established",
-        "wadi:shart:satisfied",
-        "wadi:mani:absent",
-        "wadi:sihha:valid",
-        "wadi:fasad:absent",
-        "wadi:butlan:absent",
+        "اصل:established",
+        "فرع:determined",
+        "وصف:has_letter_codepoint:evidenced",
+        "وصف:has_unicode_identity:0628:evidenced",
+        "وصف:has_script_identity:baa:evidenced",
+        "وصف:has_sound_identity:voiced_bilabial_stop:evidenced",
+        "وصف:has_makhraj:bilabial:evidenced",
+        "علة:belongs_to_letter_identity_domain:verified",
+        "علة:letter_identity_is:baa:verified",
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
         # The invalidating difference claim that blocks identity transfer
-        "fariq:baa_vs_meem:present",
+        "فارق:baa_vs_meem:present",
     )
 
     evidence = EvidenceSet(items=(
@@ -173,7 +173,7 @@ def test_baa_vs_meem_invalidating_difference():
             evidence_id=f"ev:baa_meem_test:{uuid.uuid4().hex[:8]}",
             source_layer="LetterIdentityQiyas",
             proves=proves,
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             trace_ids=("trace:ev",),
         ),
     ))

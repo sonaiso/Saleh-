@@ -65,7 +65,7 @@ def test_position_carrier_type():
 def test_position_carrier_rank():
     """Rank must be FORM."""
     result = _adapter().prove_from_codepoint(0x0628, position_type=POSITION_INITIAL)
-    assert result.accepted[0].rank == EvidenceRank.FORM
+    assert result.accepted[0].rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_position_preserves_codepoint_identity():
@@ -98,36 +98,36 @@ def test_position_ambiguous_difference_blocks():
     kernel = QiyasKernel()
 
     asl = QiyasNodeRef(
-        node_id="asl:position_domain",
+        node_id="اصل:position_domain",
         node_type="PositionDomain",
         identity_ids=("identity:position_domain",),
         trace_ids=("trace:asl",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
     far = QiyasNodeRef(
-        node_id="far:letter_codepoint:0628:pos0",
+        node_id="فرع:letter_codepoint:0628:pos0",
         node_type="LetterCodePoint",
         identity_ids=("identity:codepoint:0628",),
         trace_ids=("trace:far",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
 
     proves = (
-        "asl:established",
-        "far:determined",
-        "wasf:has_position_index:evidenced",
-        "wasf:has_position_type:initial:evidenced",
-        "wasf:within_word_determined:evidenced",
-        "illah:belongs_to_position_domain:verified",
-        "illah:position_type_is:initial:verified",
-        "wadi:sabab:established",
-        "wadi:shart:satisfied",
-        "wadi:mani:absent",
-        "wadi:sihha:valid",
-        "wadi:fasad:absent",
-        "wadi:butlan:absent",
+        "اصل:established",
+        "فرع:determined",
+        "وصف:has_position_index:evidenced",
+        "وصف:has_position_type:initial:evidenced",
+        "وصف:within_word_determined:evidenced",
+        "علة:belongs_to_position_domain:verified",
+        "علة:position_type_is:initial:verified",
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
         # Invalidating difference
-        "fariq:position_type_ambiguous:present",
+        "فارق:position_type_ambiguous:present",
     )
 
     evidence = EvidenceSet(items=(
@@ -135,7 +135,7 @@ def test_position_ambiguous_difference_blocks():
             evidence_id=f"ev:pos_ambiguous:{uuid.uuid4().hex[:8]}",
             source_layer="PositionQiyas",
             proves=proves,
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             trace_ids=("trace:ev",),
         ),
     ))

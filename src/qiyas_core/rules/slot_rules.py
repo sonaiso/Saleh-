@@ -26,12 +26,12 @@ from qiyas_core.forbidden_outputs import FORBIDDEN_SLOT
 from qiyas_core.rule import QiyasRule
 
 _ALL_WADI = (
-    WadiGate.SABAB,
-    WadiGate.SHART,
-    WadiGate.MANI,
-    WadiGate.SIHHA,
-    WadiGate.FASAD,
-    WadiGate.BUTLAN,
+    WadiGate.CAUSE,
+    WadiGate.CONDITION,
+    WadiGate.OBSTACLE,
+    WadiGate.VALIDITY,
+    WadiGate.CORRUPTION,
+    WadiGate.NULLITY,
 )
 
 SLOT_COMPOSITION_RULE = QiyasRule(
@@ -44,6 +44,11 @@ SLOT_COMPOSITION_RULE = QiyasRule(
         "has_letter_identity_carrier",
         "has_haraka_function_carrier",
         "has_position_carrier",
+        # PR #26 — SlotCandidate now requires explicit alignment evidence
+        # from ConditionedTypedSequenceQiyas. The two compatibility wasfs
+        # below MUST be derived from that prior proof; the adapter no
+        # longer asserts them autonomously.
+        "has_alignment_evidence",
         "compatible_letter_haraka",
         "compatible_letter_position",
         "identity_preserved",
@@ -61,5 +66,5 @@ SLOT_COMPOSITION_RULE = QiyasRule(
     neutral_identity_domain="slot_identity",
     output_candidate_type="SlotCandidate",
     forbidden_outputs=FORBIDDEN_SLOT,
-    rank_ceiling=EvidenceRank.FORM,
+    rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )

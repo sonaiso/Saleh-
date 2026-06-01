@@ -7,10 +7,10 @@ def test_kernel_blocks_without_illah():
     request = build_request(
         evidence=build_evidence(
             proves=(
-                "asl:established",
-                "far:determined",
-                "wasf:shared_wasf:evidenced",
-                "wadi:sabab:established",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:shared_wasf:evidenced",
+                "وادي:cause:established",
             )
         )
     )

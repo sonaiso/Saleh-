@@ -33,7 +33,7 @@ def test_fatha_haraka_proves_fatha_function():
     c = result.accepted[0]
     assert c.status == CandidateStatus.ACCEPTED
     assert c.candidate_type == "HarakaFunctionCarrier"
-    assert c.rank == EvidenceRank.FORM
+    assert c.rank == EvidenceRank.FORMAL_STRUCTURE
     assert "fatha" in c.source_rule_id
 
 
@@ -189,36 +189,36 @@ def test_fatha_invalidating_diff_blocks_haraka_transfer():
     kernel = QiyasKernel()
 
     asl = QiyasNodeRef(
-        node_id="asl:haraka_function_domain",
+        node_id="اصل:haraka_function_domain",
         node_type="HarakaFunctionDomain",
         identity_ids=("identity:haraka_function_domain",),
         trace_ids=("trace:asl",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
     far = QiyasNodeRef(
-        node_id="far:haraka_codepoint:064e",
+        node_id="فرع:haraka_codepoint:064e",
         node_type="HarakaCodePoint",
         identity_ids=("identity:codepoint:064e",),
         trace_ids=("trace:far",),
-        rank=EvidenceRank.FORM,
+        rank=EvidenceRank.FORMAL_STRUCTURE,
     )
 
     proves = (
-        "asl:established",
-        "far:determined",
-        "wasf:has_haraka_codepoint:evidenced",
-        "wasf:has_unicode_identity:064e:evidenced",
-        "wasf:has_vocalic_function:opening_function:evidenced",
-        "illah:belongs_to_haraka_function_domain:verified",
-        "illah:haraka_function_is:fatha:verified",
-        "wadi:sabab:established",
-        "wadi:shart:satisfied",
-        "wadi:mani:absent",
-        "wadi:sihha:valid",
-        "wadi:fasad:absent",
-        "wadi:butlan:absent",
+        "اصل:established",
+        "فرع:determined",
+        "وصف:has_haraka_codepoint:evidenced",
+        "وصف:has_unicode_identity:064e:evidenced",
+        "وصف:has_vocalic_function:opening_function:evidenced",
+        "علة:belongs_to_haraka_function_domain:verified",
+        "علة:haraka_function_is:fatha:verified",
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
         # Invalidating difference — should block
-        "fariq:fatha_vs_damma:present",
+        "فارق:fatha_vs_damma:present",
     )
 
     evidence = EvidenceSet(items=(
@@ -226,7 +226,7 @@ def test_fatha_invalidating_diff_blocks_haraka_transfer():
             evidence_id=f"ev:fatha_damma_test:{uuid.uuid4().hex[:8]}",
             source_layer="HarakaFunctionQiyas",
             proves=proves,
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
             trace_ids=("trace:ev",),
         ),
     ))
