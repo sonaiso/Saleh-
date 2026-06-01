@@ -250,10 +250,18 @@ def test_letter_identity_preserves_trace():
 
 def test_letter_identity_proves_fariq_absence():
     """
-    Test that evidence proves absence of invalidating differences (fariq).
+    MOVED TO LAYER 2 (ArabicLetterCoordinateCarrier).
+
+    Option C Architecture: LetterIdentityCarrier (Layer 1) contains ONLY pure identity.
+    Invalidating differences (fariq) are checked in Layer 2 (coordinate enrichment).
+
+    Original test: Evidence proves absence of invalidating differences (fariq).
+    TODO: Re-implement this test for ArabicLetterCoordinateCarrier layer.
 
     Constitutional requirement: fariq must be proven in evidence, not just declared.
     """
+    import pytest
+    pytest.skip("Fariq checking moved to Layer 2 (ArabicLetterCoordinateCarrier)")
     kernel = QiyasKernel()
     typed_adapter = TypedCodePointLayerAdapter(kernel=kernel)
     letter_adapter = LetterIdentityLayerAdapter(kernel=kernel)
@@ -279,9 +287,18 @@ def test_letter_identity_has_representation_contract():
     """
     Test that LetterIdentityCarrier preserves constitutional identity contract.
 
-    The kernel preserves input identities and adds the asl domain identity.
-    Detailed RepresentationContract layers (unicode, script, name, phonetic_proxy,
-    makhraj, sifat, letter) are proven in evidence, not added to identity_ids.
+    Option C Architecture - Layer 1 (LetterIdentityCarrier): PURE IDENTITY ONLY
+      - Unicode identity (digital layer)
+      - Script identity
+      - Name identity (Latin + Arabic)
+      - Specific letter identity
+
+    NOT in Layer 1 (moved to Layer 2 - ArabicLetterCoordinateCarrier):
+      - Phonetic proxy (sound_identity)
+      - Makhraj
+      - Sifat
+      - Abjad numeric
+      - Invalidating differences (fariq)
 
     Constitutional requirement: input_identity_ids ⊆ output_identity_ids
     """
@@ -304,7 +321,7 @@ def test_letter_identity_has_representation_contract():
     # Kernel adds asl identity
     assert "identity:letter_identity_domain" in identity.identity_ids
 
-    # Verify evidence proves representation contract layers
+    # Verify evidence proves PURE IDENTITY layers only (Option C - Layer 1)
     request = letter_adapter.build_request_for_letter_identity(baa_letter_codepoint)
     assert request is not None
 
@@ -312,13 +329,22 @@ def test_letter_identity_has_representation_contract():
     for evidence_item in request.evidence.items:
         proves_list.extend(evidence_item.proves)
 
-    # Evidence must prove representation contract layers
+    # Evidence must prove PURE IDENTITY layers (Option C - Layer 1)
     has_unicode_wasf = any("wasf:has_unicode_identity:" in p for p in proves_list)
     has_script_wasf = any("wasf:has_script_identity:" in p for p in proves_list)
-    has_sound_wasf = any("wasf:has_sound_identity:" in p for p in proves_list)
-    has_makhraj_wasf = any("wasf:has_makhraj:" in p for p in proves_list)
+    has_latin_name = any("wasf:has_latin_name:" in p for p in proves_list)
+    has_arabic_name = any("wasf:has_arabic_name:" in p for p in proves_list)
 
     assert has_unicode_wasf, "Evidence missing unicode identity proof"
     assert has_script_wasf, "Evidence missing script identity proof"
-    assert has_sound_wasf, "Evidence missing sound identity proof"
-    assert has_makhraj_wasf, "Evidence missing makhraj proof"
+    assert has_latin_name, "Evidence missing Latin name proof"
+    assert has_arabic_name, "Evidence missing Arabic name proof"
+
+    # Verify Layer 1 does NOT contain Layer 2 proofs (Option C compliance)
+    has_sound_wasf = any("wasf:has_sound_identity:" in p for p in proves_list)
+    has_makhraj_wasf = any("wasf:has_makhraj:" in p for p in proves_list)
+    has_fariq_proofs = any("fariq:" in p for p in proves_list)
+
+    assert not has_sound_wasf, "Layer 1 must NOT contain sound_identity (moved to Layer 2)"
+    assert not has_makhraj_wasf, "Layer 1 must NOT contain makhraj (moved to Layer 2)"
+    assert not has_fariq_proofs, "Layer 1 must NOT contain fariq (moved to Layer 2)"

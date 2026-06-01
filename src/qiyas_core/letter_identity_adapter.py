@@ -32,36 +32,66 @@ from .node import QiyasNodeRef
 from .rules.letter_identity_rules import get_letter_identity_rule
 
 
+# Arabic name mapping for letters (Option C - Layer 1 identity)
+ARABIC_LETTER_NAMES = {
+    0x0621: "همزة",  # hamza
+    0x0627: "ألف",   # alif
+    0x0628: "باء",   # baa
+    0x062A: "تاء",   # taa
+    0x062B: "ثاء",   # thaa
+    0x062C: "جيم",   # jeem
+    0x062D: "حاء",   # haa
+    0x062E: "خاء",   # khaa
+    0x062F: "دال",   # dal
+    0x0630: "ذال",   # dhal
+    0x0631: "راء",   # raa
+    0x0632: "زاي",   # zay
+    0x0633: "سين",   # seen
+    0x0634: "شين",   # sheen
+    0x0635: "صاد",   # saad
+    0x0636: "ضاد",   # daad
+    0x0637: "طاء",   # taa_emphatic
+    0x0638: "ظاء",   # dhaa
+    0x0639: "عين",   # ayn
+    0x063A: "غين",   # ghayn
+    0x0641: "فاء",   # faa
+    0x0642: "قاف",   # qaf
+    0x0643: "كاف",   # kaf
+    0x0644: "لام",   # lam
+    0x0645: "ميم",   # meem
+    0x0646: "نون",   # noon
+    0x0647: "هاء",   # haa
+    0x0648: "واو",   # waw
+    0x064A: "ياء",   # yaa
+}
+
+
 def build_letter_identity_evidence(
     letter_name: str,
     codepoint: int,
-    makhraj: str,
-    voicing: str,
-    manner: str,
-    emphasis: str,
-    invalidating_diffs: tuple[str, ...],
+    arabic_name: str,
     trace_prefix: str,
 ) -> EvidenceSet:
     """
-    Build evidence for letter identity with full representation contract.
+    Build evidence for PURE letter identity (Option C - Layer 1).
 
-    Proves:
+    Proves ONLY identity coordinates:
       - Unicode identity (digital layer)
       - Script identity
-      - Name identity
-      - Phonetic proxy identity
-      - Makhraj class identity
-      - Sifat profile
-      - Absence of invalidating differences (fariq)
+      - Name identity (Latin + Arabic)
+      - Specific letter identity
+
+    Does NOT prove (moved to ArabicLetterCoordinateCarrier - Layer 2):
+      - Phonetic proxy
+      - Makhraj
+      - Sifat
+      - Abjad numeric
+      - Invalidating differences (fariq)
 
     Args:
         letter_name: Lowercase letter name (e.g., "baa", "taa", "seen")
         codepoint: Unicode codepoint value
-        makhraj: Makhraj class (uppercase, e.g., "BILABIAL")
-        voicing: Voicing (uppercase, e.g., "VOICED")
-        manner: Manner (uppercase, e.g., "STOP")
-        emphasis: Emphasis (uppercase, e.g., "NON_EMPHATIC")
-        invalidating_diffs: Tuple of invalidating difference names
+        arabic_name: Arabic name (e.g., "باء", "تاء", "سين")
         trace_prefix: Trace prefix for evidence
     """
     cp_hex = f"{codepoint:04x}"
@@ -71,11 +101,11 @@ def build_letter_identity_evidence(
         "far:determined",
         # Generic wasf
         "wasf:has_letter_codepoint:evidenced",
-        # Type-specific wasf (representation contract layers) - must match rule format exactly
+        # PURE IDENTITY wasf - Unicode, Script, Name only
         f"wasf:has_unicode_identity:{cp_hex}:evidenced",
         f"wasf:has_script_identity:{letter_name}:evidenced",  # lowercase letter_name
-        f"wasf:has_sound_identity:{voicing.lower()}_{manner.lower()}:evidenced",
-        f"wasf:has_makhraj:{makhraj.lower()}:evidenced",
+        f"wasf:has_latin_name:{letter_name}:evidenced",
+        f"wasf:has_arabic_name:{arabic_name}:evidenced",
         # Generic illah
         "illah:belongs_to_letter_identity_domain:verified",
         # Type-specific illah - must match rule format exactly
@@ -89,10 +119,6 @@ def build_letter_identity_evidence(
         "wadi:butlan:absent",
     ]
 
-    # Add invalidating differences (fariq) absence proofs
-    for diff in invalidating_diffs:
-        proves.append(f"fariq:{diff}:absent")
-
     return EvidenceSet(
         items=(
             Evidence(
@@ -104,53 +130,6 @@ def build_letter_identity_evidence(
             ),
         )
     )
-
-
-def build_letter_identity_ids(
-    letter_name: str,
-    codepoint: int,
-    makhraj: str,
-    voicing: str,
-    manner: str,
-    input_identity_ids: tuple[str, ...],
-) -> tuple[str, ...]:
-    """
-    Build identity_ids for LetterIdentityCarrier.
-
-    Constitutional requirement: input_identity_ids ⊆ output_identity_ids
-
-    Adds representation contract identities:
-      - Digital identity (codepoint)
-      - Script identity
-      - Name identity
-      - Phonetic proxy identity
-      - Makhraj class identity
-      - Sifat profile identity
-      - Specific letter identity
-    """
-    cp_hex = f"{codepoint:04x}"
-    phonetic_proxy = f"/{letter_name[0].lower()}/" if letter_name else "/?"
-
-    new_identities = [
-        # Preserve input identities
-        *input_identity_ids,
-        # Digital identity layer
-        f"identity:unicode:{cp_hex}",
-        # Script identity layer
-        f"identity:script:arabic_letter_{letter_name.lower()}",
-        # Name identity layer
-        f"identity:name:{letter_name.lower()}",
-        # Phonetic proxy identity layer
-        f"identity:phonetic_proxy:{phonetic_proxy}",
-        # Makhraj class identity layer
-        f"identity:makhraj:{makhraj.lower()}",
-        # Sifat profile identity layer
-        f"identity:sifat:{voicing.lower()}_{manner.lower()}",
-        # Specific letter identity (terminal)
-        f"identity:letter:{letter_name.lower()}",
-    ]
-
-    return tuple(new_identities)
 
 
 @dataclass
@@ -211,6 +190,9 @@ class LetterIdentityLayerAdapter:
         # Extract letter name from rule_id (keep lowercase to match rule format)
         letter_name = rule.rule_id.split(".")[-1]  # e.g., "baa", "taa", "seen"
 
+        # Get Arabic name
+        arabic_name = ARABIC_LETTER_NAMES.get(codepoint, letter_name)
+
         if not trace_prefix:
             trace_prefix = f"letter_identity:{letter_name.lower()}"
 
@@ -232,31 +214,12 @@ class LetterIdentityLayerAdapter:
             rank=letter_candidate.rank,
         )
 
-        # Extract phonetic attributes from rule
-        # Parse from required_effective_wasf
-        makhraj = "UNKNOWN"
-        voicing = "UNKNOWN"
-        manner = "UNKNOWN"
-        emphasis = "NON_EMPHATIC"
-
-        for wasf in rule.required_effective_wasf:
-            if "has_makhraj:" in wasf:
-                makhraj = wasf.split(":")[-1].upper()
-            elif "has_sound_identity:" in wasf:
-                sound_parts = wasf.split(":")[-1].upper().split("_")
-                if len(sound_parts) >= 2:
-                    voicing = sound_parts[0]
-                    manner = "_".join(sound_parts[1:])
-
-        # Build evidence with representation contract
+        # Build PURE IDENTITY evidence (Option C - Layer 1)
+        # No phonetic, makhraj, sifat - those moved to Layer 2
         evidence = build_letter_identity_evidence(
             letter_name=letter_name,
             codepoint=codepoint,
-            makhraj=makhraj,
-            voicing=voicing,
-            manner=manner,
-            emphasis=emphasis,
-            invalidating_diffs=rule.invalidating_differences,
+            arabic_name=arabic_name,
             trace_prefix=trace_prefix,
         )
 
