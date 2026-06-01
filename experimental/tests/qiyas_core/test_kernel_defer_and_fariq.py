@@ -16,16 +16,16 @@ class TestKernelDeferAndFariq:
     def test_defer_claim_produces_deferred_status(self):
         """defer:*:present evidence must produce CandidateStatus.DEFERRED"""
         request = make_request_with_evidence(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
             "defer:murab_closure_deferred:present",  # Deferral claim
         )
 
@@ -37,20 +37,20 @@ class TestKernelDeferAndFariq:
         assert candidate.status == CandidateStatus.DEFERRED
 
     def test_fariq_claim_produces_blocked_status(self):
-        """fariq:*:present evidence must produce CandidateStatus.BLOCKED"""
+        """فارق:*:present evidence must produce CandidateStatus.BLOCKED"""
         rule = make_minimal_rule()
         request = make_request_with_evidence(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
-            "fariq:test_diff:present",  # Blocking difference (matches rule.invalidating_differences)
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
+            "فارق:test_diff:present",  # Blocking difference (matches rule.invalidating_differences)
             rule=rule,
         )
 
@@ -62,20 +62,20 @@ class TestKernelDeferAndFariq:
         assert candidate.status == CandidateStatus.BLOCKED
 
     def test_fariq_sets_blocking_fariq_present_residual(self):
-        """fariq:*:present must produce blocking_fariq_present residual"""
+        """فارق:*:present must produce blocking_fariq_present residual"""
         rule = make_minimal_rule()
         request = make_request_with_evidence(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
-            "fariq:test_diff:present",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
+            "فارق:test_diff:present",
             rule=rule,
         )
 
@@ -92,16 +92,16 @@ class TestKernelDeferAndFariq:
     def test_multiple_defer_claims_all_recorded(self):
         """Multiple defer claims must all be recorded in deferral_states"""
         request = make_request_with_evidence(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
             "defer:first_reason:present",
             "defer:second_reason:present",
         )
@@ -123,18 +123,18 @@ class TestKernelDeferAndFariq:
             invalidating_differences=("diff_a", "diff_b"),
         )
         request = make_request_with_evidence(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
-            "fariq:diff_a:present",
-            "fariq:diff_b:present",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
+            "فارق:diff_a:present",
+            "فارق:diff_b:present",
             rule=rule,
         )
 
@@ -149,20 +149,20 @@ class TestKernelDeferAndFariq:
         assert residual_types.count("blocking_fariq_present") == 2
 
     def test_fariq_overrides_acceptance(self):
-        """fariq:*:present blocks even if wasf/illah present"""
+        """فارق:*:present blocks even if wasf/illah present"""
         rule = make_minimal_rule()
         request = make_request_with_evidence(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",  # Valid wasf
-            "illah:test_illah:verified",  # Valid illah
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
-            "fariq:test_diff:present",  # But has blocking difference
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",  # Valid wasf
+            "علة:test_illah:verified",  # Valid illah
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
+            "فارق:test_diff:present",  # But has blocking difference
             rule=rule,
         )
 
@@ -176,16 +176,16 @@ class TestKernelDeferAndFariq:
     def test_defer_produces_deferred_not_accepted(self):
         """defer:*:present must produce DEFERRED, not ACCEPTED"""
         request = make_request_with_evidence(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
             "defer:closure_pending:present",
         )
 
@@ -200,16 +200,16 @@ class TestKernelDeferAndFariq:
     def test_no_defer_or_fariq_produces_accepted(self):
         """Without defer or fariq claims, candidate is ACCEPTED"""
         request = make_request_with_evidence(
-            "asl:established",
-            "far:determined",
-            "wasf:test_wasf:evidenced",
-            "illah:test_illah:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:test_wasf:evidenced",
+            "علة:test_illah:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
             # No defer:* or fariq:* claims
         )
 

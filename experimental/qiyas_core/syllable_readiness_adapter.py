@@ -38,20 +38,20 @@ class SyllableReadinessLayerAdapter:
 
         # Create asl node - representing PhonoFunctionalUnitCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"اصل:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="PhonoFunctionalUnitCandidate",
             identity_ids=(f"identity:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing syllable context
         far = QiyasNodeRef(
-            node_id=f"far:syl_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"فرع:syl_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="SyllableContext",
             identity_ids=(f"identity:syl_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Check for blocking conditions
@@ -60,7 +60,7 @@ class SyllableReadinessLayerAdapter:
 
         # Check for initial sukun (not allowed at word start)
         if is_initial_position and mark_fn == MarkFunction.SUKUN_MARK:
-            blocking_conditions.append("fariq:initial_sukun:present")
+            blocking_conditions.append("فارق:initial_sukun:present")
 
         # Check for additional diacritic being treated as vowel
         if mark_fn == MarkFunction.ADDITIONAL_DIACRITIC_MARK:
@@ -72,14 +72,14 @@ class SyllableReadinessLayerAdapter:
         if blocking_conditions:
             # Has blocking or deferring conditions
             proves = [
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             ]
             proves.extend(blocking_conditions)
             proves = tuple(proves)
@@ -88,14 +88,14 @@ class SyllableReadinessLayerAdapter:
             # evidence of order equilibrium from prerequisite layers
             # For now, defer until those layers provide evidence
             proves = (
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
                 "residual:awaiting_order_equilibrium_evidence:deferred",
             )
 
@@ -105,7 +105,7 @@ class SyllableReadinessLayerAdapter:
                     evidence_id=f"ev:syl_ready:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="SyllableReadinessQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

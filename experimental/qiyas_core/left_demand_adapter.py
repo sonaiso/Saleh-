@@ -37,20 +37,20 @@ class LeftDemandLayerAdapter:
 
         # Create asl node - representing PhonoFunctionalUnitCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"اصل:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="PhonoFunctionalUnitCandidate",
             identity_ids=(f"identity:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing left context
         far = QiyasNodeRef(
-            node_id=f"far:left_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
+            node_id=f"فرع:left_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",
             node_type="LeftContext",
             identity_ids=(f"identity:left_ctx:{carrier_codepoint:04x}+{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Analyze left demand based on position
@@ -58,32 +58,32 @@ class LeftDemandLayerAdapter:
         # At non-initial position, left demand exists (needs preceding syllable)
         if is_initial_position:
             proves = (
-                "asl:established",
-                "far:determined",
-                "wasf:left_position_analyzed:evidenced",
-                "wasf:left_demand_satisfied:evidenced",
-                "illah:left_demand_determinable:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:left_position_analyzed:evidenced",
+                "وصف:left_demand_satisfied:evidenced",
+                "علة:left_demand_determinable:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             )
         else:
             # Non-initial position: left demand exists but deferred
             proves = (
-                "asl:established",
-                "far:determined",
-                "wasf:left_position_analyzed:evidenced",
-                "illah:left_demand_determinable:verified",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:left_position_analyzed:evidenced",
+                "علة:left_demand_determinable:verified",
                 "residual:left_demand_requires_preceding:deferred",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             )
 
         evidence = EvidenceSet(
@@ -92,7 +92,7 @@ class LeftDemandLayerAdapter:
                     evidence_id=f"ev:left_demand:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="LeftDemandQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

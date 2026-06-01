@@ -3,12 +3,12 @@ from qiyas_core.rule import QiyasRule
 
 
 ALL_WADI = (
-    WadiGate.SABAB,
-    WadiGate.SHART,
-    WadiGate.MANI,
-    WadiGate.SIHHA,
-    WadiGate.FASAD,
-    WadiGate.BUTLAN,
+    WadiGate.CAUSE,
+    WadiGate.CONDITION,
+    WadiGate.OBSTACLE,
+    WadiGate.VALIDITY,
+    WadiGate.CORRUPTION,
+    WadiGate.NULLITY,
 )
 
 
@@ -52,5 +52,5 @@ SYLLABLE_READINESS_VALIDATION = QiyasRule(
         "RealityClaim",
         "FinalMeaning",
     ),
-    rank_ceiling=EvidenceRank.FORM,
+    rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )

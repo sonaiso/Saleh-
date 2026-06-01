@@ -8,7 +8,7 @@ def make_evidence_set(
     *claims: str,
     evidence_id: str = "ev:1",
     source_layer: str = "TestLayer",
-    rank: EvidenceRank = EvidenceRank.QIYAS,
+    rank: EvidenceRank = EvidenceRank.ANALOGICAL,
     trace_ids: tuple[str, ...] = ("trace:ev:1",),
 ) -> EvidenceSet:
     """Create an EvidenceSet with specified claims.
@@ -39,7 +39,7 @@ def make_evidence_set(
 def make_valid_wadi_evidence(
     evidence_id: str = "ev:wadi",
     source_layer: str = "TestLayer",
-    rank: EvidenceRank = EvidenceRank.QIYAS,
+    rank: EvidenceRank = EvidenceRank.ANALOGICAL,
 ) -> EvidenceSet:
     """Create complete valid wadi evidence (all 6 gates).
 
@@ -52,12 +52,12 @@ def make_valid_wadi_evidence(
         EvidenceSet with all 6 wadi gates satisfied
     """
     return make_evidence_set(
-        "wadi:sabab:established",
-        "wadi:shart:satisfied",
-        "wadi:mani:absent",
-        "wadi:sihha:valid",
-        "wadi:fasad:absent",
-        "wadi:butlan:absent",
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
         evidence_id=evidence_id,
         source_layer=source_layer,
         rank=rank,
@@ -68,12 +68,12 @@ def make_wasf_evidence(
     wasf_claim: str,
     evidence_id: str = "ev:wasf",
     source_layer: str = "TestLayer",
-    rank: EvidenceRank = EvidenceRank.QIYAS,
+    rank: EvidenceRank = EvidenceRank.ANALOGICAL,
 ) -> EvidenceSet:
     """Create evidence with a wasf claim.
 
     Args:
-        wasf_claim: The wasf claim (e.g., "wasf:carrier_accepts_mark:evidenced")
+        wasf_claim: The wasf claim (e.g., "وصف:carrier_accepts_mark:evidenced")
         evidence_id: Unique evidence identifier
         source_layer: Source layer name
         rank: Evidence rank
@@ -93,12 +93,12 @@ def make_illah_evidence(
     illah_claim: str,
     evidence_id: str = "ev:illah",
     source_layer: str = "TestLayer",
-    rank: EvidenceRank = EvidenceRank.QIYAS,
+    rank: EvidenceRank = EvidenceRank.ANALOGICAL,
 ) -> EvidenceSet:
     """Create evidence with an illah claim.
 
     Args:
-        illah_claim: The illah claim (e.g., "illah:licensed_atomic_binding:verified")
+        illah_claim: The illah claim (e.g., "علة:licensed_atomic_binding:verified")
         evidence_id: Unique evidence identifier
         source_layer: Source layer name
         rank: Evidence rank
@@ -118,12 +118,12 @@ def make_fariq_evidence(
     fariq_claim: str,
     evidence_id: str = "ev:fariq",
     source_layer: str = "TestLayer",
-    rank: EvidenceRank = EvidenceRank.QIYAS,
+    rank: EvidenceRank = EvidenceRank.ANALOGICAL,
 ) -> EvidenceSet:
     """Create evidence with a fariq (blocking difference) claim.
 
     Args:
-        fariq_claim: The fariq claim (e.g., "fariq:carrier_is_not_arabic_letter:present")
+        fariq_claim: The fariq claim (e.g., "فارق:carrier_is_not_arabic_letter:present")
         evidence_id: Unique evidence identifier
         source_layer: Source layer name
         rank: Evidence rank
@@ -143,7 +143,7 @@ def make_defer_evidence(
     defer_claim: str,
     evidence_id: str = "ev:defer",
     source_layer: str = "TestLayer",
-    rank: EvidenceRank = EvidenceRank.QIYAS,
+    rank: EvidenceRank = EvidenceRank.ANALOGICAL,
 ) -> EvidenceSet:
     """Create evidence with a defer (deferral) claim.
 

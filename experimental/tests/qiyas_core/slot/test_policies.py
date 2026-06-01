@@ -20,14 +20,14 @@ from qiyas_core.slot.policies import (
 def test_slot_evidence_profile_creation():
     """Test creating SlotEvidenceProfile."""
     profile = SlotEvidenceProfile(
-        rank_floor=EvidenceRank.FORM,
-        rank_ceiling=EvidenceRank.QIYAS,
+        rank_floor=EvidenceRank.FORMAL_STRUCTURE,
+        rank_ceiling=EvidenceRank.ANALOGICAL,
         required_evidence_claims=("claim1",),
         optional_evidence_claims=("claim2",),
         evidence_merge_policy="min",
     )
-    assert profile.rank_floor == EvidenceRank.FORM
-    assert profile.rank_ceiling == EvidenceRank.QIYAS
+    assert profile.rank_floor == EvidenceRank.FORMAL_STRUCTURE
+    assert profile.rank_ceiling == EvidenceRank.ANALOGICAL
     assert profile.evidence_merge_policy == "min"
 
 
@@ -35,8 +35,8 @@ def test_slot_evidence_profile_rejects_invalid_rank_range():
     """Test that rank_floor cannot exceed rank_ceiling."""
     with pytest.raises(ValueError, match="rank_floor cannot exceed rank_ceiling"):
         SlotEvidenceProfile(
-            rank_floor=EvidenceRank.QIYAS,
-            rank_ceiling=EvidenceRank.FORM,
+            rank_floor=EvidenceRank.ANALOGICAL,
+            rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
             required_evidence_claims=(),
             optional_evidence_claims=(),
             evidence_merge_policy="min",
@@ -46,11 +46,11 @@ def test_slot_evidence_profile_rejects_invalid_rank_range():
 def test_slot_rank_policy_creation():
     """Test creating SlotRankPolicy."""
     policy = SlotRankPolicy(
-        minimum_required_rank=EvidenceRank.FORM,
+        minimum_required_rank=EvidenceRank.FORMAL_STRUCTURE,
         rank_merge_strategy="min",
         rank_degradation_factors=("factor1",),
     )
-    assert policy.minimum_required_rank == EvidenceRank.FORM
+    assert policy.minimum_required_rank == EvidenceRank.FORMAL_STRUCTURE
     assert policy.rank_merge_strategy == "min"
 
 

@@ -5,12 +5,12 @@ from qiyas_core.rule import QiyasRule
 
 
 ALL_WADI_GATES = (
-    WadiGate.SABAB,
-    WadiGate.SHART,
-    WadiGate.MANI,
-    WadiGate.SIHHA,
-    WadiGate.FASAD,
-    WadiGate.BUTLAN,
+    WadiGate.CAUSE,
+    WadiGate.CONDITION,
+    WadiGate.OBSTACLE,
+    WadiGate.VALIDITY,
+    WadiGate.CORRUPTION,
+    WadiGate.NULLITY,
 )
 
 
@@ -30,7 +30,7 @@ def make_minimal_rule(
         "RealityClaim",
         "FinalMeaning",
     ),
-    rank_ceiling: EvidenceRank = EvidenceRank.QIYAS,
+    rank_ceiling: EvidenceRank = EvidenceRank.ANALOGICAL,
 ) -> QiyasRule:
     """Create a constitutionally valid minimal rule.
 
@@ -71,19 +71,19 @@ def make_rule_missing_wadi(
     """Create a rule with a missing WadiGate (for negative tests).
 
     Args:
-        missing_gate: Name of the gate to omit ("sabab", "shart", etc.)
+        missing_gate: Name of the gate to omit ("cause", "condition", etc.)
         rule_id: Unique rule identifier
 
     Returns:
         QiyasRule missing one WadiGate (constitutionally invalid)
     """
     gate_map = {
-        "sabab": WadiGate.SABAB,
-        "shart": WadiGate.SHART,
-        "mani": WadiGate.MANI,
-        "sihha": WadiGate.SIHHA,
-        "fasad": WadiGate.FASAD,
-        "butlan": WadiGate.BUTLAN,
+        "cause": WadiGate.CAUSE,
+        "condition": WadiGate.CONDITION,
+        "obstacle": WadiGate.OBSTACLE,
+        "validity": WadiGate.VALIDITY,
+        "corruption": WadiGate.CORRUPTION,
+        "nullity": WadiGate.NULLITY,
     }
 
     if missing_gate not in gate_map:
@@ -104,7 +104,7 @@ def make_rule_missing_wadi(
         neutral_identity_domain="test_domain",
         output_candidate_type="TestCandidate",
         forbidden_outputs=("HigherCandidate",),
-        rank_ceiling=EvidenceRank.QIYAS,
+        rank_ceiling=EvidenceRank.ANALOGICAL,
     )
 
 
@@ -124,7 +124,7 @@ def make_rule_extra_wadi(
         a duplicate gate to simulate "extra" gate scenario.
     """
     # Duplicate one gate to create 7 gates
-    gates = ALL_WADI_GATES + (WadiGate.SABAB,)
+    gates = ALL_WADI_GATES + (WadiGate.CAUSE,)
 
     return QiyasRule(
         rule_id=rule_id,
@@ -139,7 +139,7 @@ def make_rule_extra_wadi(
         neutral_identity_domain="test_domain",
         output_candidate_type="TestCandidate",
         forbidden_outputs=("HigherCandidate",),
-        rank_ceiling=EvidenceRank.QIYAS,
+        rank_ceiling=EvidenceRank.ANALOGICAL,
     )
 
 
@@ -167,5 +167,5 @@ def make_rule_empty_forbidden(
         neutral_identity_domain="test_domain",
         output_candidate_type="TestCandidate",
         forbidden_outputs=(),  # Empty - constitutional violation
-        rank_ceiling=EvidenceRank.QIYAS,
+        rank_ceiling=EvidenceRank.ANALOGICAL,
     )

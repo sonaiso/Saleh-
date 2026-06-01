@@ -121,7 +121,7 @@ def test_syllable_readiness_rank_not_exceeds_form():
     candidate = result.blocked[0]
     from qiyas_core.enums import EvidenceRank
     # Blocked candidates have rank ZERO
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
 
 def test_syllable_readiness_forbidden_outputs_enforced():

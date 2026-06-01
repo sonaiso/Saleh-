@@ -43,47 +43,47 @@ class WordMinimalCompletionReadinessLayerAdapter:
 
         # Create asl node - representing WordInternalClosureReadinessCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:word_closure_ready:{trace_prefix}",
+            node_id=f"اصل:word_closure_ready:{trace_prefix}",
             node_type="WordInternalClosureReadinessCandidate",
             identity_ids=(f"identity:word_closure:{trace_prefix}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing word completion context
         far = QiyasNodeRef(
-            node_id=f"far:word_completion_ctx:{trace_prefix}",
+            node_id=f"فرع:word_completion_ctx:{trace_prefix}",
             node_type="WordCompletionContext",
             identity_ids=(f"identity:word_completion_ctx:{trace_prefix}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Build evidence
         proves = [
-            "asl:established",
-            "far:determined",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         # We have word closure readiness as input
-        proves.append("wasf:word_closure_readiness_available:evidenced")
+        proves.append("وصف:word_closure_readiness_available:evidenced")
 
         # Check if minimal components are present
         if has_minimal_components:
-            proves.append("wasf:minimal_word_components_present:evidenced")
-            proves.append("wasf:word_minimal_completion_ready:evidenced")
-            proves.append("illah:word_minimal_completion_fit:verified")
+            proves.append("وصف:minimal_word_components_present:evidenced")
+            proves.append("وصف:word_minimal_completion_ready:evidenced")
+            proves.append("علة:word_minimal_completion_fit:verified")
         else:
             # Missing components - block or defer
             if missing_components:
                 # Specific components missing - this blocks completion
-                proves.append("fariq:word_components_missing:present")
+                proves.append("فارق:word_components_missing:present")
             else:
                 # Unknown if components are complete - defer
                 proves.append("defer:word_completion_pending:present")
@@ -96,7 +96,7 @@ class WordMinimalCompletionReadinessLayerAdapter:
                     evidence_id=f"ev:word_completion:{trace_prefix}:{uuid.uuid4().hex[:8]}",
                     source_layer="WordMinimalCompletionReadinessQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

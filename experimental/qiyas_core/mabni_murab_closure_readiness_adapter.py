@@ -44,42 +44,42 @@ class MabniMurabClosureReadinessLayerAdapter:
 
         # Create asl node - representing ClosureReadinessCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:closure_ready:{trace_prefix}",
+            node_id=f"اصل:closure_ready:{trace_prefix}",
             node_type="ClosureReadinessCandidate",
             identity_ids=(f"identity:closure_ready:{trace_prefix}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing mabni/muʿrab context
         far = QiyasNodeRef(
-            node_id=f"far:mabni_murab_ctx:{trace_prefix}",
+            node_id=f"فرع:mabni_murab_ctx:{trace_prefix}",
             node_type="MabniMurabContext",
             identity_ids=(f"identity:mabni_murab_ctx:{trace_prefix}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Build evidence
         proves = [
-            "asl:established",
-            "far:determined",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         # Distinguish mabni vs muʿrab readiness
         if closure_readiness == ClosureReadiness.MABNI_CLOSURE_READY:
             # Mabni form has stable internal structure
-            proves.append("wasf:closure_type_distinguishable:evidenced")
-            proves.append("wasf:mabni_form_stability:evidenced")
-            proves.append("wasf:case_variation_blocked:evidenced")
-            proves.append("wasf:mabni_murab_closure_ready:evidenced")
-            proves.append("illah:mabni_murab_closure_determinable:verified")
+            proves.append("وصف:closure_type_distinguishable:evidenced")
+            proves.append("وصف:mabni_form_stability:evidenced")
+            proves.append("وصف:case_variation_blocked:evidenced")
+            proves.append("وصف:mabni_murab_closure_ready:evidenced")
+            proves.append("علة:mabni_murab_closure_determinable:verified")
 
             # But external reference/complement is still pending
             # This is readiness, not final meaning determination
@@ -88,10 +88,10 @@ class MabniMurabClosureReadinessLayerAdapter:
 
         elif closure_readiness == ClosureReadiness.MURAB_CLOSURE_DEFERRED:
             # Muʿrab form has open case slot
-            proves.append("wasf:closure_type_distinguishable:evidenced")
-            proves.append("wasf:murab_case_slot_open:evidenced")
-            proves.append("wasf:mabni_murab_closure_ready:evidenced")
-            proves.append("illah:mabni_murab_closure_determinable:verified")
+            proves.append("وصف:closure_type_distinguishable:evidenced")
+            proves.append("وصف:murab_case_slot_open:evidenced")
+            proves.append("وصف:mabni_murab_closure_ready:evidenced")
+            proves.append("علة:mabni_murab_closure_determinable:verified")
 
             # Governor and case position are pending
             # This is readiness, not final case determination
@@ -105,11 +105,11 @@ class MabniMurabClosureReadinessLayerAdapter:
 
         elif closure_readiness == ClosureReadiness.UNKNOWN_CLOSURE:
             # Cannot determine closure type
-            proves.append("fariq:closure_type_indeterminate:present")
+            proves.append("فارق:closure_type_indeterminate:present")
 
         else:
             # Other closure types (PAUSE, CONTINUATION) may not have mabni/muʿrab distinction
-            proves.append("wasf:closure_type_distinguishable:evidenced")
+            proves.append("وصف:closure_type_distinguishable:evidenced")
             proves.append("defer:mabni_murab_indeterminate:present")
 
         proves = tuple(proves)
@@ -120,7 +120,7 @@ class MabniMurabClosureReadinessLayerAdapter:
                     evidence_id=f"ev:mabni_murab:{trace_prefix}:{uuid.uuid4().hex[:8]}",
                     source_layer="MabniMurabClosureReadinessQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

@@ -27,7 +27,7 @@ def test_fatha_produces_accepted_candidate():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "HarakaCandidate"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
     assert candidate.layer == "HarakaQiyas"
     assert candidate.source_rule_id == "haraka.arabic.diacritic"
 
@@ -46,7 +46,7 @@ def test_damma_produces_accepted_candidate():
     candidate = result.accepted[0]
     assert candidate.status == CandidateStatus.ACCEPTED
     assert candidate.candidate_type == "HarakaCandidate"
-    assert candidate.rank == EvidenceRank.FORM
+    assert candidate.rank == EvidenceRank.FORMAL_STRUCTURE
 
 
 def test_kasra_produces_accepted_candidate():
@@ -142,7 +142,7 @@ def test_non_haraka_arabic_letter_produces_blocked_candidate():
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
     assert candidate.candidate_type == "HarakaCandidate"
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
     # Should have a residual about non-haraka codepoint
     assert len(candidate.residuals) > 0
@@ -163,7 +163,7 @@ def test_latin_letter_produces_blocked_candidate():
 
     candidate = result.blocked[0]
     assert candidate.status == CandidateStatus.BLOCKED
-    assert candidate.rank == EvidenceRank.ZERO
+    assert candidate.rank == EvidenceRank.NO_EVIDENCE
 
 
 def test_identity_and_trace_ids_are_disjoint():
@@ -492,7 +492,7 @@ def test_core_haraka_evidence_claim():
 
     for codepoint in core_haraka_codepoints:
         request = adapter.build_request_for_codepoint(codepoint)
-        assert request.evidence.proves("wasf:core_haraka:evidenced"), (
+        assert request.evidence.proves("وصف:core_haraka:evidenced"), (
             f"Codepoint {codepoint:04x} must prove wasf:core_haraka:evidenced"
         )
 
@@ -502,7 +502,7 @@ def test_shadda_evidence_claim():
     adapter = HarakaLayerAdapter(kernel=QiyasKernel())
 
     request = adapter.build_request_for_codepoint(0x0651)  # Shadda
-    assert request.evidence.proves("wasf:shadda_mark:evidenced"), (
+    assert request.evidence.proves("وصف:shadda_mark:evidenced"), (
         "Shadda (U+0651) must prove wasf:shadda_mark:evidenced"
     )
 
@@ -512,7 +512,7 @@ def test_sukun_evidence_claim():
     adapter = HarakaLayerAdapter(kernel=QiyasKernel())
 
     request = adapter.build_request_for_codepoint(0x0652)  # Sukun
-    assert request.evidence.proves("wasf:sukun_mark:evidenced"), (
+    assert request.evidence.proves("وصف:sukun_mark:evidenced"), (
         "Sukun (U+0652) must prove wasf:sukun_mark:evidenced"
     )
 
@@ -531,7 +531,7 @@ def test_additional_diacritic_evidence_claim():
 
     for codepoint in additional_codepoints:
         request = adapter.build_request_for_codepoint(codepoint)
-        assert request.evidence.proves("wasf:additional_arabic_diacritic:evidenced"), (
+        assert request.evidence.proves("وصف:additional_arabic_diacritic:evidenced"), (
             f"Codepoint {codepoint:04x} must prove wasf:additional_arabic_diacritic:evidenced"
         )
 

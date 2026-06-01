@@ -35,36 +35,36 @@ class PhonoFunctionalUnitLayerAdapter:
 
         # Create asl node - representing CarrierFunctionCandidate
         asl = QiyasNodeRef(
-            node_id=f"asl:carrier_fn:{carrier_codepoint:04x}",
+            node_id=f"اصل:carrier_fn:{carrier_codepoint:04x}",
             node_type="CarrierFunctionCandidate",
             identity_ids=(f"identity:carrier_fn:{carrier_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing MarkFunctionCandidate
         far = QiyasNodeRef(
-            node_id=f"far:mark_fn:{mark_codepoint:04x}",
+            node_id=f"فرع:mark_fn:{mark_codepoint:04x}",
             node_type="MarkFunctionCandidate",
             identity_ids=(f"identity:mark_fn:{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Build evidence for phono-functional unit
         # Assume both carrier and mark functions are valid
         # (actual validation would come from previous layers)
         proves = (
-            "asl:established",
-            "far:determined",
-            "wasf:carrier_and_mark_functional:evidenced",
-            "illah:phonotactic_unit_composable:verified",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وصف:carrier_and_mark_functional:evidenced",
+            "علة:phonotactic_unit_composable:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         )
 
         evidence = EvidenceSet(
@@ -73,7 +73,7 @@ class PhonoFunctionalUnitLayerAdapter:
                     evidence_id=f"ev:phono_fn:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="PhonoFunctionalUnitQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

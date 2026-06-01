@@ -43,53 +43,53 @@ class LafzInternalClosureReadinessLayerAdapter:
         # Create asl node - representing SyllableReadinessCandidate
         # This is a representative node, not an actual syllable
         asl = QiyasNodeRef(
-            node_id=f"asl:syl_ready:{trace_prefix}",
+            node_id=f"اصل:syl_ready:{trace_prefix}",
             node_type="SyllableReadinessCandidate",
             identity_ids=(f"identity:syl_ready_set:{trace_prefix}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node - representing lafz closure context
         far = QiyasNodeRef(
-            node_id=f"far:lafz_closure_ctx:{trace_prefix}",
+            node_id=f"فرع:lafz_closure_ctx:{trace_prefix}",
             node_type="LafzClosureContext",
             identity_ids=(f"identity:lafz_closure_ctx:{trace_prefix}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Check for blocking conditions
         proves = [
-            "asl:established",
-            "far:determined",
-            "wadi:sabab:established",
-            "wadi:shart:satisfied",
-            "wadi:mani:absent",
-            "wadi:sihha:valid",
-            "wadi:fasad:absent",
-            "wadi:butlan:absent",
+            "اصل:established",
+            "فرع:determined",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
         ]
 
         # Check if we have syllable readiness evidence
         if not syllable_readiness_candidates or len(syllable_readiness_candidates) == 0:
             # Missing syllable readiness - this blocks lafz closure
-            proves.append("fariq:syllable_readiness_missing:present")
+            proves.append("فارق:syllable_readiness_missing:present")
         else:
             # We have syllable readiness evidence
-            proves.append("wasf:syllable_readiness_available:evidenced")
+            proves.append("وصف:syllable_readiness_available:evidenced")
 
             # Check if we have order preservation evidence
             if has_syllable_order_equilibrium:
-                proves.append("wasf:internal_lafz_order_preserved:evidenced")
+                proves.append("وصف:internal_lafz_order_preserved:evidenced")
             else:
                 # Order not established - defer
                 proves.append("defer:lafz_order_pending:present")
 
             # Check closure readiness from constituent syllables
             if closure_readiness_candidates and len(closure_readiness_candidates) > 0:
-                proves.append("wasf:lafz_internal_closure_ready:evidenced")
-                proves.append("illah:lafz_internal_closure_fit:verified")
+                proves.append("وصف:lafz_internal_closure_ready:evidenced")
+                proves.append("علة:lafz_internal_closure_fit:verified")
             else:
                 # No closure readiness evidence yet - defer
                 proves.append("defer:lafz_closure_readiness_pending:present")
@@ -102,7 +102,7 @@ class LafzInternalClosureReadinessLayerAdapter:
                     evidence_id=f"ev:lafz_closure:{trace_prefix}:{uuid.uuid4().hex[:8]}",
                     source_layer="LafzInternalClosureReadinessQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

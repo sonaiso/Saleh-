@@ -57,20 +57,20 @@ class AtomicUnitLayerAdapter:
 
         # Create asl node representing the carrier (UnicodeCandidate)
         asl = QiyasNodeRef(
-            node_id=f"asl:carrier:{carrier_codepoint:04x}",
+            node_id=f"اصل:carrier:{carrier_codepoint:04x}",
             node_type="UnicodeCandidate",
             identity_ids=(f"identity:carrier:{carrier_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:asl",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Create far node representing the mark (HarakaCandidate)
         far = QiyasNodeRef(
-            node_id=f"far:mark:{mark_codepoint:04x}",
+            node_id=f"فرع:mark:{mark_codepoint:04x}",
             node_type="HarakaCandidate",
             identity_ids=(f"identity:mark:{mark_codepoint:04x}",),
             trace_ids=(f"{trace_prefix}:far",),
-            rank=EvidenceRank.FORM,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
         # Build evidence based on whether binding is valid
@@ -80,57 +80,57 @@ class AtomicUnitLayerAdapter:
         if carrier_is_letter and mark_is_diacritic:
             # Valid Arabic letter carrier + valid diacritic mark - all checks pass
             proves = [
-                "asl:established",
-                "far:determined",
-                "wasf:carrier_accepts_mark:evidenced",
-                "illah:licensed_atomic_binding:verified",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
+                "اصل:established",
+                "فرع:determined",
+                "وصف:carrier_accepts_mark:evidenced",
+                "علة:licensed_atomic_binding:verified",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
             ]
             proves = tuple(proves)
         elif not carrier_is_letter and not mark_is_diacritic:
             # Both invalid - establish basics but add both fariq
             proves = (
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
-                "fariq:carrier_is_not_arabic_letter:present",
-                "fariq:mark_is_not_arabic_diacritic:present",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
+                "فارق:carrier_is_not_arabic_letter:present",
+                "فارق:mark_is_not_arabic_diacritic:present",
             )
         elif not carrier_is_letter:
             # Invalid carrier only - establish basics but add fariq
             proves = (
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
-                "fariq:carrier_is_not_arabic_letter:present",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
+                "فارق:carrier_is_not_arabic_letter:present",
             )
         else:
             # Invalid mark only - establish basics but add fariq
             proves = (
-                "asl:established",
-                "far:determined",
-                "wadi:sabab:established",
-                "wadi:shart:satisfied",
-                "wadi:mani:absent",
-                "wadi:sihha:valid",
-                "wadi:fasad:absent",
-                "wadi:butlan:absent",
-                "fariq:mark_is_not_arabic_diacritic:present",
+                "اصل:established",
+                "فرع:determined",
+                "وادي:cause:established",
+                "وادي:condition:satisfied",
+                "وادي:obstacle:absent",
+                "وادي:validity:valid",
+                "وادي:corruption:absent",
+                "وادي:nullity:absent",
+                "فارق:mark_is_not_arabic_diacritic:present",
             )
 
         evidence = EvidenceSet(
@@ -139,7 +139,7 @@ class AtomicUnitLayerAdapter:
                     evidence_id=f"ev:atomic:{carrier_codepoint:04x}+{mark_codepoint:04x}:{uuid.uuid4().hex[:8]}",
                     source_layer="AtomicUnitQiyas",
                     proves=proves,
-                    rank=EvidenceRank.FORM,
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
                     trace_ids=(f"{trace_prefix}:ev",),
                 ),
             )

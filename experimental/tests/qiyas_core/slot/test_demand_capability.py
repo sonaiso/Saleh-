@@ -9,12 +9,12 @@ def test_slot_demand_creation():
     """Test creating a valid SlotDemand."""
     demand = SlotDemand(
         demand_type="carrier_mark_binding",
-        required_evidence=("wasf:carrier_accepts_mark",),
+        required_evidence=("وصف:carrier_accepts_mark",),
         required_capabilities=("mark_bindable",),
         optional_evidence=("unicode:validated",),
     )
     assert demand.demand_type == "carrier_mark_binding"
-    assert demand.required_evidence == ("wasf:carrier_accepts_mark",)
+    assert demand.required_evidence == ("وصف:carrier_accepts_mark",)
     assert demand.required_capabilities == ("mark_bindable",)
     assert demand.optional_evidence == ("unicode:validated",)
 

@@ -122,12 +122,12 @@ def assert_wadi_gates_complete(rule: QiyasRule) -> None:
         AssertionError: If rule doesn't have exactly the 6 required WadiGates
     """
     required_gates = {
-        WadiGate.SABAB,
-        WadiGate.SHART,
-        WadiGate.MANI,
-        WadiGate.SIHHA,
-        WadiGate.FASAD,
-        WadiGate.BUTLAN,
+        WadiGate.CAUSE,
+        WadiGate.CONDITION,
+        WadiGate.OBSTACLE,
+        WadiGate.VALIDITY,
+        WadiGate.CORRUPTION,
+        WadiGate.NULLITY,
     }
 
     actual_gates = set(rule.required_wadi_gates)
