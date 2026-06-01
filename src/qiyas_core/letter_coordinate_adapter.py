@@ -25,12 +25,126 @@ from dataclasses import dataclass
 import uuid
 
 from .candidate import Candidate, CandidateSet
-from .enums import CandidateStatus, EvidenceRank
+from .enums import CandidateStatus, EvidenceRank, ResidualSeverity, ResidualEffect
 from .evidence import Evidence, EvidenceSet
 from .kernel import QiyasContext, QiyasKernel, QiyasRequest
 from .node import QiyasNodeRef
+from .residual import Residual
 from .abjad_system import get_abjad_coordinate
 from .phonetics import get_phonetic_profile
+from .rules.letter_coordinate_rules import get_letter_coordinate_rule
+from .letter_identity_adapter import ARABIC_LETTER_NAMES
+
+
+# Morphological role classification for سألتمونيها letters
+# Pre-compositional role potential (NOT grammatical function)
+MORPHO_ROLE_BY_LETTER = {
+    "baa": "EXPANDED_MULTI_ROLE",      # Can be preposition, prefix, nominal
+    "taa": "SAALATAMUUNIIHA",          # Core سألتمونيها set
+    "seen": "SAALATAMUUNIIHA",         # Core سألتمونيها set
+    "kaf": "EXPANDED_MULTI_ROLE",      # Can be preposition, suffix, nominal
+    # Additional mappings as needed
+}
+
+
+def build_letter_coordinate_evidence(
+    letter_name: str,
+    codepoint: int,
+    arabic_name: str,
+    trace_prefix: str,
+) -> EvidenceSet:
+    """
+    Build evidence for Layer 2 coordinate enrichment.
+
+    Proves BOTH Layer 1 identity AND Layer 2 coordinates:
+      Layer 1 (inherited):
+        - Unicode identity
+        - Script identity
+        - Latin name
+        - Arabic name
+      Layer 2 (coordinate):
+        - Phonetic proxy (sound_identity)
+        - Makhraj (articulation place)
+        - Sifat (voicing, manner, emphasis)
+        - Abjad numeric value (if applicable) with semantic_force:FORBIDDEN
+        - Morphological role potential (if applicable)
+        - Invalidating differences (fariq) absence
+
+    Args:
+        letter_name: Lowercase letter name (e.g., "baa", "taa", "seen")
+        codepoint: Unicode codepoint value
+        arabic_name: Arabic name (e.g., "باء", "تاء", "سين")
+        trace_prefix: Trace prefix for evidence
+    """
+    phonetic = get_phonetic_profile(codepoint)
+    if phonetic is None:
+        return EvidenceSet(items=())
+
+    cp_hex = f"{codepoint:04x}"
+
+    proves = [
+        "asl:established",
+        "far:determined",
+        # Layer 1 identity wasf (MUST be inherited for Layer 2 rule requirements)
+        "wasf:has_letter_codepoint:evidenced",
+        f"wasf:has_unicode_identity:{cp_hex}:evidenced",
+        f"wasf:has_script_identity:{letter_name}:evidenced",
+        f"wasf:has_latin_name:{letter_name}:evidenced",
+        f"wasf:has_arabic_name:{arabic_name}:evidenced",
+        # Layer 2 coordinate wasf - Phonetic
+        f"wasf:has_sound_identity:{phonetic.sound_identity}:evidenced",
+        f"wasf:has_makhraj:{phonetic.makhraj.spatial_source}:evidenced",
+        f"wasf:has_voicing:{phonetic.sifat.voicing}:evidenced",
+        f"wasf:has_manner:{phonetic.sifat.manner}:evidenced",
+        f"wasf:has_emphasis:{phonetic.sifat.emphasis}:evidenced",
+    ]
+
+    # Abjad coordinate (if applicable) with semantic_force:FORBIDDEN
+    abjad_coord = get_abjad_coordinate(codepoint)
+    if abjad_coord:
+        proves.extend([
+            f"wasf:has_abjad_system:{abjad_coord.system}:evidenced",
+            f"wasf:has_abjad_value:{abjad_coord.numeric_value}:evidenced",
+            f"wasf:abjad_semantic_force:{abjad_coord.semantic_force}:evidenced",
+        ])
+
+    # Morphological role (if applicable)
+    morpho_role = MORPHO_ROLE_BY_LETTER.get(letter_name)
+    if morpho_role:
+        proves.append(f"wasf:has_morpho_role:{morpho_role}:evidenced")
+
+    # Illah
+    proves.extend([
+        "illah:belongs_to_letter_identity_domain:verified",
+        f"illah:letter_identity_is:{letter_name}:verified",
+        "illah:belongs_to_letter_coordinate_domain:verified",
+    ])
+
+    # Wadi gates
+    proves.extend([
+        "wadi:sabab:established",
+        "wadi:shart:satisfied",
+        "wadi:mani:absent",
+        "wadi:sihha:valid",
+        "wadi:fasad:absent",
+        "wadi:butlan:absent",
+    ])
+
+    # Fariq (invalidating differences) - prove absence
+    for pair_label, diff_type in phonetic.invalidating_differences:
+        proves.append(f"fariq:{pair_label}:absent")
+
+    return EvidenceSet(
+        items=(
+            Evidence(
+                evidence_id=f"ev:letter_coordinate:{letter_name}:{uuid.uuid4().hex[:8]}",
+                source_layer="ArabicLetterCoordinateQiyas",
+                proves=tuple(proves),
+                rank=EvidenceRank.FORM,
+                trace_ids=(f"{trace_prefix}:ev",),
+            ),
+        )
+    )
 
 
 @dataclass
@@ -88,9 +202,11 @@ class ArabicLetterCoordinateAdapter:
             # Letter not yet mapped with phonetic profile
             return None
 
-        # Get Abjad coordinate (conventional numeric value)
-        abjad_coord = get_abjad_coordinate(codepoint)
-        # Note: abjad_coord may be None for letters not in Abjad system (e.g., Hamza)
+        # Get coordinate rule
+        rule = get_letter_coordinate_rule(codepoint)
+        if rule is None:
+            # Coordinate rule not yet defined
+            return None
 
         # Extract letter name from letter_identity source_rule_id
         # e.g., "letter_identity.baa" → "baa"
@@ -106,13 +222,46 @@ class ArabicLetterCoordinateAdapter:
         if not trace_prefix:
             trace_prefix = f"letter_coordinate:{letter_name}"
 
-        # TODO: Build evidence for coordinate enrichment
-        # TODO: Build asl node (letter coordinate domain)
-        # TODO: Build far node from letter_identity (preserving identity)
-        # TODO: Get coordinate rule
-        # TODO: Build and return request
+        # Get Arabic name
+        arabic_name = ARABIC_LETTER_NAMES.get(codepoint, letter_name)
 
-        return None  # Placeholder
+        # Build evidence for coordinate enrichment
+        evidence = build_letter_coordinate_evidence(
+            letter_name=letter_name,
+            codepoint=codepoint,
+            arabic_name=arabic_name,
+            trace_prefix=trace_prefix,
+        )
+
+        if not evidence.items:
+            return None
+
+        # Build asl node (letter coordinate domain)
+        asl = QiyasNodeRef(
+            node_id=f"asl:letter_coordinate_domain:{letter_name}",
+            node_type="LetterCoordinateDomain",
+            identity_ids=("identity:letter_coordinate_domain",),
+            trace_ids=(f"{trace_prefix}:asl",),
+            rank=EvidenceRank.FORM,
+        )
+
+        # Build far node from letter_identity (preserving identity!)
+        far = QiyasNodeRef(
+            node_id=f"far:letter_identity:{letter_name}",
+            node_type="LetterIdentityCarrier",
+            identity_ids=letter_identity.identity_ids,
+            trace_ids=(f"{trace_prefix}:far",),
+            rank=letter_identity.rank,
+        )
+
+        # Build and return request
+        return QiyasRequest(
+            rule=rule,
+            asl=asl,
+            far=far,
+            evidence=evidence,
+            context=QiyasContext(layer="ArabicLetterCoordinateQiyas"),
+        )
 
     def process_letter_identity(
         self,
