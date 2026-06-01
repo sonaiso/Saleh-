@@ -1,12 +1,19 @@
 # CANONICAL ARCHITECTURE CONTROL FRAME
 
-> **Constitutional Authority:** This document sits above all implementation PRs and prevents layer duplication and architectural drift.
+> **Constitutional Authority:** This document implements the mathematical foundation and prevents layer duplication and architectural drift.
 >
 > **Purpose:** Maintain a single source of truth for what is canonical, what is experimental, what is deprecated, and what must not be rebuilt under a new name.
+>
+> **Foundation:** See PROJECT_MATHEMATICAL_FOUNDATION.md for the algebraic qiyas system definition that this document enforces.
 
 ---
 
 ## 0. Authority and Purpose
+
+**This document sits below PROJECT_MATHEMATICAL_FOUNDATION.md and implements its principles:**
+
+- PROJECT_MATHEMATICAL_FOUNDATION.md defines WHAT the project IS (algebraic qiyas system)
+- This document defines HOW to implement it without drift (governance)
 
 This document is the **governing frame** that prevents agents from reinventing existing layers under new names.
 

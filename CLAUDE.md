@@ -12,15 +12,35 @@ If there is any uncertainty, STOP and ask before editing.
 
 ---
 
-## 0.1 Governance Framework (MANDATORY — Read First)
+## 0.1 Mathematical Foundation (MANDATORY — Read First)
+
+**This project is NOT a linguistic pipeline. This project IS an algebraic qiyas system.**
+
+**Read this first:** `docs/qiyas_core/PROJECT_MATHEMATICAL_FOUNDATION.md`
+
+This document defines:
+- Layer = Domain boundary
+- Transition = Qiyas proof
+- Composition = Partial algebraic operation
+- Failure = Residual
+- Success = Identity-preserving candidate
+
+**Governing Law:**
+
+```
+DO NOT CREATE NAMES. PROVE TRANSITIONS.
+```
+
+## 0.2 Governance Framework (MANDATORY — Read Before Implementation)
 
 **BEFORE proposing any new layer, adapter, rule, or component:**
 
-1. **Read** `docs/qiyas_core/CANONICAL_ARCHITECTURE_CONTROL_FRAME.md` — prevents layer duplication
-2. **Check** Duplicate Prevention Table (§ 2) — ensures no name conflicts
-3. **Consult** `docs/qiyas_core/LAYER_REGISTRY.md` — single source of truth for all layers
-4. **Use** `docs/qiyas_core/NEXT_LAYER_DECISION_TREE.md` — systematic decision framework
-5. **Complete** `docs/qiyas_core/AGENT_PR_CHECKLIST.md` — mandatory before implementation
+1. **Understand** `docs/qiyas_core/PROJECT_MATHEMATICAL_FOUNDATION.md` — defines what the project IS
+2. **Read** `docs/qiyas_core/CANONICAL_ARCHITECTURE_CONTROL_FRAME.md` — prevents layer duplication
+3. **Check** Duplicate Prevention Table (§ 2) — ensures no name conflicts
+4. **Consult** `docs/qiyas_core/LAYER_REGISTRY.md` — single source of truth for all layers
+5. **Use** `docs/qiyas_core/NEXT_LAYER_DECISION_TREE.md` — systematic decision framework
+6. **Complete** `docs/qiyas_core/AGENT_PR_CHECKLIST.md` — mandatory before implementation
 
 **Do NOT invent new names for existing canonical layers.**
 
