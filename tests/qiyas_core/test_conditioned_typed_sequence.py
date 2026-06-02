@@ -395,3 +395,211 @@ def test_cts_candidates_remain_potential_only():
     assert "CandidateOnly" in c.output_flags
     for forbidden in ("HukmCandidate", "RealityClaim", "FinalMeaning", "FinalCaseJudgment"):
         assert forbidden not in c.output_flags
+
+
+# =============================================================================
+# Z3 Tests: CTS consumes SequenceContextTokenizer markers as context/evidence
+# =============================================================================
+
+import sys
+from pathlib import Path
+
+_SRC_Z3 = Path(__file__).parent.parent.parent / "src"
+if str(_SRC_Z3) not in sys.path:
+    sys.path.insert(0, str(_SRC_Z3))
+
+from qiyas_core.sequence_context_tokenizer import (
+    SequenceContextTokenizer,
+    TokenizedSequence,
+)
+
+
+def _tok(text: str) -> TokenizedSequence:
+    return SequenceContextTokenizer().tokenize(text)
+
+
+def _letter(cp_hex: str):
+    from qiyas_core.candidate import Candidate
+    from qiyas_core.enums import EvidenceRank, CandidateStatus
+    return Candidate(
+        candidate_id=f"z3:letter:{cp_hex}",
+        candidate_type="LetterCodePoint",
+        status=CandidateStatus.ACCEPTED,
+        layer="TypedCodePointClassificationQiyas",
+        source_rule_id="test.typed_codepoint.fixture",
+        asl_id="test:asl",
+        far_id=f"test:far:{cp_hex}",
+        identity_ids=(f"identity:codepoint:{cp_hex}",),
+        trace_ids=(f"trace:letter:{cp_hex}",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        residuals=(),
+        output_flags=frozenset({"CandidateOnly"}),
+    )
+
+
+def _haraka(cp_hex: str):
+    from qiyas_core.candidate import Candidate
+    from qiyas_core.enums import EvidenceRank, CandidateStatus
+    return Candidate(
+        candidate_id=f"z3:haraka:{cp_hex}",
+        candidate_type="HarakaCodePoint",
+        status=CandidateStatus.ACCEPTED,
+        layer="TypedCodePointClassificationQiyas",
+        source_rule_id="test.typed_codepoint.fixture",
+        asl_id="test:asl",
+        far_id=f"test:far:{cp_hex}",
+        identity_ids=(f"identity:codepoint:{cp_hex}",),
+        trace_ids=(f"trace:haraka:{cp_hex}",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        residuals=(),
+        output_flags=frozenset({"CandidateOnly"}),
+    )
+
+
+def _boundary(cp_hex: str, ctype="BoundaryCodePoint"):
+    from qiyas_core.candidate import Candidate
+    from qiyas_core.enums import EvidenceRank, CandidateStatus
+    return Candidate(
+        candidate_id=f"z3:boundary:{cp_hex}",
+        candidate_type=ctype,
+        status=CandidateStatus.ACCEPTED,
+        layer="TypedCodePointClassificationQiyas",
+        source_rule_id="test.typed_codepoint.fixture",
+        asl_id="test:asl",
+        far_id=f"test:far:{cp_hex}",
+        identity_ids=(f"identity:codepoint:{cp_hex}",),
+        trace_ids=(f"trace:boundary:{cp_hex}",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        residuals=(),
+        output_flags=frozenset({"CandidateOnly"}),
+    )
+
+
+def _residual(cp_hex: str):
+    from qiyas_core.candidate import Candidate
+    from qiyas_core.enums import EvidenceRank, CandidateStatus
+    return Candidate(
+        candidate_id=f"z3:residual:{cp_hex}",
+        candidate_type="ResidualCodePoint",
+        status=CandidateStatus.ACCEPTED,
+        layer="TypedCodePointClassificationQiyas",
+        source_rule_id="test.typed_codepoint.fixture",
+        asl_id="test:asl",
+        far_id=f"test:far:{cp_hex}",
+        identity_ids=(f"identity:codepoint:{cp_hex}",),
+        trace_ids=(f"trace:residual:{cp_hex}",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        residuals=(),
+        output_flags=frozenset({"CandidateOnly"}),
+    )
+
+
+def _adapter():
+    from qiyas_core.conditioned_typed_sequence_adapter import (
+        ConditionedTypedSequenceLayerAdapter,
+    )
+    from qiyas_core.kernel import QiyasKernel
+    return ConditionedTypedSequenceLayerAdapter(kernel=QiyasKernel())
+
+
+def _all_cands(results):
+    return [c for cs in results for c in cs.candidates]
+
+
+def test_cts_accepts_binding_within_same_segment():
+    a = _adapter()
+    ctx = _tok("\u0628\u064E")
+    r = a.prove_for_sequence_with_context([_letter("0628"), _haraka("064E")], ctx)
+    assert any(c.status.value == "accepted" for c in r[1].candidates)
+
+
+def test_cts_rejects_binding_across_whitespace_boundary():
+    a = _adapter()
+    ctx = _tok("\u0628 \u064E")
+    seq = [_letter("0628"), _boundary("0020"), _haraka("064E")]
+    r = a.prove_for_sequence_with_context(seq, ctx)
+    assert any(c.status.value in ("blocked", "deferred") for c in r[2].candidates)
+
+
+def test_cts_rejects_binding_across_punctuation_boundary():
+    a = _adapter()
+    ctx = _tok("\u0628\u060C\u064E")
+    seq = [_letter("0628"), _boundary("060C", "PunctuationCodePoint"), _haraka("064E")]
+    r = a.prove_for_sequence_with_context(seq, ctx)
+    assert any(c.status.value in ("blocked", "deferred") for c in r[2].candidates)
+
+
+def test_cts_two_segments_bind_locally_only():
+    a = _adapter()
+    ctx = _tok("\u0628\u064E \u062A\u0652")
+    seq = [_letter("0628"), _haraka("064E"), _boundary("0020"), _letter("062A"), _haraka("0652")]
+    r = a.prove_for_sequence_with_context(seq, ctx)
+    assert any(c.status.value == "accepted" for c in r[1].candidates)
+    assert any(c.status.value == "accepted" for c in r[4].candidates)
+
+
+def test_cts_orphan_haraka_after_boundary_is_blocked_or_deferred():
+    a = _adapter()
+    ctx = _tok(" \u064E")
+    seq = [_boundary("0020"), _haraka("064E")]
+    r = a.prove_for_sequence_with_context(seq, ctx)
+    assert any(c.status.value in ("blocked", "deferred") for c in r[1].candidates)
+
+
+def test_cts_consumes_boundary_marker_as_context_not_candidate():
+    a = _adapter()
+    ctx = _tok("\u0628 \u062A")
+    seq = [_letter("0628"), _boundary("0020"), _letter("062A")]
+    r = a.prove_for_sequence_with_context(seq, ctx)
+    for c in _all_cands(r):
+        assert c.candidate_type not in ("SequenceMarker", "WhitespaceBoundaryMarker")
+
+
+def test_cts_preserves_residual_marker():
+    a = _adapter()
+    ctx = _tok("X")
+    r = a.prove_for_sequence_with_context([_residual("0058")], ctx)
+    assert len(r) == 1
+    assert len(r[0].candidates) >= 1
+
+
+def test_cts_does_not_output_letter_identity_carrier():
+    a = _adapter()
+    ctx = _tok("\u0628")
+    r = a.prove_for_sequence_with_context([_letter("0628")], ctx)
+    for c in _all_cands(r):
+        assert c.candidate_type != "LetterIdentityCarrier"
+
+
+def test_cts_does_not_output_haraka_function_carrier():
+    a = _adapter()
+    ctx = _tok("\u064E")
+    r = a.prove_for_sequence_with_context([_haraka("064E")], ctx)
+    for c in _all_cands(r):
+        assert c.candidate_type != "HarakaFunctionCarrier"
+
+
+def test_cts_does_not_output_position_carrier():
+    a = _adapter()
+    ctx = _tok("\u0628")
+    r = a.prove_for_sequence_with_context([_letter("0628")], ctx)
+    for c in _all_cands(r):
+        assert c.candidate_type != "PositionCarrier"
+
+
+def test_cts_does_not_output_slot_candidate():
+    a = _adapter()
+    ctx = _tok("\u0628")
+    r = a.prove_for_sequence_with_context([_letter("0628")], ctx)
+    for c in _all_cands(r):
+        assert c.candidate_type != "SlotCandidate"
+
+
+def test_cts_does_not_output_slot_geometry():
+    a = _adapter()
+    ctx = _tok("\u0628")
+    r = a.prove_for_sequence_with_context([_letter("0628")], ctx)
+    for cs in r:
+        assert not hasattr(cs, "slots_for")
+    for c in _all_cands(r):
+        assert not hasattr(c, "slot_id")
