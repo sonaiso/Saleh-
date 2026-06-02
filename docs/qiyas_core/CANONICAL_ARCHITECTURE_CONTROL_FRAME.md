@@ -89,7 +89,7 @@ A new agent sees old names in `experimental/` or old docs, then rebuilds the sam
 - **Critical Constraint:** Abjad numeric coordinates have `semantic_force=FORBIDDEN`
 
 **Specialized Systems:**
-- `AbjadSystem` — conventional numeric coordinate system with semantic_force enforcement
+- `abjad_system.py` — conventional numeric coordinate system with semantic_force enforcement (get_abjad_coordinate function)
 - `RecursiveProofBuilder` — recursive proof construction
 - `FormalLaws` — algebraic law enforcement
 - `ForbiddenOutputs` — layer jump prevention
