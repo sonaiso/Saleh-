@@ -33,7 +33,7 @@ from .residual import Residual
 from .abjad_system import get_abjad_coordinate
 from .phonetics import get_phonetic_profile
 from .rules.letter_coordinate_rules import get_letter_coordinate_rule
-from .letter_identity_adapter import ARABIC_LETTER_NAMES
+from .registries.letter_name_registry import get_letter_names
 
 
 # Morphological role classification for سألتمونيها letters
@@ -222,8 +222,9 @@ class ArabicLetterCoordinateAdapter:
         if not trace_prefix:
             trace_prefix = f"letter_coordinate:{letter_name}"
 
-        # Get Arabic name
-        arabic_name = ARABIC_LETTER_NAMES.get(codepoint, letter_name)
+        # Get Arabic name from registry
+        letter_names = get_letter_names(codepoint)
+        arabic_name = letter_names.arabic_name if letter_names else letter_name
 
         # Build evidence for coordinate enrichment
         evidence = build_letter_coordinate_evidence(

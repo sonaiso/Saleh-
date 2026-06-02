@@ -43,11 +43,16 @@ class GlyphClass(Enum):
     # Strategy: Direct coordinate assignment
     # Examples: ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه
 
+    STANDALONE_HAMZA = "standalone_hamza"
+    # Standalone hamza ء (U+0621)
+    # Strategy: Requires phonetic analysis separate from seat glyphs
+    # Note: This is NOT a seat glyph - it's a standalone consonant
+
     HAMZA_SEAT_GLYPH = "hamza_seat_glyph"
     # Hamza on a seat (composite glyph)
     # Strategy: Decompose into hamza + seat, then coordinate each
     # Examples: أ (alif+hamza above), إ (alif+hamza below),
-    #           ؤ (waw+hamza), ئ (yaa+hamza), ء (standalone hamza)
+    #           ؤ (waw+hamza), ئ (yaa+hamza)
 
     WEAK_LETTER_GLYPH = "weak_letter_glyph"
     # Letters with multiple potential roles (context-dependent)
@@ -130,10 +135,15 @@ CORE_ARABIC_LETTERS: frozenset[int] = frozenset({
 })
 
 
-# Hamza Seat Glyphs (5 forms)
+# Standalone Hamza (1 glyph)
+# Separate from hamza-seat glyphs - standalone consonant
+STANDALONE_HAMZA: int = 0x0621  # ء
+
+
+# Hamza Seat Glyphs (4 forms)
 # Require decomposition into hamza + seat
+# Note: Standalone hamza ء is NOT included here
 HAMZA_SEAT_GLYPHS: frozenset[int] = frozenset({
-    0x0621,  # ء Standalone hamza
     0x0623,  # أ Alif with hamza above
     0x0624,  # ؤ Waw with hamza
     0x0625,  # إ Alif with hamza below
@@ -208,6 +218,16 @@ def classify_glyph(codepoint: int) -> GlyphClassification:
         return GlyphClassification(
             codepoint=codepoint,
             glyph_class=GlyphClass.CORE_ARABIC_LETTER,
+            requires_decomposition=False,
+            requires_role_disambiguation=False,
+            allows_phonetic_coordinates=True,
+        )
+
+    # Standalone Hamza (separate from seat glyphs)
+    if codepoint == STANDALONE_HAMZA:
+        return GlyphClassification(
+            codepoint=codepoint,
+            glyph_class=GlyphClass.STANDALONE_HAMZA,
             requires_decomposition=False,
             requires_role_disambiguation=False,
             allows_phonetic_coordinates=True,

@@ -30,40 +30,7 @@ from .evidence import Evidence, EvidenceSet
 from .kernel import QiyasContext, QiyasKernel, QiyasRequest
 from .node import QiyasNodeRef
 from .rules.letter_identity_rules import get_letter_identity_rule
-
-
-# Arabic name mapping for letters (Option C - Layer 1 identity)
-ARABIC_LETTER_NAMES = {
-    0x0621: "همزة",  # hamza
-    0x0627: "ألف",   # alif
-    0x0628: "باء",   # baa
-    0x062A: "تاء",   # taa
-    0x062B: "ثاء",   # thaa
-    0x062C: "جيم",   # jeem
-    0x062D: "حاء",   # haa
-    0x062E: "خاء",   # khaa
-    0x062F: "دال",   # dal
-    0x0630: "ذال",   # dhal
-    0x0631: "راء",   # raa
-    0x0632: "زاي",   # zay
-    0x0633: "سين",   # seen
-    0x0634: "شين",   # sheen
-    0x0635: "صاد",   # saad
-    0x0636: "ضاد",   # daad
-    0x0637: "طاء",   # taa_emphatic
-    0x0638: "ظاء",   # dhaa
-    0x0639: "عين",   # ayn
-    0x063A: "غين",   # ghayn
-    0x0641: "فاء",   # faa
-    0x0642: "قاف",   # qaf
-    0x0643: "كاف",   # kaf
-    0x0644: "لام",   # lam
-    0x0645: "ميم",   # meem
-    0x0646: "نون",   # noon
-    0x0647: "هاء",   # haa
-    0x0648: "واو",   # waw
-    0x064A: "ياء",   # yaa
-}
+from .registries.letter_name_registry import get_letter_names
 
 
 def build_letter_identity_evidence(
@@ -190,8 +157,9 @@ class LetterIdentityLayerAdapter:
         # Extract letter name from rule_id (keep lowercase to match rule format)
         letter_name = rule.rule_id.split(".")[-1]  # e.g., "baa", "taa", "seen"
 
-        # Get Arabic name
-        arabic_name = ARABIC_LETTER_NAMES.get(codepoint, letter_name)
+        # Get Arabic name from registry
+        letter_names = get_letter_names(codepoint)
+        arabic_name = letter_names.arabic_name if letter_names else letter_name
 
         if not trace_prefix:
             trace_prefix = f"letter_identity:{letter_name.lower()}"
