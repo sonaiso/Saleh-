@@ -14,6 +14,7 @@ from qiyas_core.registries.glyph_classification_registry import (
     GlyphClass,
     GlyphClassification,
     CORE_ARABIC_LETTERS,
+    STANDALONE_HAMZA,
     HAMZA_SEAT_GLYPHS,
     WEAK_LETTER_GLYPHS,
     ORTHOGRAPHIC_VARIANTS,
@@ -79,17 +80,19 @@ class TestHamzaSeatGlyphs:
     """Test hamza seat glyph classification."""
 
     def test_hamza_seat_count(self):
-        """Verify 5 hamza seat forms."""
-        assert len(HAMZA_SEAT_GLYPHS) == 5
+        """Verify 4 hamza seat forms (standalone hamza excluded)."""
+        assert len(HAMZA_SEAT_GLYPHS) == 4
 
     def test_standalone_hamza_classification(self):
-        """Test standalone hamza U+0621."""
-        assert 0x0621 in HAMZA_SEAT_GLYPHS
+        """Test standalone hamza U+0621 as separate class."""
+        # Standalone hamza is NOT a seat glyph
+        assert 0x0621 not in HAMZA_SEAT_GLYPHS
+        assert 0x0621 == STANDALONE_HAMZA
 
         classification = classify_glyph(0x0621)
-        assert classification.glyph_class == GlyphClass.HAMZA_SEAT_GLYPH
-        assert classification.requires_decomposition is True
-        assert classification.allows_phonetic_coordinates is True  # After decomposition
+        assert classification.glyph_class == GlyphClass.STANDALONE_HAMZA
+        assert classification.requires_decomposition is False  # It's atomic
+        assert classification.allows_phonetic_coordinates is True
 
     def test_alif_hamza_above_classification(self):
         """Test alif with hamza above U+0623."""
@@ -276,8 +279,8 @@ class TestRequiresDecomposition:
     """Test requires_decomposition() utility."""
 
     def test_hamza_seat_requires_decomposition(self):
-        """Verify hamza seats require decomposition."""
-        assert requires_decomposition(0x0621) is True  # standalone hamza
+        """Verify hamza seats require decomposition (standalone hamza does NOT)."""
+        assert requires_decomposition(0x0621) is False  # standalone hamza is atomic
         assert requires_decomposition(0x0623) is True  # alif hamza above
         assert requires_decomposition(0x0624) is True  # waw hamza
 
