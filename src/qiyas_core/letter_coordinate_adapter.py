@@ -35,6 +35,7 @@ from .phonetics import get_phonetic_profile
 from .rules.letter_coordinate_rules import get_letter_coordinate_rule
 from .registries.letter_name_registry import get_letter_names
 from .registries.letter_role_registry import get_morpho_role_label
+from .registries.letter_fariq_registry import get_fariq_pairs
 
 
 def build_letter_coordinate_evidence(
@@ -125,7 +126,10 @@ def build_letter_coordinate_evidence(
     # Fariq (invalidating differences) - prove absence
     # NOTE: Kernel only checks for فارق:...:present (blocking).
     # Proving :absent is NOT consumed by kernel, but we document non-blocking here.
-    for pair_label, diff_type in phonetic.invalidating_differences:
+    # Derive from letter_fariq_registry (single source of truth)
+    fariq_pairs = get_fariq_pairs(codepoint)
+    for pair in fariq_pairs:
+        pair_label = f"{pair.letter1_name}_vs_{pair.letter2_name}"
         proves.append(f"فارق:{pair_label}:absent")
 
     return EvidenceSet(
