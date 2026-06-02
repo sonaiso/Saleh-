@@ -120,9 +120,21 @@ LETTER_POSITION_PROOF = QiyasRule(
 
 
 # ---------------------------------------------------------------------------
-# 3. BOUNDARY_EXCLUSION_PROOF
-#    BoundaryCodePoint (whitespace) → BoundaryEvidence.
-#    Proves the boundary is excluded from any slot composition.
+# 3. BOUNDARY_EXCLUSION_PROOF — Z4 LEGACY UNREACHABLE
+#
+#    Per PRE_QIYAS_TOKENIZER_CONSTITUTION §6, whitespace/boundary context
+#    is sourced from `SequenceContextTokenizer` (Z2) and consumed by CTS
+#    as evidence on the carrier-binding proof (Z3
+#    `prove_for_sequence_with_context`), not as a separate
+#    `BoundaryCodePoint` candidate. The canonical CTS path therefore
+#    never invokes this rule.
+#
+#    The rule survives in this file only to keep legacy unit fixtures
+#    (which still drive `prove_for_sequence` / `prove_boundary_exclusion`
+#    with synthetic `BoundaryCodePoint` candidates produced via the
+#    testing convenience `TypedCodePointLayerAdapter.classify_codepoint`)
+#    passing during the Z4 declassification step. Do not introduce new
+#    canonical callers.
 # ---------------------------------------------------------------------------
 
 BOUNDARY_EXCLUSION_PROOF = QiyasRule(

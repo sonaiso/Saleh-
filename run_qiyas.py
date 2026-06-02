@@ -4,15 +4,26 @@ run_qiyas.py — Canonical pipeline driver for the Qiyas algebra.
 Takes an Arabic text string or a path to a UTF-8 file and walks every codepoint
 through the full canonical Phase-1 chain, exactly as defined in src/qiyas_core:
 
-    UnicodeQiyas
-      → TypedCodePointClassificationQiyas
-        → LetterIdentityQiyas   (only for LetterCodePoint)
-        → HarakaFunctionQiyas   (only for HarakaCodePoint)
-        → PositionQiyas         (only for LetterCodePoint, with sequence-derived
-                                  INITIAL/MEDIAL/FINAL/ISOLATED)
-          → SlotQiyas           (only when a LetterCodePoint at index i is
-                                  followed by a HarakaCodePoint at i+1, per the
-                                  canonical SLOT_COMPOSITION_RULE)
+    raw text
+      → SequenceContextTokenizer   (pre-qiyas; non-Candidate sequence framing)
+      → UnicodeQiyas
+        → TypedCodePointClassificationQiyas
+          → LetterIdentityQiyas   (only for LetterCodePoint)
+          → HarakaFunctionQiyas   (only for HarakaCodePoint)
+          → PositionQiyas         (only for LetterCodePoint, with tokenizer-
+                                    derived INITIAL/MEDIAL/FINAL/ISOLATED)
+            → ConditionedTypedSequenceQiyas  (carrier-binding, gated by
+                                    tokenizer segment context)
+              → SlotQiyas         (only when a LetterCodePoint at index i is
+                                    followed by a HarakaCodePoint at i+1 in the
+                                    same tokenizer segment, per the canonical
+                                    SLOT_COMPOSITION_RULE)
+
+Per `PRE_QIYAS_TOKENIZER_CONSTITUTION.md` (Option C), whitespace/boundary and
+punctuation framing is sourced from `SequenceContextTokenizer` markers, not
+from `is_boundary` / `BoundaryCodePoint`. Boundary characters never enter
+`UnicodeQiyas` as `UnicodeCandidate`, never become `TypedCodePoint`, and never
+become identity — they appear in the audit as tokenizer markers only.
 
 Every layer transition is performed by calling the canonical adapter, which in
 turn invokes QiyasKernel.apply(QiyasRequest) -> CandidateSet. No new rules,
@@ -58,13 +69,17 @@ from qiyas_core.rules.position_rules import (
     POSITION_ISOLATED,
     POSITION_MEDIAL,
 )
+from qiyas_core.sequence_context_tokenizer import (
+    MarkerType,
+    SequenceContextTokenizer,
+    SequenceMarker,
+    TokenizedSequence,
+)
 from qiyas_core.slot_adapter import SlotLayerAdapter
 from qiyas_core.typed_codepoint_adapter import (
     TypedCodePointLayerAdapter,
     is_arabic_haraka,
     is_arabic_letter,
-    is_boundary,
-    is_punctuation,
 )
 from qiyas_core.unicode_adapter import UnicodeLayerAdapter
 
@@ -102,40 +117,51 @@ class PipelineLayers:
         )
 
 
-def _classify_position(text: str, index: int) -> str:
+def _classify_position(
+    text: str,
+    index: int,
+    markers_by_index: dict[int, SequenceMarker],
+) -> str:
     """
     Determine INITIAL/MEDIAL/FINAL/ISOLATED for an Arabic letter at `index`
-    purely from sequence context.
+    using `SequenceContextTokenizer` segment context.
 
-    A letter at position i is INITIAL if it is preceded by a boundary or sits
-    at index 0; FINAL if it is followed by a boundary or sits at len(text)-1;
-    ISOLATED if both; otherwise MEDIAL. Harakat are transparent — they do not
-    interrupt letter adjacency.
+    A letter at position i is INITIAL if its tokenizer segment starts here
+    (no preceding Arabic letter in the same segment); FINAL if its segment
+    ends here (no following Arabic letter in the same segment); ISOLATED if
+    both; otherwise MEDIAL. Harakat are transparent — they do not interrupt
+    letter adjacency.
 
-    This selection rule is the canonical sequence-position derivation; it
-    introduces no new evidence claims (the four canonical position rules in
-    src/qiyas_core/rules/position_rules.py remain the sole authority).
+    Boundary detection is sourced from `SequenceContextTokenizer` markers,
+    not from `is_boundary` (`PRE_QIYAS_TOKENIZER_CONSTITUTION.md` §1, §6).
+    This selection rule introduces no new evidence claims; the four
+    canonical position rules in `src/qiyas_core/rules/position_rules.py`
+    remain the sole authority.
     """
+    cur_marker = markers_by_index.get(index)
+    cur_seg = cur_marker.segment_id if cur_marker is not None else None
+
+    def _in_current_segment(k: int) -> bool:
+        m = markers_by_index.get(k)
+        return m is not None and m.segment_id == cur_seg
 
     def _prev_letter_or_boundary(j: int) -> str:
         k = j - 1
-        while k >= 0 and is_arabic_haraka(ord(text[k])):
+        while k >= 0 and _in_current_segment(k) and is_arabic_haraka(ord(text[k])):
             k -= 1
-        if k < 0:
+        if k < 0 or not _in_current_segment(k):
             return "boundary"
-        cp = ord(text[k])
-        if is_arabic_letter(cp):
+        if is_arabic_letter(ord(text[k])):
             return "letter"
         return "boundary"
 
     def _next_letter_or_boundary(j: int) -> str:
         k = j + 1
-        while k < len(text) and is_arabic_haraka(ord(text[k])):
+        while k < len(text) and _in_current_segment(k) and is_arabic_haraka(ord(text[k])):
             k += 1
-        if k >= len(text):
+        if k >= len(text) or not _in_current_segment(k):
             return "boundary"
-        cp = ord(text[k])
-        if is_arabic_letter(cp):
+        if is_arabic_letter(ord(text[k])):
             return "letter"
         return "boundary"
 
@@ -149,6 +175,38 @@ def _classify_position(text: str, index: int) -> str:
     if prev == "letter" and nxt == "boundary":
         return POSITION_FINAL
     return POSITION_MEDIAL
+
+
+def _same_segment(
+    markers_by_index: dict[int, SequenceMarker],
+    i_left: int,
+    i_right: int,
+) -> bool:
+    """Return True iff both text positions are in the same tokenizer segment.
+
+    Used to gate carrier-binding: a letter and its candidate haraka may
+    only bind when they share a `SequenceContextTokenizer` segment, so
+    whitespace and punctuation framing block cross-boundary binding
+    without ever entering the qiyas chain as candidates.
+    """
+    m_left = markers_by_index.get(i_left)
+    m_right = markers_by_index.get(i_right)
+    if m_left is None or m_right is None:
+        return False
+    return m_left.segment_id == m_right.segment_id
+
+
+def _tokenizer_marker_dict(marker: SequenceMarker | None) -> dict[str, Any] | None:
+    """Serialize a tokenizer marker for audit output (never a Candidate)."""
+    if marker is None:
+        return None
+    return {
+        "index": marker.index,
+        "marker_type": marker.marker_type.value,
+        "normalized_label": marker.normalized_label,
+        "segment_id": marker.segment_id,
+        "reason": marker.reason,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -198,6 +256,10 @@ class CharacterReport:
     steps: list[LayerStep]
     slot_step: LayerStep | None = None
     skipped_reason: str | None = None
+    # Per PRE_QIYAS_TOKENIZER_CONSTITUTION.md §3, the tokenizer emits
+    # structural markers — not Candidates. They appear on the audit
+    # report as sequence context only.
+    tokenizer_marker: dict[str, Any] | None = None
 
 
 def _accepted(cs: CandidateSet) -> Candidate | None:
@@ -210,11 +272,29 @@ def _accepted(cs: CandidateSet) -> Candidate | None:
 # ---------------------------------------------------------------------------
 
 
-def process_text(text: str, layers: PipelineLayers | None = None) -> list[CharacterReport]:
+def process_text(
+    text: str,
+    layers: PipelineLayers | None = None,
+    tokenizer: SequenceContextTokenizer | None = None,
+) -> list[CharacterReport]:
     layers = layers or PipelineLayers.build()
+    tokenizer = tokenizer or SequenceContextTokenizer()
+
+    # Pre-qiyas tokenization: structural markers for whitespace, punctuation,
+    # arabic symbols, and residuals. These are NOT Candidates — they are
+    # consumed by the driver to compute segment-based position context and to
+    # gate cross-boundary carrier-binding. They never enter UnicodeQiyas.
+    tokenized: TokenizedSequence = tokenizer.tokenize(text)
+    markers_by_index: dict[int, SequenceMarker] = {
+        m.index: m for m in tokenized.markers
+    }
+
     reports: list[CharacterReport] = []
 
-    # Pre-classify every character so the SlotQiyas composition can look ahead.
+    # Pre-classify every Arabic-eligible character so the SlotQiyas
+    # composition can look ahead. Non-Arabic characters are recorded as
+    # "non_arabic" — their tokenizer markers travel on the audit report
+    # but they never produce TypedCodePoint candidates.
     classifications: list[tuple[str, Candidate | None]] = []
     for i, ch in enumerate(text):
         cp = ord(ch)
@@ -232,14 +312,40 @@ def process_text(text: str, layers: PipelineLayers | None = None) -> list[Charac
     # Second pass: run all applicable downstream layers and capture audit
     for i, ch in enumerate(text):
         cp = ord(ch)
-        report = CharacterReport(index=i, char=ch, codepoint=cp, steps=[])
+        marker = markers_by_index.get(i)
+        report = CharacterReport(
+            index=i,
+            char=ch,
+            codepoint=cp,
+            steps=[],
+            tokenizer_marker=_tokenizer_marker_dict(marker),
+        )
 
         u_set = layers.unicode_layer.process_codepoint(cp, trace_prefix=f"text[{i}]:u:{cp:04x}")
         report.steps.append(LayerStep.from_set("UnicodeQiyas", u_set))
 
         u_cand = _accepted(u_set)
         if u_cand is None:
-            report.skipped_reason = "not Arabic per UnicodeQiyas"
+            # Skip reason is tokenizer-aware: whitespace / punctuation /
+            # residual codepoints rejected by UnicodeQiyas are surfaced
+            # by their tokenizer marker, not by any qiyas Candidate.
+            if marker is not None and marker.marker_type == MarkerType.WHITESPACE_BOUNDARY:
+                report.skipped_reason = (
+                    f"whitespace tokenizer boundary marker "
+                    f"(segment {marker.segment_id})"
+                )
+            elif marker is not None and marker.marker_type == MarkerType.PUNCTUATION_BOUNDARY:
+                report.skipped_reason = (
+                    f"punctuation tokenizer boundary marker "
+                    f"(segment {marker.segment_id})"
+                )
+            elif marker is not None and marker.marker_type == MarkerType.RESIDUAL_PRESERVATION:
+                report.skipped_reason = (
+                    f"residual preservation marker "
+                    f"(segment {marker.segment_id})"
+                )
+            else:
+                report.skipped_reason = "not Arabic per UnicodeQiyas"
             reports.append(report)
             continue
 
@@ -266,8 +372,10 @@ def process_text(text: str, layers: PipelineLayers | None = None) -> list[Charac
             report.steps.append(LayerStep.from_set("LetterIdentityQiyas", li_set))
             li_cand = _accepted(li_set)
 
-            # PositionQiyas with sequence-derived position type
-            ptype = _classify_position(text, i)
+            # PositionQiyas — sequence-position is derived from tokenizer
+            # segment context, not from `is_boundary` (Z5: §6 / §8 of
+            # PRE_QIYAS_TOKENIZER_CONSTITUTION).
+            ptype = _classify_position(text, i, markers_by_index)
             p_set = layers.position_layer.prove_position(
                 t_cand,
                 position_type=ptype,
@@ -279,15 +387,23 @@ def process_text(text: str, layers: PipelineLayers | None = None) -> list[Charac
             report.steps.append(LayerStep.from_set(f"PositionQiyas[{ptype}]", p_set))
             p_cand = _accepted(p_set)
 
-            # ConditionedTypedSequence + SlotQiyas (PR #27 wiring).
-            # Per CLAUDE.md §8 the SlotCandidate now consumes an explicit
-            # AlignmentEvidence / CarrierBindingCandidate from the CTS
-            # layer; the driver does NOT self-assert any alignment.
+            # ConditionedTypedSequence + SlotQiyas (PR #27 wiring, Z5
+            # tokenizer gate). Per CLAUDE.md §8 the SlotCandidate consumes
+            # an explicit AlignmentEvidence / CarrierBindingCandidate from
+            # the CTS layer; the driver does NOT self-assert any alignment
+            # and binding is allowed only inside a single tokenizer
+            # segment, so whitespace and punctuation framing block
+            # cross-boundary carriers without ever entering the qiyas
+            # chain as candidates.
+            haraka_adjacent = (
+                i + 1 < len(text)
+                and classifications[i + 1][0] == "HarakaCodePoint"
+            )
             if (
                 li_cand is not None
                 and p_cand is not None
-                and i + 1 < len(text)
-                and classifications[i + 1][0] == "HarakaCodePoint"
+                and haraka_adjacent
+                and _same_segment(markers_by_index, i, i + 1)
             ):
                 haraka_typed = classifications[i + 1][1]
                 assert haraka_typed is not None
@@ -324,6 +440,18 @@ def process_text(text: str, layers: PipelineLayers | None = None) -> list[Charac
                         trace_prefix=f"text[{i}]:slot:{cp:04x}+{ord(text[i+1]):04x}",
                     )
                     report.slot_step = LayerStep.from_set("SlotQiyas", s_set)
+            elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
+                # Letter and following haraka are in different tokenizer
+                # segments (whitespace / punctuation framing between them).
+                # The carrier-binding is rejected at the driver gate without
+                # invoking CTS — the rejection is recorded by the report's
+                # tokenizer_marker, not by any boundary Candidate.
+                report.skipped_reason = (
+                    "carrier-binding declined: letter and following haraka "
+                    f"are in different tokenizer segments "
+                    f"({markers_by_index[i].segment_id} → "
+                    f"{markers_by_index[i + 1].segment_id})"
+                )
 
         elif ctype == "HarakaCodePoint":
             hf_set = layers.haraka_function_layer.prove_haraka_function(
@@ -332,8 +460,14 @@ def process_text(text: str, layers: PipelineLayers | None = None) -> list[Charac
             report.steps.append(LayerStep.from_set("HarakaFunctionQiyas", hf_set))
 
         else:
-            # BoundaryCodePoint / PunctuationCodePoint / ResidualCodePoint:
-            # the contract defines no further canonical layer for these — stop here.
+            # PunctuationCodePoint / ResidualCodePoint: these still appear as
+            # TypedCodePoint candidates (they are inside the Arabic Unicode
+            # block and survive UnicodeQiyas), but the canonical pipeline
+            # defines no further layer for them — punctuation is consumed
+            # as sequence-framing context via the tokenizer marker on this
+            # report. Whitespace never reaches this branch (it is rejected
+            # at UnicodeQiyas above). `BoundaryCodePoint` is legacy
+            # unreachable post-Z4 and is not part of the canonical path.
             report.skipped_reason = (
                 f"no downstream canonical layer defined for {ctype}"
             )
@@ -369,6 +503,7 @@ def reports_to_json(reports: list[CharacterReport]) -> str:
                 "index": r.index,
                 "char": r.char,
                 "codepoint": f"U+{r.codepoint:04X}",
+                "tokenizer_marker": r.tokenizer_marker,
                 "steps": [_step_dict(s) for s in r.steps],
                 "slot": _step_dict(r.slot_step) if r.slot_step else None,
                 "skipped_reason": r.skipped_reason,
@@ -381,6 +516,12 @@ def reports_to_text(reports: list[CharacterReport]) -> str:
     lines: list[str] = []
     for r in reports:
         lines.append(f"==[{r.index:3d}] '{r.char}'  U+{r.codepoint:04X}==")
+        if r.tokenizer_marker is not None:
+            tm = r.tokenizer_marker
+            lines.append(
+                f"  tokenizer_marker={tm['marker_type']:<35s} "
+                f"segment={tm['segment_id']!s:<3s} label={tm['normalized_label']}"
+            )
         for s in r.steps:
             lines.append(
                 f"  {s.layer:<42s} rule={s.rule_id:<36s} "

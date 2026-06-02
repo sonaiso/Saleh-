@@ -74,6 +74,13 @@ HARAKA_CODEPOINT_CLASSIFICATION = QiyasRule(
 )
 
 
+# Z4 declassification (PRE_QIYAS_TOKENIZER_CONSTITUTION §6):
+#   `BOUNDARY_CODEPOINT_CLASSIFICATION` is **legacy unreachable** in any
+#   canonical execution path. `UnicodeQiyas` rejects whitespace before it
+#   can reach the TypedCodePoint layer, and `SequenceContextTokenizer`
+#   (Z2) is the constitutional source of whitespace evidence. The rule
+#   survives only to keep legacy unit fixtures and external re-exports
+#   stable. Do not add new canonical callers.
 BOUNDARY_CODEPOINT_CLASSIFICATION = QiyasRule(
     rule_id="typed_codepoint.boundary_classification",
     layer="TypedCodePointClassificationQiyas",
