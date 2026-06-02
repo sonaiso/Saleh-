@@ -403,7 +403,7 @@ reality of controlled vocalized Arabic is the heart of the project.
 - boundary_class_registry.py
 
 **Phase 3: Coordinate Systems**
-- abjad_system.py (expand to full alphabet)
+- abjad_system.py (already complete at src/qiyas_core/abjad_system.py with 28 letters; expand Layer 2X consumption)
 - makhraj_coordinate_system.py
 - sifat_vector_system.py (6 axes, 28+ letters)
 - phonetic_proxy_system.py

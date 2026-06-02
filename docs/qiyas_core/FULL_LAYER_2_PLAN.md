@@ -193,7 +193,7 @@ class ArabicLetterCoordinateCarrier:
 | `makhraj_coordinate` | `makhraj_coordinate_system.py` | ❌ To be created |
 | `sifat_vector` | `sifat_vector_system.py` | ❌ To be created |
 | `phonetic_proxy` | `phonetic_proxy_system.py` | ❌ To be created |
-| `abjad_coordinate` | `abjad_system.py` | ✓ Exists (4 letters, needs expansion) |
+| `abjad_coordinate` | `abjad_system.py` | ✓ Exists (complete source), Layer 2X uses 4 letters |
 | `morpho_role_potential` | `letter_role_taxonomy.py` | ❌ To be created |
 | `fariq_set` | `letter_fariq_registry.py` | ❌ To be created |
 
@@ -336,11 +336,13 @@ Contains:
 
 ---
 
-## 5. Abjad Coordinate System (Expansion)
+## 5. Abjad Coordinate System (Layer 2X Consumption Expansion)
 
-**Current status:** 4 letters only (BAA, TAA, SEEN, KAF)
+**Abjad source status:** Complete in `src/qiyas_core/abjad_system.py` (28 letters, values 1-1000)
 
-**Required:** Full Arabic alphabet
+**Layer 2X consumption status:** Minimal slice only (BAA, TAA, SEEN, KAF)
+
+**Required:** Expand Layer 2X consumption rules to use full alphabet from existing source
 
 ### 5.1 Abjad System Contract
 
@@ -369,18 +371,20 @@ class AbjadCoordinate:
     # ✓ coordinate_distance()
 ```
 
-### 5.2 Required Expansion
+### 5.2 Expanding Layer 2X Consumption
 
-| Letter | Current | Required | Source |
-|--------|---------|----------|--------|
-| ا | — | 1 | abjad_system.py |
-| ب | ✓ 2 | 2 | abjad_system.py |
-| ج | — | 3 | abjad_system.py |
-| د | — | 4 | abjad_system.py |
+**Abjad source (src/qiyas_core/abjad_system.py):** Already complete with all values
+
+| Letter | Abjad Source | Layer 2X Consumption | Action Required |
+|--------|--------------|----------------------|-----------------|
+| ا | ✓ 1 | — | Extend adapter rules |
+| ب | ✓ 2 | ✓ Used | Already consumed |
+| ج | ✓ 3 | — | Extend adapter rules |
+| د | ✓ 4 | — | Extend adapter rules |
 | ... | ... | ... | ... |
-| غ | — | 1000 | abjad_system.py |
+| غ | ✓ 1000 | — | Extend adapter rules |
 
-**Total:** 28 letters + variants
+**Action:** Extend `letter_coordinate_adapter.py` consumption to use complete ABJAD_VALUES dict, NOT expand the source file.
 
 ---
 
@@ -451,9 +455,28 @@ forbidden_outputs = [
 **Evidence claims MUST include:**
 
 ```python
-evidence.add_claim("forbidden:meaning_from_abjad:negated")
-evidence.add_claim("forbidden:root_from_unicode:negated")
-evidence.add_claim("forbidden:weight_from_coordinates:negated")
+# Example using current Evidence API
+Evidence(
+    evidence_id="forbidden_meaning_from_abjad",
+    source_layer="letter_coordinate_adapter.py",
+    proves=("forbidden:meaning_from_abjad:negated",),
+    rank=EvidenceRank.FORMAL_STRUCTURE,
+    trace_ids=(...)
+)
+Evidence(
+    evidence_id="forbidden_root_from_unicode",
+    source_layer="letter_identity_adapter.py",
+    proves=("forbidden:root_from_unicode:negated",),
+    rank=EvidenceRank.FORMAL_STRUCTURE,
+    trace_ids=(...)
+)
+Evidence(
+    evidence_id="forbidden_weight_from_coordinates",
+    source_layer="letter_coordinate_adapter.py",
+    proves=("forbidden:weight_from_coordinates:negated",),
+    rank=EvidenceRank.FORMAL_STRUCTURE,
+    trace_ids=(...)
+)
 ```
 
 ---
@@ -528,11 +551,11 @@ defer:morpho_role_requires_disambiguation:present
 
 ### Phase 3: System Creation
 
-- [ ] Expand abjad_system.py to full alphabet
-- [ ] Create makhraj_coordinate_system.py
-- [ ] Create sifat_vector_system.py (6 axes)
-- [ ] Create phonetic_proxy_system.py
-- [ ] Create letter_role_taxonomy.py
+- [ ] Expand `letter_coordinate_adapter.py` to consume full Abjad alphabet (source already complete)
+- [ ] Create `src/qiyas_core/systems/makhraj_coordinate_system.py`
+- [ ] Create `src/qiyas_core/systems/sifat_vector_system.py` (6 axes)
+- [ ] Create `src/qiyas_core/systems/phonetic_proxy_system.py`
+- [ ] Create `src/qiyas_core/systems/letter_role_taxonomy.py`
 
 ### Phase 4: Gate Implementation
 

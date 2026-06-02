@@ -323,10 +323,36 @@ fariq_baa_vs_meem = [
     "baa_vs_meem_continuancy", # NON_CONTINUANT vs CONTINUANT
 ]
 
-# Evidence for ب:
-evidence.add_claim("فارق:baa_vs_meem_nasality:absent")
-evidence.add_claim("فارق:baa_vs_meem_manner:absent")
-evidence.add_claim("فارق:baa_vs_meem_continuancy:absent")
+# Pseudo-code using proposed helper API (not yet implemented):
+# evidence.add_claim("فارق:baa_vs_meem_nasality:absent")
+# evidence.add_claim("فارق:baa_vs_meem_manner:absent")
+# evidence.add_claim("فارق:baa_vs_meem_continuancy:absent")
+
+# Current Evidence API:
+evidence_items = [
+    Evidence(
+        evidence_id="fariq_baa_vs_meem_nasality_absent",
+        source_layer="sifat_vector_system.py",
+        proves=("فارق:baa_vs_meem_nasality:absent",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        trace_ids=("U+0628",)
+    ),
+    Evidence(
+        evidence_id="fariq_baa_vs_meem_manner_absent",
+        source_layer="sifat_vector_system.py",
+        proves=("فارق:baa_vs_meem_manner:absent",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        trace_ids=("U+0628",)
+    ),
+    Evidence(
+        evidence_id="fariq_baa_vs_meem_continuancy_absent",
+        source_layer="sifat_vector_system.py",
+        proves=("فارق:baa_vs_meem_continuancy:absent",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        trace_ids=("U+0628",)
+    ),
+]
+evidence_set = EvidenceSet(items=tuple(evidence_items))
 ```
 
 ### Example: س vs ص
@@ -357,8 +383,18 @@ fariq_seen_vs_saad = [
     "seen_vs_saad_emphasis",  # NON_EMPHATIC vs EMPHATIC
 ]
 
-# Evidence for س:
-evidence.add_claim("فارق:seen_vs_saad_emphasis:absent")
+# Pseudo-code using proposed helper API (not yet implemented):
+# evidence.add_claim("فارق:seen_vs_saad_emphasis:absent")
+
+# Current Evidence API:
+evidence_item = Evidence(
+    evidence_id="fariq_seen_vs_saad_emphasis_absent",
+    source_layer="sifat_vector_system.py",
+    proves=("فارق:seen_vs_saad_emphasis:absent",),
+    rank=EvidenceRank.FORMAL_STRUCTURE,
+    trace_ids=("U+0633",)
+)
+evidence_set = EvidenceSet(items=(evidence_item,))
 ```
 
 ---
@@ -398,20 +434,51 @@ src/qiyas_core/systems/sifat_vector_system.py
 ### Evidence Claims for Sifat
 
 ```python
-# For each axis:
-evidence.add_claim(f"وصف:has_voicing:{voicing.value}:evidenced")
-evidence.add_claim(f"وصف:has_manner:{manner.value}:evidenced")
-evidence.add_claim(f"وصف:has_nasality:{nasality.value}:evidenced")
-evidence.add_claim(f"وصف:has_frication:{frication.value}:evidenced")
-evidence.add_claim(f"وصف:has_continuancy:{continuancy.value}:evidenced")
-evidence.add_claim(f"وصف:has_emphasis:{emphasis.value}:evidenced")
+# Pseudo-code using proposed helper API (not yet implemented):
+# evidence.add_claim(f"وصف:has_voicing:{voicing.value}:evidenced")
+# evidence.add_claim(f"وصف:has_manner:{manner.value}:evidenced")
+# evidence.add_claim(f"وصف:has_nasality:{nasality.value}:evidenced")
+# evidence.add_claim(f"وصف:has_frication:{frication.value}:evidenced")
+# evidence.add_claim(f"وصف:has_continuancy:{continuancy.value}:evidenced")
+# evidence.add_claim(f"وصف:has_emphasis:{emphasis.value}:evidenced")
+# for fariq in fariq_set:
+#     evidence.add_claim(f"فارق:{fariq}:absent")
+# evidence.source = "sifat_vector_system.py"
 
-# Fariq (invalidating difference) negation:
+# Current Evidence API:
+from qiyas_core.evidence import Evidence, EvidenceSet
+from qiyas_core.enums import EvidenceRank
+
+evidence_items = []
+
+# For each sifat axis:
+evidence_items.append(Evidence(
+    evidence_id=f"sifat_voicing_{letter_name}",
+    source_layer="sifat_vector_system.py",
+    proves=(f"وصف:has_voicing:{voicing.value}:evidenced",),
+    rank=EvidenceRank.FORMAL_STRUCTURE,
+    trace_ids=(letter_codepoint,)
+))
+evidence_items.append(Evidence(
+    evidence_id=f"sifat_manner_{letter_name}",
+    source_layer="sifat_vector_system.py",
+    proves=(f"وصف:has_manner:{manner.value}:evidenced",),
+    rank=EvidenceRank.FORMAL_STRUCTURE,
+    trace_ids=(letter_codepoint,)
+))
+# ... similar for nasality, frication, continuancy, emphasis
+
+# Fariq negation:
 for fariq in fariq_set:
-    evidence.add_claim(f"فارق:{fariq}:absent")
+    evidence_items.append(Evidence(
+        evidence_id=f"fariq_{fariq}_absent",
+        source_layer="sifat_vector_system.py",
+        proves=(f"فارق:{fariq}:absent",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        trace_ids=(letter_codepoint,)
+    ))
 
-# Source citation:
-evidence.source = "sifat_vector_system.py"
+evidence_set = EvidenceSet(items=tuple(evidence_items))
 ```
 
 ### Rank
@@ -459,8 +526,27 @@ forbidden_outputs = [
 **Evidence MUST include:**
 
 ```python
-evidence.add_claim("forbidden:meaning_from_sifat:negated")
-evidence.add_claim("forbidden:root_from_sifat:negated")
+# Pseudo-code using proposed helper API (not yet implemented):
+# evidence.add_claim("forbidden:meaning_from_sifat:negated")
+# evidence.add_claim("forbidden:root_from_sifat:negated")
+
+# Current Evidence API:
+forbidden_evidence = [
+    Evidence(
+        evidence_id="forbidden_meaning_from_sifat",
+        source_layer="sifat_vector_system.py",
+        proves=("forbidden:meaning_from_sifat:negated",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        trace_ids=(letter_codepoint,)
+    ),
+    Evidence(
+        evidence_id="forbidden_root_from_sifat",
+        source_layer="sifat_vector_system.py",
+        proves=("forbidden:root_from_sifat:negated",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+        trace_ids=(letter_codepoint,)
+    ),
+]
 ```
 
 ---
