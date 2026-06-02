@@ -39,6 +39,118 @@ from .registries.letter_fariq_registry import get_fariq_pairs
 from .registries.glyph_classification_registry import classify_glyph, GlyphClass
 
 
+def _get_glyph_gate_residual(
+    glyph_classification,
+    codepoint: int,
+    trace_prefix: str = ""
+) -> Residual:
+    """
+    Generate specific residual based on glyph classification gate failure.
+
+    Constitutional requirement: كل منع أو تأجيل = residual صريح مخصوص
+    (Every block or defer must emit a specific, explicit residual)
+
+    Args:
+        glyph_classification: GlyphClassification from classify_glyph()
+        codepoint: Unicode codepoint
+        trace_prefix: Optional trace prefix
+
+    Returns:
+        Residual with specific type based on glyph classification failure reason
+    """
+    codepoint_hex = f"{codepoint:04x}"
+
+    # Block: No phonetic coordinates allowed
+    if not glyph_classification.allows_phonetic_coordinates:
+        if glyph_classification.glyph_class == GlyphClass.TATWEEL_GLYPH:
+            return Residual(
+                residual_type="glyph_has_no_phonetic_coordinates",
+                severity=ResidualSeverity.BLOCKER,
+                effect=ResidualEffect.BLOCK,
+                message=f"Tatweel U+{codepoint_hex} has no phonetic coordinates (spacing glyph only)",
+                source_rule_id="glyph_gate.tatweel_no_coordinates",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:glyph_gate:blocked:tatweel",),
+            )
+        elif glyph_classification.glyph_class == GlyphClass.PUNCTUATION:
+            return Residual(
+                residual_type="glyph_has_no_phonetic_coordinates",
+                severity=ResidualSeverity.BLOCKER,
+                effect=ResidualEffect.BLOCK,
+                message=f"Punctuation U+{codepoint_hex} has no phonetic coordinates",
+                source_rule_id="glyph_gate.punctuation_no_coordinates",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:glyph_gate:blocked:punctuation",),
+            )
+        elif glyph_classification.glyph_class == GlyphClass.BOUNDARY:
+            return Residual(
+                residual_type="glyph_has_no_phonetic_coordinates",
+                severity=ResidualSeverity.BLOCKER,
+                effect=ResidualEffect.BLOCK,
+                message=f"Boundary U+{codepoint_hex} has no phonetic coordinates",
+                source_rule_id="glyph_gate.boundary_no_coordinates",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:glyph_gate:blocked:boundary",),
+            )
+        else:
+            # RESIDUAL or unknown glyph class
+            return Residual(
+                residual_type="glyph_classification_residual",
+                severity=ResidualSeverity.BLOCKER,
+                effect=ResidualEffect.BLOCK,
+                message=f"Glyph U+{codepoint_hex} classification prevents coordinate assignment",
+                source_rule_id="glyph_gate.unclassified_no_coordinates",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:glyph_gate:blocked:unclassified",),
+            )
+
+    # Defer: Decomposition required
+    if glyph_classification.requires_decomposition:
+        if glyph_classification.glyph_class == GlyphClass.HAMZA_SEAT_GLYPH:
+            return Residual(
+                residual_type="glyph_decomposition_required",
+                severity=ResidualSeverity.WARNING,
+                effect=ResidualEffect.DEFER,
+                message=f"Hamza seat U+{codepoint_hex} requires decomposition before coordinate assignment",
+                source_rule_id="glyph_gate.hamza_seat_decomposition",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:glyph_gate:deferred:hamza_seat",),
+            )
+        elif glyph_classification.glyph_class == GlyphClass.COMPLEX_GLYPH:
+            return Residual(
+                residual_type="glyph_decomposition_required",
+                severity=ResidualSeverity.WARNING,
+                effect=ResidualEffect.DEFER,
+                message=f"Complex glyph U+{codepoint_hex} requires decomposition before coordinate assignment",
+                source_rule_id="glyph_gate.complex_glyph_decomposition",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:glyph_gate:deferred:complex_glyph",),
+            )
+
+    # Defer: Role disambiguation required
+    if glyph_classification.requires_role_disambiguation:
+        return Residual(
+            residual_type="glyph_role_disambiguation_required",
+            severity=ResidualSeverity.WARNING,
+            effect=ResidualEffect.DEFER,
+            message=f"Weak letter U+{codepoint_hex} requires role disambiguation before coordinate assignment",
+            source_rule_id="glyph_gate.weak_letter_disambiguation",
+            layer="ArabicLetterCoordinateQiyas",
+            trace_ids=(f"{trace_prefix}:glyph_gate:deferred:weak_letter",),
+        )
+
+    # Fallback: Should not reach here if gate logic is correct
+    return Residual(
+        residual_type="glyph_classification_residual",
+        severity=ResidualSeverity.WARNING,
+        effect=ResidualEffect.DEFER,
+        message=f"Glyph U+{codepoint_hex} blocked by glyph classification gate",
+        source_rule_id="glyph_gate.unknown_failure",
+        layer="ArabicLetterCoordinateQiyas",
+        trace_ids=(f"{trace_prefix}:glyph_gate:unknown",),
+    )
+
+
 def build_letter_coordinate_evidence(
     letter_name: str,
     codepoint: int,
@@ -169,20 +281,34 @@ class ArabicLetterCoordinateAdapter:
         self,
         letter_identity: Candidate,
         trace_prefix: str = ""
-    ) -> QiyasRequest | None:
+    ) -> tuple[QiyasRequest | None, Residual | None]:
         """
         Build a QiyasRequest for enriching letter identity with coordinates.
+
+        Constitutional requirement: كل منع أو تأجيل = residual صريح مخصوص
+        (Every block or defer must emit a specific, explicit residual)
 
         Args:
             letter_identity: Must be LetterIdentityCarrier from LetterIdentityLayerAdapter
             trace_prefix: Optional prefix for trace IDs
 
         Returns:
-            QiyasRequest or None if coordinate enrichment not supported
+            Tuple of (QiyasRequest | None, Residual | None):
+              - (QiyasRequest, None) if coordinate enrichment supported
+              - (None, Residual) if blocked/deferred with specific reason
         """
         # Validate input type
         if letter_identity.candidate_type != "LetterIdentityCarrier":
-            return None
+            residual = Residual(
+                residual_type="invalid_letter_identity_input",
+                severity=ResidualSeverity.BLOCKER,
+                effect=ResidualEffect.BLOCK,
+                message=f"Expected LetterIdentityCarrier, got {letter_identity.candidate_type}",
+                source_rule_id="letter_coordinate.invalid_input",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:invalid_input",),
+            )
+            return (None, residual)
 
         # Extract codepoint from identity_ids
         codepoint = None
@@ -193,7 +319,19 @@ class ArabicLetterCoordinateAdapter:
                 break
 
         if codepoint is None:
-            return None
+            residual = Residual(
+                residual_type="letter_codepoint_missing",
+                severity=ResidualSeverity.BLOCKER,
+                effect=ResidualEffect.BLOCK,
+                message="Letter identity missing codepoint in identity_ids",
+                source_rule_id="letter_coordinate.missing_codepoint",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:missing_codepoint",),
+            )
+            return (None, residual)
+
+        if not trace_prefix:
+            trace_prefix = f"letter_coordinate:{codepoint:04x}"
 
         # GLYPH CLASSIFICATION GATE
         # Constitutional requirement: No coordinates before glyph classification
@@ -203,17 +341,20 @@ class ArabicLetterCoordinateAdapter:
         # Block glyphs that don't allow phonetic coordinates
         if not glyph_classification.allows_phonetic_coordinates:
             # TATWEEL, PUNCTUATION, BOUNDARY - no coordinates allowed
-            return None
+            residual = _get_glyph_gate_residual(glyph_classification, codepoint, trace_prefix)
+            return (None, residual)
 
         # Defer glyphs requiring decomposition
         if glyph_classification.requires_decomposition:
             # HAMZA_SEAT_GLYPH, COMPLEX_GLYPH - need decomposition first
-            return None
+            residual = _get_glyph_gate_residual(glyph_classification, codepoint, trace_prefix)
+            return (None, residual)
 
         # Defer glyphs requiring role disambiguation
         if glyph_classification.requires_role_disambiguation:
             # WEAK_LETTER_GLYPH (و ي ا) - need role determination first
-            return None
+            residual = _get_glyph_gate_residual(glyph_classification, codepoint, trace_prefix)
+            return (None, residual)
 
         # At this stage, only CORE_ARABIC_LETTER and STANDALONE_HAMZA proceed
         # (assuming STANDALONE_HAMZA has phonetic profile and rule defined)
@@ -222,13 +363,31 @@ class ArabicLetterCoordinateAdapter:
         phonetic_profile = get_phonetic_profile(codepoint)
         if phonetic_profile is None:
             # Letter not yet mapped with phonetic profile
-            return None
+            residual = Residual(
+                residual_type="phonetic_profile_missing",
+                severity=ResidualSeverity.WARNING,
+                effect=ResidualEffect.DEFER,
+                message=f"Phonetic profile not yet defined for U+{codepoint:04x}",
+                source_rule_id="letter_coordinate.missing_phonetic_profile",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:missing_phonetic_profile",),
+            )
+            return (None, residual)
 
         # Get coordinate rule
         rule = get_letter_coordinate_rule(codepoint)
         if rule is None:
             # Coordinate rule not yet defined
-            return None
+            residual = Residual(
+                residual_type="coordinate_rule_missing",
+                severity=ResidualSeverity.WARNING,
+                effect=ResidualEffect.DEFER,
+                message=f"Coordinate rule not yet defined for U+{codepoint:04x}",
+                source_rule_id="letter_coordinate.missing_coordinate_rule",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:missing_coordinate_rule",),
+            )
+            return (None, residual)
 
         # Extract letter name from letter_identity source_rule_id
         # e.g., "letter_identity.baa" → "baa"
@@ -239,10 +398,18 @@ class ArabicLetterCoordinateAdapter:
                 letter_name = parts[1]
 
         if not letter_name:
-            return None
+            residual = Residual(
+                residual_type="letter_name_extraction_failed",
+                severity=ResidualSeverity.WARNING,
+                effect=ResidualEffect.DEFER,
+                message=f"Cannot extract letter name from source_rule_id: {letter_identity.source_rule_id}",
+                source_rule_id="letter_coordinate.missing_letter_name",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:missing_letter_name",),
+            )
+            return (None, residual)
 
-        if not trace_prefix:
-            trace_prefix = f"letter_coordinate:{letter_name}"
+        trace_prefix = f"letter_coordinate:{letter_name}"
 
         # Get Arabic name from registry
         letter_names = get_letter_names(codepoint)
@@ -257,7 +424,16 @@ class ArabicLetterCoordinateAdapter:
         )
 
         if not evidence.items:
-            return None
+            residual = Residual(
+                residual_type="coordinate_evidence_empty",
+                severity=ResidualSeverity.WARNING,
+                effect=ResidualEffect.DEFER,
+                message=f"No evidence could be built for letter coordinate enrichment of {letter_name}",
+                source_rule_id="letter_coordinate.empty_evidence",
+                layer="ArabicLetterCoordinateQiyas",
+                trace_ids=(f"{trace_prefix}:empty_evidence",),
+            )
+            return (None, residual)
 
         # Build asl node (letter coordinate domain)
         asl = QiyasNodeRef(
@@ -277,14 +453,15 @@ class ArabicLetterCoordinateAdapter:
             rank=letter_identity.rank,
         )
 
-        # Build and return request
-        return QiyasRequest(
+        # Build and return request (no residual)
+        request = QiyasRequest(
             rule=rule,
             asl=asl,
             far=far,
             evidence=evidence,
             context=QiyasContext(layer="ArabicLetterCoordinateQiyas"),
         )
+        return (request, None)
 
     def process_letter_identity(
         self,
@@ -294,40 +471,29 @@ class ArabicLetterCoordinateAdapter:
         """
         Process a LetterIdentityCarrier to enrich with coordinates.
 
+        Constitutional requirement: كل منع أو تأجيل = residual صريح مخصوص
+        (Every block or defer must emit a specific, explicit residual)
+
         Args:
             letter_identity: Must be LetterIdentityCarrier with full evidence/rank/trace
             trace_prefix: Optional prefix for trace IDs
 
         Returns:
-            CandidateSet with ArabicLetterCoordinateCarrier (if supported)
+            CandidateSet with ArabicLetterCoordinateCarrier (if supported) or specific residual
         """
-        request = self.build_request_for_letter_coordinates(letter_identity, trace_prefix)
+        request, residual = self.build_request_for_letter_coordinates(letter_identity, trace_prefix)
 
         if request is None:
-            # Coordinate enrichment not supported yet - return CandidateSet with residual
-            # Extract codepoint for residual message
-            codepoint_hex = "unknown"
-            for identity_id in letter_identity.identity_ids:
-                if identity_id.startswith("identity:codepoint:"):
-                    codepoint_hex = identity_id.split(":")[-1]
-                    break
-
-            residual = Residual(
-                residual_type="coordinate_enrichment_not_supported",
-                severity=ResidualSeverity.BLOCKER,
-                effect=ResidualEffect.DEFER,
-                message=f"Coordinate enrichment not yet supported for letter U+{codepoint_hex}",
-                source_rule_id="letter_coordinate.unsupported",
-                layer="ArabicLetterCoordinateQiyas",
-                trace_ids=(f"letter_coordinate:{codepoint_hex}:unsupported",),
-            )
+            # Coordinate enrichment blocked/deferred - return CandidateSet with specific residual
+            # residual is guaranteed to be non-None when request is None
+            assert residual is not None, "build_request_for_letter_coordinates must return residual when request is None"
 
             return CandidateSet(
-                set_id=f"letter_coordinate:unsupported:{uuid.uuid4().hex[:8]}",
+                set_id=f"letter_coordinate:{residual.residual_type}:{uuid.uuid4().hex[:8]}",
                 layer="ArabicLetterCoordinateQiyas",
                 candidates=(),
                 residuals=(residual,),
-                trace_ids=(f"letter_coordinate:{codepoint_hex}:deferred",),
+                trace_ids=residual.trace_ids,
             )
 
         # Execute qiyas through kernel.apply() (canonical interface)
