@@ -368,3 +368,114 @@ def test_letter_coordinate_contract_has_layer_2_wasf():
     
     # Validate input type (takes Layer 1 output)
     assert "LetterIdentityCarrier" in LETTER_COORDINATE_CONTRACT.inputs
+
+
+def test_fariq_present_blocks_kernel():
+    """
+    CONSTITUTIONAL TEST: فارق:...:present MUST block kernel.
+
+    This test verifies that QiyasKernel correctly blocks when evidence contains
+    فارق:{diff}:present (invalidating difference is present).
+
+    Normal successful path emits فارق:{diff}:absent.
+    Only conflict/error cases emit فارق:{diff}:present.
+
+    This test validates the constitutional meaning of fariq evidence.
+    """
+    import uuid
+    from qiyas_core.kernel import QiyasKernel, QiyasRequest, QiyasContext
+    from qiyas_core.node import QiyasNodeRef
+    from qiyas_core.evidence import Evidence, EvidenceSet
+    from qiyas_core.rules.letter_coordinate_rules import BAA_COORDINATE_RULE
+
+    kernel = QiyasKernel()
+
+    # Build evidence that explicitly includes فارق:baa_vs_meem:present
+    # This simulates a blocking invalidating difference
+    proves = [
+        "اصل:established",
+        "فرع:determined",
+        # Layer 1 identity wasf
+        "وصف:has_letter_codepoint:evidenced",
+        "وصف:has_unicode_identity:0628:evidenced",
+        "وصف:has_script_identity:baa:evidenced",
+        "وصف:has_latin_name:baa:evidenced",
+        "وصف:has_arabic_name:باء:evidenced",
+        # Layer 2 coordinate wasf
+        "وصف:has_sound_identity:VOICED_BILABIAL_STOP:evidenced",
+        "وصف:has_makhraj:BILABIAL:evidenced",
+        "وصف:has_voicing:VOICED:evidenced",
+        "وصف:has_manner:STOP:evidenced",
+        "وصف:has_emphasis:NON_EMPHATIC:evidenced",
+        "وصف:has_abjad_system:ABJAD:evidenced",
+        "وصف:has_abjad_value:2:evidenced",
+        "وصف:abjad_semantic_force:FORBIDDEN:evidenced",
+        "وصف:has_morpho_role:EXPANDED_MULTI_ROLE:evidenced",
+        # Illah
+        "علة:belongs_to_letter_identity_domain:verified",
+        "علة:letter_identity_is:baa:verified",
+        "علة:belongs_to_letter_coordinate_domain:verified",
+        # Wadi gates
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
+        # CRITICAL: Inject فارق:baa_vs_meem:present (blocking!)
+        "فارق:baa_vs_meem:present",
+    ]
+
+    evidence = EvidenceSet(
+        items=(
+            Evidence(
+                evidence_id=f"ev:test_blocking_fariq:{uuid.uuid4().hex[:8]}",
+                source_layer="ArabicLetterCoordinateQiyas",
+                proves=tuple(proves),
+                rank=EvidenceRank.FORMAL_STRUCTURE,
+                trace_ids=("test:blocking_fariq",),
+            ),
+        )
+    )
+
+    asl = QiyasNodeRef(
+        node_id="asl:letter_coordinate_domain:baa",
+        node_type="LetterCoordinateDomain",
+        identity_ids=("identity:letter_coordinate_domain",),
+        trace_ids=("test:asl",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+    )
+
+    far = QiyasNodeRef(
+        node_id="far:letter_identity:baa",
+        node_type="LetterIdentityCarrier",
+        identity_ids=("identity:codepoint:0628", "identity:letter:baa"),
+        trace_ids=("test:far",),
+        rank=EvidenceRank.FORMAL_STRUCTURE,
+    )
+
+    request = QiyasRequest(
+        rule=BAA_COORDINATE_RULE,
+        asl=asl,
+        far=far,
+        evidence=evidence,
+        context=QiyasContext(layer="ArabicLetterCoordinateQiyas"),
+    )
+
+    # Execute through kernel
+    result = kernel.apply(request)
+
+    # VALIDATE: Kernel MUST block when فارق:...:present
+    assert len(result.accepted) == 0, "Kernel must NOT accept when فارق:present"
+    assert len(result.blocked) == 1, "Kernel must BLOCK when فارق:present"
+
+    # Find blocking residual
+    blocking_residual = None
+    for r in result.residuals:
+        if r.residual_type == "blocking_fariq_present":
+            blocking_residual = r
+            break
+
+    assert blocking_residual is not None, "Must have blocking_fariq_present residual"
+    assert blocking_residual.effect == ResidualEffect.BLOCK
+    assert "baa_vs_meem" in blocking_residual.message or "blocking" in blocking_residual.residual_type

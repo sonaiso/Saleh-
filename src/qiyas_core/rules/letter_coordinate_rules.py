@@ -22,6 +22,7 @@ Forbidden: This layer does NOT produce SlotCandidate or require sequence context
 from qiyas_core.enums import EvidenceRank, QiyasPattern, WadiGate
 from qiyas_core.rule import QiyasRule
 from qiyas_core.abjad_system import get_abjad_coordinate
+from qiyas_core.registries.letter_fariq_registry import get_fariq_pairs
 
 
 ALL_WADI = (
@@ -64,7 +65,6 @@ def _make_letter_coordinate_rule(
     voicing: str,
     manner: str,
     emphasis: str,
-    invalidating_diffs: tuple[str, ...],
     morpho_role_bits: str | None = None,
 ) -> QiyasRule:
     """
@@ -77,7 +77,7 @@ def _make_letter_coordinate_rule(
       - Abjad numeric (if applicable) - fetched from abjad_system.py
       - Morphological role bits (if applicable)
 
-    Proves invalidating_differences absence (fariq) in evidence.
+    Derives invalidating_differences from letter_fariq_registry (single source of truth).
 
     Args:
         letter_name: Lowercase Latin letter name (e.g., "baa", "taa")
@@ -87,10 +87,16 @@ def _make_letter_coordinate_rule(
         voicing: Voice quality (e.g., "VOICED")
         manner: Manner of articulation (e.g., "STOP")
         emphasis: Emphasis ("EMPHATIC" or "NON_EMPHATIC")
-        invalidating_diffs: Tuple of fariq identifiers (e.g., ("baa_vs_meem",))
         morpho_role_bits: Morphological role classification (e.g., "SAALATAMUUNIIHA", "EXPANDED_MULTI_ROLE")
     """
     cp_hex = f"{codepoint:04x}"
+
+    # Derive invalidating_differences from letter_fariq_registry (single source of truth)
+    fariq_pairs = get_fariq_pairs(codepoint)
+    invalidating_diffs = tuple(
+        f"{pair.letter1_name}_vs_{pair.letter2_name}"
+        for pair in fariq_pairs
+    )
 
     # Build required wasf (inherits identity from Layer 1, adds coordinates)
     required_wasf = [
@@ -154,7 +160,6 @@ BAA_COORDINATE_RULE = _make_letter_coordinate_rule(
     voicing="VOICED",
     manner="STOP",
     emphasis="NON_EMPHATIC",
-    invalidating_diffs=("baa_vs_meem", "baa_vs_faa", "baa_vs_taa", "baa_vs_waw"),
     morpho_role_bits="EXPANDED_MULTI_ROLE",
 )
 
@@ -167,7 +172,6 @@ TAA_COORDINATE_RULE = _make_letter_coordinate_rule(
     voicing="VOICELESS",
     manner="STOP",
     emphasis="NON_EMPHATIC",
-    invalidating_diffs=("taa_vs_baa", "taa_vs_daal", "taa_vs_taa_emphatic"),
     morpho_role_bits="SAALATAMUUNIIHA",
 )
 
@@ -180,7 +184,6 @@ SEEN_COORDINATE_RULE = _make_letter_coordinate_rule(
     voicing="VOICELESS",
     manner="FRICATIVE",
     emphasis="NON_EMPHATIC",
-    invalidating_diffs=("seen_vs_saad", "seen_vs_sheen", "seen_vs_zay"),
     morpho_role_bits="SAALATAMUUNIIHA",
 )
 
@@ -193,7 +196,6 @@ KAF_COORDINATE_RULE = _make_letter_coordinate_rule(
     voicing="VOICELESS",
     manner="STOP",
     emphasis="NON_EMPHATIC",
-    invalidating_diffs=("kaf_vs_qaf", "kaf_vs_ghayn"),
     morpho_role_bits="EXPANDED_MULTI_ROLE",
 )
 
