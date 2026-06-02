@@ -242,52 +242,52 @@ SourceOfTruthEntry(
 
 | Truth | Canonical Source | Status |
 |-------|-----------------|--------|
-| Arabic Unicode ranges | `unicode_constants.py` | ⚠️ Needs creation |
-| Unicode validation | `unicode_adapter.py` | ✓ Canonical |
+| Arabic Unicode ranges | `src/qiyas_core/unicode_constants.py` | ⚠️ Needs creation |
+| Unicode validation | `src/qiyas_core/unicode_adapter.py` | ✓ Canonical |
 
 ### Layer 1: TypedCodePoint Classification
 
 | Truth | Canonical Source | Status |
 |-------|-----------------|--------|
-| Typed classification rules | `typed_codepoint_rules.py` | ✓ Canonical |
-| Letter class definition | `letter_class_registry.py` | ⚠️ Needs creation |
-| Haraka class definition | `haraka_class_registry.py` | ⚠️ Needs creation |
-| Boundary class definition | `boundary_class_registry.py` | ⚠️ Needs creation |
+| Typed classification rules | `src/qiyas_core/rules/typed_codepoint_rules.py` | ✓ Canonical |
+| Letter class definition | `src/qiyas_core/registries/letter_class_registry.py` | ⚠️ Needs creation |
+| Haraka class definition | `src/qiyas_core/registries/haraka_class_registry.py` | ⚠️ Needs creation |
+| Boundary class definition | `src/qiyas_core/registries/boundary_class_registry.py` | ⚠️ Needs creation |
 
 ### Layer 2A: Letter Identity
 
 | Truth | Canonical Source | Status |
 |-------|-----------------|--------|
-| Letter name mapping | `letter_name_registry.py` | ⚠️ Needs creation |
-| Script identity | `script_identity_registry.py` | ⚠️ Needs creation |
-| Letter identity rules | `letter_identity_rules.py` | ✓ Canonical |
+| Letter name mapping | `src/qiyas_core/registries/letter_name_registry.py` | ⚠️ Needs creation |
+| Script identity | `src/qiyas_core/registries/script_identity_registry.py` | ⚠️ Needs creation |
+| Letter identity rules | `src/qiyas_core/rules/letter_identity_rules.py` | ✓ Canonical |
 
 ### Layer 2B: Haraka Function
 
 | Truth | Canonical Source | Status |
 |-------|-----------------|--------|
-| Haraka function taxonomy | `haraka_function_registry.py` | ⚠️ Needs creation |
-| Opening/closing classification | `haraka_function_rules.py` | ✓ Canonical (partial) |
+| Haraka function taxonomy | `src/qiyas_core/registries/haraka_function_registry.py` | ⚠️ Needs creation |
+| Opening/closing classification | `src/qiyas_core/rules/haraka_function_rules.py` | ✓ Canonical (partial) |
 
 ### Layer 2X: Arabic Letter Coordinates (Partial)
 
 | Truth | Canonical Source | Status |
 |-------|-----------------|--------|
-| Makhraj coordinates | `makhraj_coordinate_registry.py` | ⚠️ Needs creation |
-| Sifat vectors | `sifat_vector_registry.py` | ⚠️ Needs creation |
-| Abjad system | `abjad_system.py` | ✓ Canonical (complete: 28 letters) |
-| Phonetic proxy | `phonetic_proxy_registry.py` | ⚠️ Needs creation |
+| Makhraj coordinates | `src/qiyas_core/systems/makhraj_coordinate_system.py` | ⚠️ Needs creation |
+| Sifat vectors | `src/qiyas_core/systems/sifat_vector_system.py` | ⚠️ Needs creation |
+| Abjad system | `src/qiyas_core/abjad_system.py` | ✓ Canonical (complete: 28 letters) |
+| Phonetic proxy | `src/qiyas_core/systems/phonetic_proxy_system.py` | ⚠️ Needs creation |
 
 **Note on Abjad:** The source-of-truth in `abjad_system.py` defines complete Abjad values for all 28 traditional Arabic letters. Current Layer 2X consumption (ArabicLetterCoordinateCarrier) uses only BAA/TAA/SEEN/KAF as a minimal slice. To expand coordinate coverage, extend consumption in `letter_coordinate_adapter.py`, not the Abjad source.
-| Glyph classification | `glyph_classification_registry.py` | ❌ Not implemented |
-| Letter role taxonomy | `letter_role_taxonomy.py` | ❌ Not implemented |
+| Glyph classification | `src/qiyas_core/gates/glyph_classification_gate.py` | ❌ Not implemented |
+| Letter role taxonomy | `src/qiyas_core/taxonomies/letter_role_taxonomy.py` | ❌ Not implemented |
 
 ### Layer 3: Slot Candidate
 
 | Truth | Canonical Source | Status |
 |-------|-----------------|--------|
-| Slot formation rules | `slot_candidate_rules.py` | ✓ Canonical (partial) |
-| Alignment evidence | `conditioned_typed_sequence_rules.py` | ✓ Canonical |
+| Slot formation rules | `src/qiyas_core/rules/slot_rules.py` | ✓ Canonical (partial) |
+| Alignment evidence | `src/qiyas_core/rules/conditioned_typed_sequence_rules.py` | ✓ Canonical |
 
 ---
 
