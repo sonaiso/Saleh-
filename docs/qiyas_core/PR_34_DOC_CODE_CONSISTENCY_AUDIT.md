@@ -368,7 +368,12 @@ Translation: "Documents must pass the checklist they added."
 **Self-Verification:**
 - Docs establish doc-code consistency rules (§ 13)
 - Docs verify themselves in SOURCE_OF_TRUTH_REGISTRY.md § 12
-- Enforcement: Checklist passes, framework is internally consistent
+- Enforcement: Major issues resolved, minor path corrections remain
+
+**Known Remaining Issues (Post-PR #34):**
+- SOURCE_OF_TRUTH_REGISTRY.md still has one wrong canonical file reference (`slot_candidate_rules.py` should be `src/qiyas_core/rules/slot_rules.py`)
+- Some tables use abbreviated paths instead of full canonical paths
+- These require micro-correction PR before governance fully closed
 
 ---
 
@@ -410,11 +415,18 @@ Translation: "Documents must pass the checklist they added."
 
 ### Immediate (Post-Merge)
 
-✅ Governance framework now internally consistent
-✅ All docs pass AGENT_PR_CHECKLIST.md § 13
-✅ Safe to proceed with Layer 2 implementation
+✅ Major governance inconsistencies resolved (Abjad source, Evidence API, systems/ paths)
+⚠️ Minor path corrections needed (slot_candidate_rules.py → slot_rules.py, abbreviated paths → full paths)
+⚠️ Micro-correction PR required before governance fully closed
 
-### Layer 2 Implementation Sequence
+### Micro-Correction PR (Required Before Layer 2)
+
+**Fix remaining SOURCE_OF_TRUTH_REGISTRY issues:**
+1. `slot_candidate_rules.py` → `src/qiyas_core/rules/slot_rules.py` (Line 289)
+2. Use full canonical paths in all "Current Canonical Sources" tables (Lines 244-290)
+3. Update this audit document to reflect governance not yet fully closed
+
+### Layer 2 Implementation Sequence (After Micro-Correction)
 
 **Phase 2: Registry Creation** (next PR)
 - Create `src/qiyas_core/registries/` directory
