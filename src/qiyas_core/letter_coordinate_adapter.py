@@ -36,6 +36,7 @@ from .rules.letter_coordinate_rules import get_letter_coordinate_rule
 from .registries.letter_name_registry import get_letter_names
 from .registries.letter_role_registry import get_morpho_role_label
 from .registries.letter_fariq_registry import get_fariq_pairs
+from .registries.glyph_classification_registry import classify_glyph, GlyphClass
 
 
 def build_letter_coordinate_evidence(
@@ -193,6 +194,29 @@ class ArabicLetterCoordinateAdapter:
 
         if codepoint is None:
             return None
+
+        # GLYPH CLASSIFICATION GATE
+        # Constitutional requirement: No coordinates before glyph classification
+        # Enforces: لا إحداثيات قبل تصنيف glyph
+        glyph_classification = classify_glyph(codepoint)
+
+        # Block glyphs that don't allow phonetic coordinates
+        if not glyph_classification.allows_phonetic_coordinates:
+            # TATWEEL, PUNCTUATION, BOUNDARY - no coordinates allowed
+            return None
+
+        # Defer glyphs requiring decomposition
+        if glyph_classification.requires_decomposition:
+            # HAMZA_SEAT_GLYPH, COMPLEX_GLYPH - need decomposition first
+            return None
+
+        # Defer glyphs requiring role disambiguation
+        if glyph_classification.requires_role_disambiguation:
+            # WEAK_LETTER_GLYPH (و ي ا) - need role determination first
+            return None
+
+        # At this stage, only CORE_ARABIC_LETTER and STANDALONE_HAMZA proceed
+        # (assuming STANDALONE_HAMZA has phonetic profile and rule defined)
 
         # Get phonetic profile (makhraj, sifat, fariq)
         phonetic_profile = get_phonetic_profile(codepoint)
