@@ -308,12 +308,15 @@ src/qiyas_core/registries/
 ### Priority 2: Coordinate Systems
 
 ```
-src/qiyas_core/systems/
-  ├── abjad_system.py               # ✓ Exists (4 letters, needs expansion)
-  ├── makhraj_coordinate_system.py  # Makhraj origin coordinates
-  ├── sifat_vector_system.py        # 6-axis sifat discrimination
-  └── phonetic_proxy_system.py      # IPA phonetic approximations
+src/qiyas_core/
+  ├── abjad_system.py               # ✓ Exists at root, complete 28 letters
+src/qiyas_core/systems/              # (planned directory for future systems)
+  ├── makhraj_coordinate_system.py  # ⚠️ Planned: Makhraj origin coordinates
+  ├── sifat_vector_system.py        # ⚠️ Planned: 6-axis sifat discrimination
+  └── phonetic_proxy_system.py      # ⚠️ Planned: IPA phonetic approximations
 ```
+
+**CRITICAL:** Do NOT create `src/qiyas_core/systems/abjad_system.py`. The canonical Abjad source is `src/qiyas_core/abjad_system.py` (at root level, not under systems/).
 
 ### Priority 3: Classification Gates
 
@@ -348,9 +351,11 @@ src/qiyas_core/taxonomies/
 **Example (Correct):**
 
 ```python
-# letter_coordinate_adapter.py
+# letter_coordinate_adapter.py (example using current API)
 
 from qiyas_core.abjad_system import get_abjad_coordinate
+from qiyas_core.evidence import Evidence, EvidenceSet
+from qiyas_core.enums import EvidenceRank
 
 class ArabicLetterCoordinateAdapter:
     def add_abjad_coordinate(self, letter_identity: LetterIdentityCarrier):
@@ -358,10 +363,17 @@ class ArabicLetterCoordinateAdapter:
         abjad_coord = get_abjad_coordinate(letter_identity.codepoint)
 
         if abjad_coord:
-            evidence.add_claim(
-                f"coordinate:abjad:{letter_identity.name_identity}:{abjad_coord.numeric_value}:evidenced",
-                source="abjad_system.py"  # Cite source
+            # Current Evidence API (not .add_claim helper)
+            evidence_item = Evidence(
+                evidence_id=f"abjad_{letter_identity.name_identity}_{abjad_coord.numeric_value}",
+                source_layer="abjad_system.py",
+                proves=(
+                    f"coordinate:abjad:{letter_identity.name_identity}:{abjad_coord.numeric_value}:evidenced",
+                ),
+                rank=EvidenceRank.FORMAL_STRUCTURE,
+                trace_ids=(letter_identity.codepoint,)
             )
+            evidence_set = EvidenceSet(items=(evidence_item,))
 ```
 
 **Example (Forbidden):**
@@ -489,10 +501,10 @@ def validate_evidence_citations(evidence_set: EvidenceSet):
         for claim in item.proves:
             if claim.startswith("coordinate:") or claim.startswith("identity:"):
                 if "source=" not in claim and not source_layer:
-                raise MissingSourceCitation(
-                    claim=claim,
-                    error="Coordinate/identity claims must cite source"
-                )
+                    raise MissingSourceCitation(
+                        claim=claim,
+                        error="Coordinate/identity claims must cite source"
+                    )
 ```
 
 ---
@@ -518,10 +530,10 @@ def validate_evidence_citations(evidence_set: EvidenceSet):
 
 ### Phase 3: Create Coordinate Systems
 
-- [ ] Expand abjad_system.py to full alphabet
-- [ ] Create makhraj_coordinate_system.py
-- [ ] Create sifat_vector_system.py (6 axes)
-- [ ] Create phonetic_proxy_system.py
+- [ ] Expand `letter_coordinate_adapter.py` consumption to use full Abjad alphabet (source already complete)
+- [ ] Create `src/qiyas_core/systems/makhraj_coordinate_system.py`
+- [ ] Create `src/qiyas_core/systems/sifat_vector_system.py` (6 axes)
+- [ ] Create `src/qiyas_core/systems/phonetic_proxy_system.py`
 
 ### Phase 4: Create Classification Gates
 
@@ -556,7 +568,37 @@ def validate_evidence_citations(evidence_set: EvidenceSet):
 
 ---
 
-## 11. Summary
+## 12. Doc-Code Consistency Self-Audit
+
+**This governance framework has been checked against current code paths, dataclass fields, and executable claim prefixes.**
+
+### Path Verification
+- ✅ `src/qiyas_core/abjad_system.py` exists (complete, 28 letters)
+- ✅ `src/qiyas_core/evidence.py` exists (EvidenceSet.items, Evidence.source_layer/proves/rank/trace_ids)
+- ❌ `src/qiyas_core/systems/` directory does NOT exist yet (planned for future)
+- ❌ `AbjadSystem` class does NOT exist (use `get_abjad_coordinate` function instead)
+
+### API Verification
+- ✅ `get_abjad_coordinate(codepoint: int) -> AbjadCoordinate | None` is the canonical API
+- ✅ `EvidenceSet` has `.items` field (tuple of Evidence), NOT `.claims` or `.source`
+- ✅ `Evidence` has `.source_layer`, `.proves`, `.rank`, `.trace_ids` fields
+- ❌ `evidence.add_claim()` helper method does NOT exist (construct Evidence directly)
+
+### Executable Claim Prefix Verification
+- ✅ QiyasKernel expects Arabic-prefixed claims: `فارق:`, `وصف:`, `علة:`, `اصل:`, `فرع:`, `وادي:`, `defer:`
+- ✅ English word "fariq" may appear in prose, but executable claims use `فارق:{diff}:present`
+- ✅ All pseudo-code examples in this document use current Evidence API
+
+### Planned Files Marked
+- ⚠️ All files under `src/qiyas_core/systems/` (except abjad_system.py) are marked "planned" and must NOT be created as duplicates
+- ⚠️ All files under `src/qiyas_core/registries/` are marked "planned"
+- ⚠️ All files under `src/qiyas_core/gates/` are marked "planned"
+
+**Remaining planned files are clearly marked and must not be created as duplicates of existing canonical files.**
+
+---
+
+## 13. Summary
 
 ### Core Principle
 
@@ -586,7 +628,8 @@ On failure: Produce residuals, not silence.
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2026-06-01
+**Document Version:** 1.1
+**Last Updated:** 2026-06-02
 **Status:** Constitutional requirement for Layer 2 completion
 **Authority:** Implements PROJECT_MATHEMATICAL_FOUNDATION.md § 9
+**Doc-Code Audit:** Completed 2026-06-02

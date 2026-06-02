@@ -166,7 +166,7 @@ Exception: Explicit migration PR changes code after constitutional approval.
 ```
 Doc says: src/qiyas_core/systems/abjad_system.py with AbjadSystem class
 Reality: src/qiyas_core/abjad_system.py with get_abjad_coordinate function
-→ Update doc to match reality
+→ Update doc to match reality: cite src/qiyas_core/abjad_system.py and get_abjad_coordinate
 ```
 
 **Incorrect:**
@@ -206,7 +206,7 @@ Before creating ANY new layer, adapter, rule, or concept, check this table first
 | Letter-haraka alignment | CompatibilityProof, SlotFit, BindingValidator | AlignmentEvidence / CarrierBindingCandidate |
 | Slot formation | AtomicUnit, PhonoSlot, LetterHarakaUnit, PhonoFunctionalUnit | SlotCandidate |
 | Phonetic coordinates | PhoneticLetterCarrier, SoundGeometry, ArticulationPoint | ArabicLetterCoordinateCarrier |
-| Numeric values (Abjad) | NumberValue, AbjadMeaning, LetterNumerology | AbjadCoordinate via AbjadSystem with semantic_force=FORBIDDEN |
+| Numeric values (Abjad) | NumberValue, AbjadMeaning, LetterNumerology | AbjadCoordinate via get_abjad_coordinate from abjad_system.py with semantic_force=FORBIDDEN |
 | Sequence conditioning | SequenceValidator, ContextBuilder, TypedPair | ConditionedTypedSequence |
 | Boundary handling | BoundaryProcessor, WhitespaceClassifier | TypedCodePoint (BoundaryCodePoint type) |
 | Residual preservation | ErrorCollector, FailureHandler | Residual (from QiyasKernel) |
@@ -234,7 +234,7 @@ class PhonoFunctionalUnit:  # ❌ SlotCandidate already exists
     ...
 
 # FORBIDDEN: Creating parallel numeric system
-class LetterNumerology:  # ❌ AbjadSystem already exists
+class LetterNumerology:  # ❌ get_abjad_coordinate already exists in abjad_system.py
     def derive_meaning_from_number(self):  # ❌ Violates semantic_force=FORBIDDEN
         ...
 
