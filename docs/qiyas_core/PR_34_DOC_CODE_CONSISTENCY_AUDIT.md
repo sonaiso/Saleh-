@@ -25,7 +25,7 @@ Governance documents were written prescriptively (describing planned future stat
 
 **Solution:**
 
-Systematic audit of all governance documents against current canonical code, with fixes applied according to API Authority Principle (CANONICAL_ARCHITECTURE_CONTROL_FRAME.md § 1.5).
+Systematic audit of high-risk governance documents against current canonical code, with fixes applied according to API Authority Principle (CANONICAL_ARCHITECTURE_CONTROL_FRAME.md § 1.5).
 
 ---
 
