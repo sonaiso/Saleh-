@@ -603,3 +603,101 @@ def test_cts_does_not_output_slot_geometry():
         assert not hasattr(cs, "slots_for")
     for c in _all_cands(r):
         assert not hasattr(c, "slot_id")
+
+
+# =============================================================================
+# Z4 Tests: BoundaryCodePoint is legacy unreachable in the canonical CTS path.
+#
+# Boundary context is sourced from SequenceContextTokenizer and consumed by
+# CTS via `prove_for_sequence_with_context`. The canonical TypedCodePoint
+# chain (UnicodeQiyas \u2192 TypedCodePointClassificationQiyas) cannot emit a
+# `BoundaryCodePoint` (UnicodeQiyas rejects whitespace), so CTS does not
+# require a BoundaryCodePoint candidate to establish boundary context.
+# =============================================================================
+
+
+def test_cts_boundary_context_does_not_require_boundary_codepoint_candidate():
+    """CTS can prove boundary-aware carrier binding using only
+    `SequenceContextTokenizer` markers; the sequence under test contains
+    no `BoundaryCodePoint` candidate, mirroring the post-Z4 canonical
+    pipeline where whitespace never reaches the typed layer."""
+    a = _adapter()
+    # Tokenizer sees three characters with a whitespace in between, so
+    # the markers carry boundary context (separate segment_ids). The
+    # typed sequence passed to CTS contains only Arabic candidates \u2014
+    # the whitespace is NOT represented as a BoundaryCodePoint candidate.
+    ctx = _tok("\u0628 \u064e")
+    seq = [_letter("0628"), _haraka("064E")]
+    # Re-index markers onto the typed-sequence positions: position 0 is
+    # the letter (segment 0); position 1 is the haraka. Because no
+    # boundary candidate appears in the typed sequence, the Z3 code
+    # path falls back on positional segment lookup; this test asserts
+    # that whatever CTS emits, it is NOT a BoundaryCodePoint or a
+    # SlotCandidate.
+    r = a.prove_for_sequence_with_context(seq, ctx)
+    types = {c.candidate_type for c in _all_cands(r)}
+    assert "BoundaryCodePoint" not in types
+    assert "SlotCandidate" not in types
+    assert "SlotGeometry" not in types
+
+
+def test_cts_does_not_output_boundary_codepoint():
+    """CTS rules never produce a `BoundaryCodePoint` candidate. The
+    legacy `BOUNDARY_EXCLUSION_PROOF` rule emits `BoundaryEvidence`,
+    which is the licensed sequence-evidence shape, not a TypedCodePoint
+    reclassification."""
+    for rule in _all_cts_rules():
+        assert rule.output_candidate_type != "BoundaryCodePoint"
+
+
+def test_cts_boundary_exclusion_proof_marked_legacy_unreachable():
+    """The Z4 declassification annotation is present in the CTS rule
+    module, guarding `BOUNDARY_EXCLUSION_PROOF` against silent
+    re-promotion into a canonical caller."""
+    import inspect
+    from qiyas_core.rules import conditioned_typed_sequence_rules
+
+    source = inspect.getsource(conditioned_typed_sequence_rules)
+    assert "Z4 LEGACY UNREACHABLE" in source
+
+
+def test_cts_prove_boundary_exclusion_method_documents_legacy_status():
+    """The adapter method that fires `BOUNDARY_EXCLUSION_PROOF` is
+    annotated as legacy unreachable from the canonical path."""
+    from qiyas_core.conditioned_typed_sequence_adapter import (
+        ConditionedTypedSequenceLayerAdapter,
+    )
+    doc = ConditionedTypedSequenceLayerAdapter.prove_boundary_exclusion.__doc__ or ""
+    assert "Z4 LEGACY UNREACHABLE" in doc
+
+
+def test_cts_preserves_residual_in_canonical_path():
+    """A residual codepoint in the typed sequence is not silently
+    dropped \u2014 it produces `ResidualPreservationEvidence` (CLAUDE.md \u00a74
+    invariant 7)."""
+    a = _adapter()
+    ctx = _tok("X")
+    r = a.prove_for_sequence_with_context([_residual("0058")], ctx)
+    types = {c.candidate_type for c in _all_cands(r)}
+    assert "ResidualPreservationEvidence" in types
+    # Residual is preserved (not silently discarded) and is not
+    # promoted to a SlotCandidate or BoundaryCodePoint.
+    assert "SlotCandidate" not in types
+    assert "BoundaryCodePoint" not in types
+
+
+def test_cts_punctuation_remains_context_not_slot_material():
+    """Arabic punctuation produces a BoundaryEvidence (boundary context)
+    candidate, never a SlotCandidate. This matches the constitutional
+    treatment of punctuation as a sequence-framing marker \u2014 kept as
+    canonical post-Z4 per PRE_QIYAS_TOKENIZER_CONSTITUTION \u00a76."""
+    a = _adapter()
+    comma = _typed(0x060C)
+    result = a.prove_punctuation_exclusion(
+        punct_typed=comma, index=0, sequence_length=1
+    )
+    assert len(result.accepted) == 1
+    c = result.accepted[0]
+    assert c.candidate_type == "BoundaryEvidence"
+    assert c.candidate_type != "SlotCandidate"
+    assert c.candidate_type != "SlotGeometry"

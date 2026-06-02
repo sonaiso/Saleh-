@@ -727,3 +727,88 @@ def test_haraka_rule_blocks_when_specific_haraka_wasf_missing():
     assert len(result.accepted) == 0, "HarakaCodePoint should NOT be produced when is_arabic_haraka wasf is missing"
     assert len(result.blocked) > 0, "Request should be blocked when required wasf is missing"
 
+
+# ---------------------------------------------------------------------------
+# Z4 — Declassification of BoundaryCodePoint in the canonical path.
+#
+# Per PRE_QIYAS_TOKENIZER_CONSTITUTION (Option C, §6):
+#   - whitespace must not enter UnicodeQiyas as UnicodeCandidate,
+#   - whitespace must not become TypedCodePoint, and
+#   - boundary context is sourced from SequenceContextTokenizer.
+#
+# UnicodeQiyas already rejects whitespace (outside ARABIC_RANGES), so
+# the canonical Unicode → Typed chain cannot produce a BoundaryCodePoint
+# for any whitespace input. The boundary branch in
+# `typed_codepoint_adapter.classify_codepoint(int)` survives only for
+# legacy unit fixtures that bypass UnicodeQiyas — those legacy tests
+# remain above; the tests below assert the canonical-path declassification.
+# ---------------------------------------------------------------------------
+
+
+def test_canonical_path_rejects_whitespace_before_typed_layer():
+    """U+0020 is blocked at UnicodeQiyas and therefore never reaches
+    `TypedCodePointClassificationQiyas` in the canonical pipeline.
+
+    This is the Z4 declassification witness for whitespace: it is
+    constitutionally a tokenizer concern, not a TypedCodePoint concern.
+    """
+    from qiyas_core.unicode_adapter import UnicodeLayerAdapter
+
+    kernel = QiyasKernel()
+    unicode_layer = UnicodeLayerAdapter(kernel=kernel)
+
+    for whitespace_cp in (0x0020, 0x0009, 0x000A, 0x000D):
+        u_set = unicode_layer.process_codepoint(whitespace_cp)
+        assert len(u_set.accepted) == 0, (
+            f"UnicodeQiyas must reject whitespace U+{whitespace_cp:04X} "
+            "so the canonical chain cannot reach BoundaryCodePoint classification"
+        )
+
+
+def test_canonical_typed_chain_does_not_emit_boundary_codepoint_for_whitespace():
+    """The canonical Unicode → Typed chain produces no candidate at all
+    for whitespace inputs — in particular, no `BoundaryCodePoint`."""
+    from qiyas_core.unicode_adapter import UnicodeLayerAdapter
+
+    kernel = QiyasKernel()
+    unicode_layer = UnicodeLayerAdapter(kernel=kernel)
+    typed_layer = TypedCodePointLayerAdapter(kernel=kernel)
+
+    for whitespace_cp in (0x0020, 0x0009, 0x000A, 0x000D):
+        u_set = unicode_layer.process_codepoint(whitespace_cp)
+        # No accepted UnicodeCandidate ⇒ TypedCodePoint classification
+        # is not invoked from the canonical driver. We do not bypass
+        # UnicodeQiyas here; that bypass is the legacy fixture path.
+        assert len(u_set.accepted) == 0
+        # And the legacy bypass (kept only for fixtures) still classifies
+        # whitespace as `BoundaryCodePoint`, which is the historic
+        # behaviour the rule retains. That branch is legacy unreachable
+        # from the canonical pipeline (asserted above).
+        legacy_set = typed_layer.classify_codepoint(whitespace_cp)
+        assert legacy_set.accepted[0].candidate_type == "BoundaryCodePoint"
+
+
+def test_boundary_codepoint_classification_marked_legacy_unreachable():
+    """The Z4 declassification annotation is present in the rule's source
+    (a load-bearing comment, since the rule survives for legacy tests
+    and external re-exports). This guards against silent re-promotion
+    of the boundary rule into a canonical caller."""
+    import inspect
+    from qiyas_core.rules import typed_codepoint_rules
+
+    source = inspect.getsource(typed_codepoint_rules)
+    assert "Z4 declassification" in source
+    assert "legacy unreachable" in source.lower()
+
+
+def test_boundary_helpers_marked_legacy_in_adapter():
+    """The Z4 declassification annotation is present in the adapter
+    module — `is_boundary`, `BOUNDARY_CODEPOINTS`, and the boundary
+    branches are reachable only from legacy fixtures or the deferred
+    Z5 `run_qiyas._classify_position` import."""
+    import inspect
+    from qiyas_core import typed_codepoint_adapter
+
+    source = inspect.getsource(typed_codepoint_adapter)
+    assert "Z4 declassification" in source
+    assert "legacy unreachable" in source.lower()
