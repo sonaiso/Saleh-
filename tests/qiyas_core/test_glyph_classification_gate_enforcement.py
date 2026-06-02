@@ -15,7 +15,7 @@ Constitutional Law:
   لا phonetic coordinates لمن لا يسمح بها glyph
   لا hamza-seat بلا decomposition
   لا weak-letter بلا role disambiguation
-  كل منع أو تأجيل = residual صريح أو None (no request)
+  كل منع أو تأجيل = residual صريح مخصوص (specific explicit residual)
 """
 
 import pytest
@@ -99,10 +99,12 @@ def test_tatweel_blocks_at_glyph_gate(
     typed_codepoint_adapter, letter_identity_adapter, letter_coordinate_adapter
 ):
     """
-    Test that TATWEEL (ـ) is blocked by glyph classification gate.
+    Test that TATWEEL (ـ) is blocked by glyph classification gate with specific residual.
 
     Constitutional rule: Tatweel has no phonetic coordinates (spacing only).
     لا phonetic coordinates لـ TATWEEL
+
+    Expected residual_type: "glyph_has_no_phonetic_coordinates"
     """
     # ـ U+0640 TATWEEL
     codepoint = 0x0640
@@ -131,13 +133,18 @@ def test_tatweel_blocks_at_glyph_gate(
     identity_candidate = identity_result.accepted[0]
 
     # Layer 2: ArabicLetterCoordinateCarrier
-    # This should be BLOCKED by glyph gate (returns None, no request built)
-    request = letter_coordinate_adapter.build_request_for_letter_coordinates(
-        identity_candidate, trace_prefix="test:tatweel"
-    )
+    # This should be BLOCKED by glyph gate with specific residual
+    result = letter_coordinate_adapter.process_letter_identity(identity_candidate)
 
-    # Expected: None (blocked at glyph gate due to allows_phonetic_coordinates=False)
-    assert request is None, "Tatweel should be blocked at glyph classification gate"
+    # Expected: No accepted candidates, specific residual emitted
+    assert not result.accepted, "Tatweel should be blocked at glyph classification gate"
+    assert result.residuals, "Tatweel block must emit residual"
+    assert len(result.residuals) == 1
+
+    residual = result.residuals[0]
+    assert residual.residual_type == "glyph_has_no_phonetic_coordinates"
+    assert residual.effect.name == "BLOCK"
+    assert residual.severity.name == "BLOCKER"
 
 
 # Test 3: HAMZA_SEAT_GLYPH (أ) defers to decomposition
@@ -145,10 +152,12 @@ def test_hamza_seat_defers_at_glyph_gate(
     typed_codepoint_adapter, letter_identity_adapter, letter_coordinate_adapter
 ):
     """
-    Test that HAMZA_SEAT_GLYPH (أ) is deferred by glyph classification gate.
+    Test that HAMZA_SEAT_GLYPH (أ) is deferred by glyph classification gate with specific residual.
 
     Constitutional rule: Hamza seats require decomposition before coordinates.
     لا hamza-seat بلا decomposition
+
+    Expected residual_type: "glyph_decomposition_required"
     """
     # أ U+0623 ALIF WITH HAMZA ABOVE
     codepoint = 0x0623
@@ -176,13 +185,18 @@ def test_hamza_seat_defers_at_glyph_gate(
     identity_candidate = identity_result.accepted[0]
 
     # Layer 2: ArabicLetterCoordinateCarrier
-    # Should be DEFERRED by glyph gate (requires_decomposition=True)
-    request = letter_coordinate_adapter.build_request_for_letter_coordinates(
-        identity_candidate, trace_prefix="test:hamza_seat"
-    )
+    # Should be DEFERRED by glyph gate with specific residual
+    result = letter_coordinate_adapter.process_letter_identity(identity_candidate)
 
-    # Expected: None (deferred at glyph gate due to requires_decomposition=True)
-    assert request is None, "Hamza seat should be deferred at glyph classification gate"
+    # Expected: No accepted candidates, specific residual emitted
+    assert not result.accepted, "Hamza seat should be deferred at glyph classification gate"
+    assert result.residuals, "Hamza seat defer must emit residual"
+    assert len(result.residuals) == 1
+
+    residual = result.residuals[0]
+    assert residual.residual_type == "glyph_decomposition_required"
+    assert residual.effect.name == "DEFER"
+    assert residual.severity.name == "WARNING"
 
 
 # Test 4: WEAK_LETTER_GLYPH (و) defers to role disambiguation
@@ -190,10 +204,12 @@ def test_weak_letter_defers_at_glyph_gate(
     typed_codepoint_adapter, letter_identity_adapter, letter_coordinate_adapter
 ):
     """
-    Test that WEAK_LETTER_GLYPH (و) is deferred by glyph classification gate.
+    Test that WEAK_LETTER_GLYPH (و) is deferred by glyph classification gate with specific residual.
 
     Constitutional rule: Weak letters need role disambiguation before coordinates.
     لا weak-letter بلا role disambiguation
+
+    Expected residual_type: "glyph_role_disambiguation_required"
     """
     # و U+0648 WAW
     codepoint = 0x0648
@@ -221,13 +237,18 @@ def test_weak_letter_defers_at_glyph_gate(
     identity_candidate = identity_result.accepted[0]
 
     # Layer 2: ArabicLetterCoordinateCarrier
-    # Should be DEFERRED by glyph gate (requires_role_disambiguation=True)
-    request = letter_coordinate_adapter.build_request_for_letter_coordinates(
-        identity_candidate, trace_prefix="test:waw"
-    )
+    # Should be DEFERRED by glyph gate with specific residual
+    result = letter_coordinate_adapter.process_letter_identity(identity_candidate)
 
-    # Expected: None (deferred at glyph gate due to requires_role_disambiguation=True)
-    assert request is None, "Weak letter should be deferred at glyph classification gate"
+    # Expected: No accepted candidates, specific residual emitted
+    assert not result.accepted, "Weak letter should be deferred at glyph classification gate"
+    assert result.residuals, "Weak letter defer must emit residual"
+    assert len(result.residuals) == 1
+
+    residual = result.residuals[0]
+    assert residual.residual_type == "glyph_role_disambiguation_required"
+    assert residual.effect.name == "DEFER"
+    assert residual.severity.name == "WARNING"
 
 
 # Test 5: COMPLEX_GLYPH (آ) defers to decomposition
@@ -235,10 +256,12 @@ def test_complex_glyph_defers_at_glyph_gate(
     typed_codepoint_adapter, letter_identity_adapter, letter_coordinate_adapter
 ):
     """
-    Test that COMPLEX_GLYPH (آ) is deferred by glyph classification gate.
+    Test that COMPLEX_GLYPH (آ) is deferred by glyph classification gate with specific residual.
 
     Constitutional rule: Complex glyphs require decomposition before coordinates.
     آ = alif + madda (madda = hamza + alif) → needs decomposition
+
+    Expected residual_type: "glyph_decomposition_required"
     """
     # آ U+0622 ALIF WITH MADDA ABOVE
     codepoint = 0x0622
@@ -266,13 +289,18 @@ def test_complex_glyph_defers_at_glyph_gate(
     identity_candidate = identity_result.accepted[0]
 
     # Layer 2: ArabicLetterCoordinateCarrier
-    # Should be DEFERRED by glyph gate (requires_decomposition=True)
-    request = letter_coordinate_adapter.build_request_for_letter_coordinates(
-        identity_candidate, trace_prefix="test:complex"
-    )
+    # Should be DEFERRED by glyph gate with specific residual
+    result = letter_coordinate_adapter.process_letter_identity(identity_candidate)
 
-    # Expected: None (deferred at glyph gate due to requires_decomposition=True)
-    assert request is None, "Complex glyph should be deferred at glyph classification gate"
+    # Expected: No accepted candidates, specific residual emitted
+    assert not result.accepted, "Complex glyph should be deferred at glyph classification gate"
+    assert result.residuals, "Complex glyph defer must emit residual"
+    assert len(result.residuals) == 1
+
+    residual = result.residuals[0]
+    assert residual.residual_type == "glyph_decomposition_required"
+    assert residual.effect.name == "DEFER"
+    assert residual.severity.name == "WARNING"
 
 
 # Test 6: Ensure no local glyph classification duplication
