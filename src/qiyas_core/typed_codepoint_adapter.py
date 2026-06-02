@@ -1,3 +1,24 @@
+"""
+TypedCodePoint classification adapter.
+
+Z4 declassification note (PRE_QIYAS_TOKENIZER_CONSTITUTION §6):
+
+    Whitespace and boundary characters are pre-qiyas sequence-framing
+    markers handled by `SequenceContextTokenizer`. They must NOT enter
+    `UnicodeQiyas` as `UnicodeCandidate` and therefore must NOT reach
+    this layer in any canonical execution path.
+
+    `UnicodeQiyas` already rejects U+0020, U+0009, U+000A, U+000D
+    (outside ARABIC_RANGES), so `BOUNDARY_CODEPOINT_CLASSIFICATION` and
+    the boundary branches below are **legacy unreachable** in the
+    canonical path post-Z1/Z2. They survive only to keep legacy unit
+    fixtures (which bypass `UnicodeQiyas` via
+    `TypedCodePointLayerAdapter.classify_codepoint(int)`) and external
+    re-exports stable until the Z5 wiring cleanup.
+
+    Do not introduce new canonical callers of the boundary branch.
+"""
+
 from dataclasses import dataclass
 import uuid
 
@@ -10,7 +31,7 @@ from .rule import QiyasRule
 from .rules.typed_codepoint_rules import (
     LETTER_CODEPOINT_CLASSIFICATION,
     HARAKA_CODEPOINT_CLASSIFICATION,
-    BOUNDARY_CODEPOINT_CLASSIFICATION,
+    BOUNDARY_CODEPOINT_CLASSIFICATION,  # Z4: legacy unreachable in canonical path.
     PUNCTUATION_CODEPOINT_CLASSIFICATION,
     RESIDUAL_CODEPOINT_CLASSIFICATION,
 )
@@ -30,7 +51,11 @@ HARAKA_RANGES = [
     (0x0653, 0x065F),  # Additional Arabic diacritics
 ]
 
-# Whitespace/boundary codepoints
+# Z4 declassified — legacy testing-only fixture.
+# Whitespace is handled by `SequenceContextTokenizer` (Z2). These
+# codepoints are outside ARABIC_RANGES and therefore never accepted by
+# `UnicodeQiyas`, so the constant is reachable only from test bypass
+# helpers and from `run_qiyas._classify_position` (scheduled for Z5).
 BOUNDARY_CODEPOINTS = {
     0x0020,  # Space
     0x000A,  # Line Feed
@@ -58,7 +83,12 @@ def is_arabic_haraka(codepoint: int) -> bool:
 
 
 def is_boundary(codepoint: int) -> bool:
-    """Check if codepoint is a whitespace/boundary character."""
+    """Z4 declassified — legacy testing-only predicate.
+
+    Whitespace is detected by `SequenceContextTokenizer`, not by this
+    layer. Retained because `run_qiyas._classify_position` (Z5 cleanup)
+    still imports it.
+    """
     return codepoint in BOUNDARY_CODEPOINTS
 
 
@@ -71,6 +101,12 @@ def classify_codepoint(codepoint: int) -> tuple[str, str, str]:
     """
     Classify a codepoint into TypedCodePoint categories.
 
+    Z4 note: the `is_boundary` branch is **legacy unreachable** in the
+    canonical path. `UnicodeQiyas` rejects whitespace before this layer
+    is reached. The branch survives only for the legacy testing
+    convenience `TypedCodePointLayerAdapter.classify_codepoint(int)`
+    which bypasses `UnicodeQiyas`.
+
     Returns:
         Tuple of (candidate_type, wasf, illah)
     """
@@ -79,6 +115,7 @@ def classify_codepoint(codepoint: int) -> tuple[str, str, str]:
     elif is_arabic_haraka(codepoint):
         return ("HarakaCodePoint", "is_arabic_haraka", "belongs_to_haraka_class")
     elif is_boundary(codepoint):
+        # Z4 legacy unreachable in canonical path; see module docstring.
         return ("BoundaryCodePoint", "is_whitespace_boundary", "belongs_to_boundary_class")
     elif is_punctuation(codepoint):
         return ("PunctuationCodePoint", "is_arabic_punctuation", "belongs_to_punctuation_class")
@@ -89,6 +126,10 @@ def classify_codepoint(codepoint: int) -> tuple[str, str, str]:
 def select_rule_for_codepoint(codepoint: int) -> QiyasRule:
     """
     Select the appropriate classification rule based on codepoint type.
+
+    Z4 note: the `is_boundary` branch returning
+    `BOUNDARY_CODEPOINT_CLASSIFICATION` is **legacy unreachable** in the
+    canonical path. See module docstring.
 
     Args:
         codepoint: The Unicode codepoint value
@@ -101,6 +142,7 @@ def select_rule_for_codepoint(codepoint: int) -> QiyasRule:
     elif is_arabic_haraka(codepoint):
         return HARAKA_CODEPOINT_CLASSIFICATION
     elif is_boundary(codepoint):
+        # Z4 legacy unreachable in canonical path; see module docstring.
         return BOUNDARY_CODEPOINT_CLASSIFICATION
     elif is_punctuation(codepoint):
         return PUNCTUATION_CODEPOINT_CLASSIFICATION

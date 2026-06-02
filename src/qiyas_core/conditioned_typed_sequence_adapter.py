@@ -221,7 +221,18 @@ class ConditionedTypedSequenceLayerAdapter:
         sequence_length: int,
         trace_prefix: str = "",
     ) -> CandidateSet:
-        """Prove a boundary symbol is excluded from any slot (BoundaryEvidence)."""
+        """Z4 LEGACY UNREACHABLE — kept for legacy fixtures only.
+
+        Post-Z2/Z3 the canonical CTS path consumes
+        `SequenceContextTokenizer` markers (segment_id / boundary_before
+        / boundary_after) as evidence on `CARRIER_BINDING_PROOF`, and
+        the canonical TypedCodePoint path never emits
+        `BoundaryCodePoint` (UnicodeQiyas rejects whitespace upstream).
+        This method therefore cannot fire from a canonical pipeline; it
+        survives only to keep legacy unit tests that build synthetic
+        `BoundaryCodePoint` candidates from the testing convenience
+        `TypedCodePointLayerAdapter.classify_codepoint(int)` green.
+        """
         return self._prove_simple_position(
             BOUNDARY_EXCLUSION_PROOF,
             boundary_typed,
@@ -308,6 +319,8 @@ class ConditionedTypedSequenceLayerAdapter:
             elif ctype == "LetterCodePoint":
                 cs = self.prove_letter_position(typed, i, n, trace_prefix)
             elif ctype == "BoundaryCodePoint":
+                # Z4 legacy unreachable in canonical path; see
+                # prove_boundary_exclusion docstring.
                 cs = self.prove_boundary_exclusion(typed, i, n, trace_prefix)
             elif ctype == "PunctuationCodePoint":
                 cs = self.prove_punctuation_exclusion(typed, i, n, trace_prefix)
@@ -454,6 +467,9 @@ class ConditionedTypedSequenceLayerAdapter:
             elif ctype == "LetterCodePoint":
                 cs = self.prove_letter_position(typed, i, n, trace_prefix)
             elif ctype == "BoundaryCodePoint":
+                # Z4 legacy unreachable in canonical path; see
+                # prove_boundary_exclusion docstring. Boundary context
+                # is consumed from `tokenizer_context.markers` above.
                 cs = self.prove_boundary_exclusion(typed, i, n, trace_prefix)
             elif ctype == "PunctuationCodePoint":
                 cs = self.prove_punctuation_exclusion(typed, i, n, trace_prefix)
