@@ -181,50 +181,55 @@ def test_minimal_coordinate_slice_letters(codepoint, letter_name, abjad_value, m
 def test_unsupported_letter_returns_residual_not_silent_empty():
     """
     Test that unsupported letter coordinate enrichment returns Residual, not silent empty CandidateSet.
-    
+
     Constitutional requirement: No silent failures - all blocking conditions must produce residuals.
     This validates the FIX for silent failure when coordinate enrichment is not supported.
+
+    Updated for PR #43: Now emits specific residuals instead of generic "coordinate_enrichment_not_supported".
+    ALIF (0x0627) is a WEAK_LETTER_GLYPH requiring role disambiguation.
     """
     kernel = QiyasKernel()
     typed_adapter = TypedCodePointLayerAdapter(kernel=kernel)
     identity_adapter = LetterIdentityLayerAdapter(kernel=kernel)
     coordinate_adapter = ArabicLetterCoordinateAdapter(kernel=kernel)
-    
+
     # Choose a letter NOT in minimal slice (BAA/TAA/SEEN/KAF)
-    # For example: ALIF (0x0627) has no coordinate enrichment rule yet
+    # ALIF (0x0627) is a WEAK_LETTER_GLYPH - requires role disambiguation
     typed_result = typed_adapter.classify_codepoint(0x0627)  # ALIF
-    
+
     # Layer 1 succeeds (ALIF has letter identity)
     identity_result = identity_adapter.process_letter_codepoint(typed_result.accepted[0])
     assert len(identity_result.accepted) == 1
     alif_identity = identity_result.accepted[0]
     assert alif_identity.candidate_type == "LetterIdentityCarrier"
-    
-    # Layer 2 should return CandidateSet with residual (NOT silent empty)
+
+    # Layer 2 should return CandidateSet with specific residual (NOT silent empty)
     coordinate_result = coordinate_adapter.process_letter_identity(alif_identity)
-    
-    # Validate: no accepted candidates (enrichment not supported)
+
+    # Validate: no accepted candidates (enrichment blocked by glyph gate)
     assert len(coordinate_result.accepted) == 0
     
     # Validate: MUST have residual (not silent empty)
     assert len(coordinate_result.residuals) >= 1
     
-    # Find the unsupported residual
-    unsupported_residual = None
+    # Find the specific glyph gate residual
+    # ALIF (0x0627) is WEAK_LETTER_GLYPH → expects "glyph_role_disambiguation_required"
+    # (PR #43: Changed from generic "coordinate_enrichment_not_supported" to specific residuals)
+    glyph_gate_residual = None
     for r in coordinate_result.residuals:
-        if r.residual_type == "coordinate_enrichment_not_supported":
-            unsupported_residual = r
+        if r.residual_type == "glyph_role_disambiguation_required":
+            glyph_gate_residual = r
             break
-    
-    assert unsupported_residual is not None, "Missing coordinate_enrichment_not_supported residual"
-    
+
+    assert glyph_gate_residual is not None, "Missing glyph_role_disambiguation_required residual for ALIF"
+
     # Validate residual structure uses correct API
-    assert unsupported_residual.severity == ResidualSeverity.BLOCKER
-    assert unsupported_residual.effect == ResidualEffect.DEFER
-    assert "U+0627" in unsupported_residual.message
-    assert unsupported_residual.source_rule_id == "letter_coordinate.unsupported"
-    assert unsupported_residual.layer == "ArabicLetterCoordinateQiyas"
-    assert len(unsupported_residual.trace_ids) > 0
+    assert glyph_gate_residual.severity == ResidualSeverity.WARNING
+    assert glyph_gate_residual.effect == ResidualEffect.DEFER
+    assert "U+0627" in glyph_gate_residual.message
+    assert glyph_gate_residual.source_rule_id == "glyph_gate.weak_letter_disambiguation"
+    assert glyph_gate_residual.layer == "ArabicLetterCoordinateQiyas"
+    assert len(glyph_gate_residual.trace_ids) > 0
 
 
 def test_residual_construction_uses_correct_api():
