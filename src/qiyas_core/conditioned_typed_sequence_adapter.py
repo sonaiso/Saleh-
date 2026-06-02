@@ -400,3 +400,171 @@ class ConditionedTypedSequenceLayerAdapter:
             context=QiyasContext(layer="ConditionedTypedSequenceQiyas"),
         )
         return self.kernel.apply(request)
+
+    def prove_for_sequence_with_context(
+        self,
+        typed_sequence,
+        tokenizer_context=None,
+        trace_prefix: str = "",
+    ):
+        """
+        Walk a typed sequence enforcing segment-boundary constraints
+        from SequenceContextTokenizer markers.
+
+        Constitutional:
+        - markers consumed as context only, never as Candidates or identities
+        - boundary never converted to identity
+        - cross-boundary haraka treated as orphan (carrier=None)
+        - segment_id/token_index recorded in evidence, not identity
+        """
+        if tokenizer_context is None:
+            return self.prove_for_sequence(typed_sequence, trace_prefix)
+
+        position_to_segment: dict = {}
+        for marker in tokenizer_context.markers:
+            position_to_segment[marker.index] = marker.segment_id
+
+        results = []
+        n = len(typed_sequence)
+
+        for i, typed in enumerate(typed_sequence):
+            ctype = typed.candidate_type
+
+            if ctype == "HarakaCodePoint":
+                carrier = None
+                boundary_claims: tuple = ()
+
+                if i > 0 and typed_sequence[i - 1].candidate_type == "LetterCodePoint":
+                    prev_seg = position_to_segment.get(i - 1)
+                    curr_seg = position_to_segment.get(i)
+                    if (prev_seg is not None
+                            and curr_seg is not None
+                            and prev_seg != curr_seg):
+                        boundary_claims = (
+                            "وصف:boundary_separation_detected:evidenced",
+                            f"وصف:carrier_segment:{prev_seg}:haraka_segment:{curr_seg}:evidenced",
+                        )
+                    else:
+                        carrier = typed_sequence[i - 1]
+
+                cs = self._prove_carrier_binding_with_boundary(
+                    typed, carrier, i, n, trace_prefix, boundary_claims
+                )
+
+            elif ctype == "LetterCodePoint":
+                cs = self.prove_letter_position(typed, i, n, trace_prefix)
+            elif ctype == "BoundaryCodePoint":
+                cs = self.prove_boundary_exclusion(typed, i, n, trace_prefix)
+            elif ctype == "PunctuationCodePoint":
+                cs = self.prove_punctuation_exclusion(typed, i, n, trace_prefix)
+            elif ctype == "ResidualCodePoint":
+                cs = self.prove_residual_preservation(typed, i, n, trace_prefix)
+            else:
+                raise ValueError(
+                    f"Unknown TypedCodePoint candidate_type at index {i}: {ctype!r}"
+                )
+            results.append(cs)
+        return results
+
+    def _prove_carrier_binding_with_boundary(
+        self,
+        haraka_typed,
+        carrier_letter_typed,
+        index: int,
+        sequence_length: int,
+        trace_prefix: str = "",
+        boundary_context_claims: tuple = (),
+    ):
+        """
+        Like prove_carrier_binding but injects auditable boundary-context
+        claims (وصف:) into evidence. Blocking uses existing orphan fariq.
+        boundary_context_claims are never fariq: claims — auditability only.
+        """
+        import uuid as _uuid
+        from .evidence import Evidence, EvidenceSet
+        from .kernel import QiyasContext, QiyasRequest
+        from .node import QiyasNodeRef
+        from .enums import EvidenceRank
+
+        cp = _extract_codepoint(haraka_typed)
+        cp_hex = f"{cp:04x}" if cp is not None else "unknown"
+        if not trace_prefix:
+            trace_prefix = f"cts:carrier_binding:{cp_hex}:{index}"
+
+        asl = QiyasNodeRef(
+            node_id="اصل:conditioned_typed_sequence_domain",
+            node_type="ConditionedTypedSequenceDomain",
+            identity_ids=("identity:conditioned_typed_sequence_domain",),
+            trace_ids=(f"{trace_prefix}:asl",),
+            rank=EvidenceRank.FORMAL_STRUCTURE,
+        )
+        far_identity = haraka_typed.identity_ids
+        if carrier_letter_typed is not None:
+            far_identity = far_identity + carrier_letter_typed.identity_ids
+        far = QiyasNodeRef(
+            node_id=f"فرع:haraka_codepoint:{cp_hex}:pos{index}",
+            node_type="HarakaCodePoint",
+            identity_ids=far_identity,
+            trace_ids=(f"{trace_prefix}:far",),
+            rank=haraka_typed.rank,
+        )
+
+        proves: list = [
+            "اصل:established",
+            "فرع:determined",
+            "وصف:has_haraka_in_sequence:evidenced",
+            "وصف:sequence_index_determined:evidenced",
+        ]
+        for bc in boundary_context_claims:
+            proves.append(bc)
+
+        if carrier_letter_typed is not None:
+            proves.extend([
+                "وصف:preceded_by_letter_codepoint:evidenced",
+                "وصف:carrier_alignment_determined:evidenced",
+                "علة:carrier_binding_licensed:verified",
+            ])
+            if _is_tanwin(haraka_typed):
+                terminal = (index == sequence_length - 1)
+                proves.append(
+                    "وصف:tanwin_terminal_sensitive:evidenced"
+                    if terminal
+                    else "وصف:tanwin_non_terminal_position:evidenced"
+                )
+            if _is_shadda(haraka_typed):
+                proves.append("وصف:shadda_has_carrier:evidenced")
+        else:
+            proves.append("فارق:haraka_without_carrier:present")
+            if _is_shadda(haraka_typed):
+                proves.append("فارق:orphan_mark:present")
+
+        proves.extend([
+            "علة:belongs_to_conditioned_typed_sequence_domain:verified",
+            "وادي:cause:established",
+            "وادي:condition:satisfied",
+            "وادي:obstacle:absent",
+            "وادي:validity:valid",
+            "وادي:corruption:absent",
+            "وادي:nullity:absent",
+        ])
+
+        evidence = EvidenceSet(
+            items=(
+                Evidence(
+                    evidence_id=f"ev:cts:cbwb:{cp_hex}:{index}:{_uuid.uuid4().hex[:8]}",
+                    source_layer="ConditionedTypedSequenceQiyas",
+                    proves=tuple(proves),
+                    rank=EvidenceRank.FORMAL_STRUCTURE,
+                    trace_ids=(f"{trace_prefix}:ev",),
+                ),
+            )
+        )
+        request = QiyasRequest(
+            rule=CARRIER_BINDING_PROOF,
+            asl=asl,
+            far=far,
+            evidence=evidence,
+            context=QiyasContext(layer="ConditionedTypedSequenceQiyas"),
+        )
+        return self.kernel.apply(request)
+
