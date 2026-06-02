@@ -56,9 +56,9 @@ def test_slot_contract_valid():
 # Phase-1 contract set tests
 # ---------------------------------------------------------------------------
 
-def test_phase1_has_five_contracts():
-    """Phase 1 must define exactly five contracts."""
-    assert len(PHASE1_CONTRACTS) == 5
+def test_phase1_has_six_contracts():
+    """Phase 1 must define exactly six contracts (including ArabicLetterCoordinate)."""
+    assert len(PHASE1_CONTRACTS) == 6
 
 
 def test_all_phase1_contracts_valid():
@@ -117,11 +117,15 @@ def test_recursive_proof_contract_is_frozen():
 def test_layer_chain_order():
     """
     The Phase-1 chain must follow the correct layer order:
-    TypedCodePoint → LetterIdentity → HarakaFunction → Position → Slot
+    TypedCodePoint → LetterIdentity → ArabicLetterCoordinate → HarakaFunction → Position → Slot
+
+    Note: ArabicLetterCoordinateCarrier enriches LetterIdentityCarrier with phonetic coordinates.
+    This is Layer 2, parallel to other atomic proofs.
     """
     expected_outputs = [
         "LetterCodePoint",
         "LetterIdentityCarrier",
+        "ArabicLetterCoordinateCarrier",
         "HarakaFunctionCarrier",
         "PositionCarrier",
         "SlotCandidate",

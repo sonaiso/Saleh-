@@ -33,18 +33,8 @@ from .residual import Residual
 from .abjad_system import get_abjad_coordinate
 from .phonetics import get_phonetic_profile
 from .rules.letter_coordinate_rules import get_letter_coordinate_rule
-from .letter_identity_adapter import ARABIC_LETTER_NAMES
-
-
-# Morphological role classification for سألتمونيها letters
-# Pre-compositional role potential (NOT grammatical function)
-MORPHO_ROLE_BY_LETTER = {
-    "baa": "EXPANDED_MULTI_ROLE",      # Can be preposition, prefix, nominal
-    "taa": "SAALATAMUUNIIHA",          # Core سألتمونيها set
-    "seen": "SAALATAMUUNIIHA",         # Core سألتمونيها set
-    "kaf": "EXPANDED_MULTI_ROLE",      # Can be preposition, suffix, nominal
-    # Additional mappings as needed
-}
+from .registries.letter_name_registry import get_letter_names
+from .registries.letter_role_registry import get_morpho_role_label
 
 
 def build_letter_coordinate_evidence(
@@ -83,56 +73,60 @@ def build_letter_coordinate_evidence(
     cp_hex = f"{codepoint:04x}"
 
     proves = [
-        "asl:established",
-        "far:determined",
+        "اصل:established",
+        "فرع:determined",
         # Layer 1 identity wasf (MUST be inherited for Layer 2 rule requirements)
-        "wasf:has_letter_codepoint:evidenced",
-        f"wasf:has_unicode_identity:{cp_hex}:evidenced",
-        f"wasf:has_script_identity:{letter_name}:evidenced",
-        f"wasf:has_latin_name:{letter_name}:evidenced",
-        f"wasf:has_arabic_name:{arabic_name}:evidenced",
+        "وصف:has_letter_codepoint:evidenced",
+        f"وصف:has_unicode_identity:{cp_hex}:evidenced",
+        f"وصف:has_script_identity:{letter_name}:evidenced",
+        f"وصف:has_latin_name:{letter_name}:evidenced",
+        f"وصف:has_arabic_name:{arabic_name}:evidenced",
         # Layer 2 coordinate wasf - Phonetic
-        f"wasf:has_sound_identity:{phonetic.sound_identity}:evidenced",
-        f"wasf:has_makhraj:{phonetic.makhraj.spatial_source}:evidenced",
-        f"wasf:has_voicing:{phonetic.sifat.voicing}:evidenced",
-        f"wasf:has_manner:{phonetic.sifat.manner}:evidenced",
-        f"wasf:has_emphasis:{phonetic.sifat.emphasis}:evidenced",
+        f"وصف:has_sound_identity:{phonetic.sound_identity}:evidenced",
+        f"وصف:has_makhraj:{phonetic.makhraj.spatial_source}:evidenced",
+        f"وصف:has_voicing:{phonetic.sifat.voicing}:evidenced",
+        f"وصف:has_manner:{phonetic.sifat.manner}:evidenced",
+        f"وصف:has_emphasis:{phonetic.sifat.emphasis}:evidenced",
     ]
 
     # Abjad coordinate (if applicable) with semantic_force:FORBIDDEN
     abjad_coord = get_abjad_coordinate(codepoint)
     if abjad_coord:
         proves.extend([
-            f"wasf:has_abjad_system:{abjad_coord.system}:evidenced",
-            f"wasf:has_abjad_value:{abjad_coord.numeric_value}:evidenced",
-            f"wasf:abjad_semantic_force:{abjad_coord.semantic_force}:evidenced",
+            f"وصف:has_abjad_system:{abjad_coord.system}:evidenced",
+            f"وصف:has_abjad_value:{abjad_coord.numeric_value}:evidenced",
+            f"وصف:abjad_semantic_force:{abjad_coord.semantic_force}:evidenced",
         ])
 
     # Morphological role (if applicable)
-    morpho_role = MORPHO_ROLE_BY_LETTER.get(letter_name)
-    if morpho_role:
-        proves.append(f"wasf:has_morpho_role:{morpho_role}:evidenced")
+    # Use letter_role_registry instead of local dict
+    morpho_role = get_morpho_role_label(letter_name)
+    if morpho_role and morpho_role != "SINGLE_ROLE":
+        # Only add evidence for multi-role letters (not default single-role)
+        proves.append(f"وصف:has_morpho_role:{morpho_role}:evidenced")
 
     # Illah
     proves.extend([
-        "illah:belongs_to_letter_identity_domain:verified",
-        f"illah:letter_identity_is:{letter_name}:verified",
-        "illah:belongs_to_letter_coordinate_domain:verified",
+        "علة:belongs_to_letter_identity_domain:verified",
+        f"علة:letter_identity_is:{letter_name}:verified",
+        "علة:belongs_to_letter_coordinate_domain:verified",
     ])
 
     # Wadi gates
     proves.extend([
-        "wadi:sabab:established",
-        "wadi:shart:satisfied",
-        "wadi:mani:absent",
-        "wadi:sihha:valid",
-        "wadi:fasad:absent",
-        "wadi:butlan:absent",
+        "وادي:cause:established",
+        "وادي:condition:satisfied",
+        "وادي:obstacle:absent",
+        "وادي:validity:valid",
+        "وادي:corruption:absent",
+        "وادي:nullity:absent",
     ])
 
     # Fariq (invalidating differences) - prove absence
+    # NOTE: Kernel only checks for فارق:...:present (blocking).
+    # Proving :absent is NOT consumed by kernel, but we document non-blocking here.
     for pair_label, diff_type in phonetic.invalidating_differences:
-        proves.append(f"fariq:{pair_label}:absent")
+        proves.append(f"فارق:{pair_label}:absent")
 
     return EvidenceSet(
         items=(
@@ -222,8 +216,9 @@ class ArabicLetterCoordinateAdapter:
         if not trace_prefix:
             trace_prefix = f"letter_coordinate:{letter_name}"
 
-        # Get Arabic name
-        arabic_name = ARABIC_LETTER_NAMES.get(codepoint, letter_name)
+        # Get Arabic name from registry
+        letter_names = get_letter_names(codepoint)
+        arabic_name = letter_names.arabic_name if letter_names else letter_name
 
         # Build evidence for coordinate enrichment
         evidence = build_letter_coordinate_evidence(

@@ -7,7 +7,7 @@ Constitutional Basis:
   - PROJECT_MATHEMATICAL_FOUNDATION.md: Invalidating difference blocking
 
 Purpose:
-  Define ALL invalidating difference pairs between Arabic letters.
+  Define initial canonical fariq pairs between Arabic letters.
   Used to NEGATE wrong identities through fariq evidence.
 
 Critical Law:
@@ -15,9 +15,12 @@ Critical Law:
 
   Example:
     If proving ب (BAA), must negate:
-      - fariq:ب_vs_ت:present (voicing difference blocks TAA)
-      - fariq:ب_vs_م:present (nasality difference blocks MEEM)
-      - fariq:ب_vs_ف:present (manner difference blocks FAA)
+      - فارق:baa_vs_taa:present (voicing difference blocks TAA)
+      - فارق:baa_vs_meem:present (nasality difference blocks MEEM)
+      - فارق:baa_vs_faa:present (manner difference blocks FAA)
+
+  Note: English prose uses "fariq" for discussion, but executable evidence
+  MUST use Arabic prefix "فارق:" as required by QiyasKernel.
 
 Truth Type: Operation Truth (Negation)
 Domain: Controlled Vocalized Arabic
@@ -55,7 +58,9 @@ class FariqPair:
     Invalidating difference pair between two letters.
 
     Format: letter1 vs letter2 along specific axis.
-    Used to generate fariq:{letter1}_vs_{letter2}:present evidence.
+    Used to generate فارق:{letter1}_vs_{letter2}:present evidence.
+
+    Note: Executable evidence uses Arabic prefix "فارق:" not English "fariq:".
     """
     letter1_codepoint: int
     letter2_codepoint: int
@@ -66,7 +71,8 @@ class FariqPair:
 
 
 # Canonical fariq pairs registry
-# This is the single source of truth for ALL invalidating differences
+# This is the single source of truth for initial canonical invalidating differences
+# Coverage is not yet complete - expand as needed for Phase 2/3
 
 LETTER_FARIQ_PAIRS: tuple[FariqPair, ...] = (
     # BAA (ب) vs other letters
@@ -325,7 +331,8 @@ LETTER_FARIQ_PAIRS: tuple[FariqPair, ...] = (
         difference_description="ظ emphatic vs ذ plain"
     ),
 
-    # Add more fariq pairs as needed for complete coverage
+    # More fariq pairs will be added as Phase 2/3 expands
+    # This is an initial canonical registry, not complete coverage yet
 )
 
 
