@@ -34,17 +34,7 @@ from .abjad_system import get_abjad_coordinate
 from .phonetics import get_phonetic_profile
 from .rules.letter_coordinate_rules import get_letter_coordinate_rule
 from .registries.letter_name_registry import get_letter_names
-
-
-# Morphological role classification for سألتمونيها letters
-# Pre-compositional role potential (NOT grammatical function)
-MORPHO_ROLE_BY_LETTER = {
-    "baa": "EXPANDED_MULTI_ROLE",      # Can be preposition, prefix, nominal
-    "taa": "SAALATAMUUNIIHA",          # Core سألتمونيها set
-    "seen": "SAALATAMUUNIIHA",         # Core سألتمونيها set
-    "kaf": "EXPANDED_MULTI_ROLE",      # Can be preposition, suffix, nominal
-    # Additional mappings as needed
-}
+from .registries.letter_role_registry import get_morpho_role_label
 
 
 def build_letter_coordinate_evidence(
@@ -109,8 +99,10 @@ def build_letter_coordinate_evidence(
         ])
 
     # Morphological role (if applicable)
-    morpho_role = MORPHO_ROLE_BY_LETTER.get(letter_name)
-    if morpho_role:
+    # Use letter_role_registry instead of local dict
+    morpho_role = get_morpho_role_label(letter_name)
+    if morpho_role and morpho_role != "SINGLE_ROLE":
+        # Only add evidence for multi-role letters (not default single-role)
         proves.append(f"وصف:has_morpho_role:{morpho_role}:evidenced")
 
     # Illah
