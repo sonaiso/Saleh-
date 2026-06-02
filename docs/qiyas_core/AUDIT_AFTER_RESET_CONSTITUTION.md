@@ -79,7 +79,7 @@ Each component is classified according to RESET_CONSTITUTION.md §6:
 | ClosureReadinessAdapter | src/qiyas_core/closure_readiness_adapter.py | **experimental** | Repository memory confirms defer enforcement (murab/unknown/continuation), uses fariq validation | Built before constitution, defer semantics may be correct but needs validation | Audit against constitution or rebuild |
 | LeftDemandAdapter | src/qiyas_core/left_demand_adapter.py | **experimental** | Demand/capability architecture, likely related to SlotGeometry | Built before constitution, slot-based architecture not validated | Audit against constitution or rebuild |
 | RightCapabilityAdapter | src/qiyas_core/right_capability_adapter.py | **experimental** | Demand/capability architecture, likely related to SlotGeometry | Built before constitution, slot-based architecture not validated | Audit against constitution or rebuild |
-| SyllableOrderEquilibriumAdapter | src/qiyas_core/syllable_order_equilibrium_adapter.py | **experimental** | Repository memory confirms fariq:difference:present validation | Built before constitution, equilibrium concept needs constitutional definition | Audit against constitution or rebuild |
+| SyllableOrderEquilibriumAdapter | src/qiyas_core/syllable_order_equilibrium_adapter.py | **experimental** | Repository memory confirms فارق:difference:present validation | Built before constitution, equilibrium concept needs constitutional definition | Audit against constitution or rebuild |
 | LafzInternalClosureReadinessAdapter | src/qiyas_core/lafz_internal_closure_readiness_adapter.py | **experimental** | Lafz-level readiness validation | Built before constitution, lafz architecture not validated | Audit against constitution or rebuild |
 | LafzMinimalCompletionReadinessAdapter | src/qiyas_core/lafz_minimal_completion_readiness_adapter.py | **experimental** | Lafz-level readiness validation | Built before constitution, lafz architecture not validated | Audit against constitution or rebuild |
 | MabniMurabClosureReadinessAdapter | src/qiyas_core/mabni_murab_closure_readiness_adapter.py | **experimental** | Grammatical closure (mabni/murab distinction) | Built before constitution, grammatical concepts need constitutional grounding | Audit against constitution or rebuild |
@@ -234,7 +234,7 @@ SlotGeometry protocol (src/qiyas_core/slot/geometry.py) defines a significant ab
 ### Evidence Claim Grammar
 
 PR #14 constitutional helpers define evidence claim patterns:
-- Allowed: `asl:established`, `far:determined`, `wasf:*:evidenced`, `illah:*:verified`, `wadi:{gate}:{state}`, `fariq:*:present`, `defer:*:present`
+- Allowed: `asl:established`, `far:determined`, `wasf:*:evidenced`, `illah:*:verified`, `wadi:{gate}:{state}`, `فارق:*:present`, `defer:*:present`
 - Forbidden: `diff:*`, `residual:*`, `hukm:*`, `meaning:*:final`, `reality:*:claim`, `final:*`
 
 **Finding:** These patterns appear constitutionally sound and match kernel validation logic. However, they were defined in testing framework (PR #14) before constitution (PR #15), violating construction order.
@@ -422,7 +422,7 @@ Total: 15 canonical components (5% of codebase by file count)
 From constitutional_helpers.py and QIYAS_TESTING_STRATEGY.md, extract these as constitutional principles:
 
 **Evidence Claim Grammar (should be in CONSTITUTIONAL_PRINCIPLES.md):**
-- Use `fariq:*:present` for invalidating differences (not `diff:*`)
+- Use `فارق:*:present` for invalidating differences (not `diff:*`)
 - Use `defer:*:present` for deferral conditions
 - Evidence proves: `asl:established`, `far:determined`, `wasf:*:evidenced`, `illah:*:verified`
 - WadiGate states: `wadi:{gate}:{established|satisfied|absent|valid}`

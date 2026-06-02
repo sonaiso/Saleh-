@@ -109,7 +109,7 @@ START: I have a problem or feature request
 5. **Parallel or Sequential:** Is this an atomic proof (parallel) or compositional (sequential)?
 6. **Dependencies:** What canonical layers must exist first?
 7. **Forbidden Outputs:** What outputs are explicitly forbidden? (List at least 5)
-8. **Residual Behavior:** What defer:{reason}:present or fariq:{diff}:present claims are produced?
+8. **Residual Behavior:** What defer:{reason}:present or فارق:{diff}:present claims are produced?
 9. **Constitutional Basis:** Which LAYER_CONTRACT_CONSTITUTION.md section authorizes this?
 10. **Duplicate Check:** Have you checked CANONICAL_ARCHITECTURE_CONTROL_FRAME.md § 2?
 
@@ -160,7 +160,7 @@ Body:
 **Required illah:**
 - [List]
 
-**Invalidating fariq:**
+**Invalidating فارق:**
 - [List]
 
 ## Residual Behavior
@@ -222,7 +222,7 @@ Body:
 ✅ **Silent failure:**
 - Unknown haraka encountered → Add defer:unknown_haraka:present
 - Orphan shadda → Add defer:shadda_without_carrier:present
-- Ambiguous letter identity → Add fariq:letter_identity_conflict:present
+- Ambiguous letter identity → Add فارق:letter_identity_conflict:present
 
 ❌ **NOT silent failure:**
 - Missing layer to process syllables → Requires new layer (SyllableCandidate)

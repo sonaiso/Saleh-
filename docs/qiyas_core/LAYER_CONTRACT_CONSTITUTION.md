@@ -122,7 +122,7 @@ Candidate → Gate → Evidence → Domain → Rank → Residuals → Trace
 النواة الحالية (`src/qiyas_core/kernel.py`) تطبّق جزءًا من هذا القانون
 بالفعل عبر:
 
-- `fariq:{difference}:present` — لإثبات الفروق المُبطلة (شكل مبكر من
+- `فارق:{difference}:present` — لإثبات الفروق المُبطلة (شكل مبكر من
   enforcement للبوابات).
 - `defer:{reason}:present` — لتحويل الحالات غير المكتملة إلى `DEFERRED`
   بدلًا من ترقيتها إلى نتيجة (شكل مبكر من **Residuals**).
@@ -253,7 +253,7 @@ WeakLink = HypothesisGenerator only
 - يجب أن تُضاف `forbidden_outputs` صراحة في قاعدة الطبقة (بنفس النمط الموجود
   في `src/qiyas_core/rules/*.py`).
 - يجب أن تُترجَم البقايا إلى ادعاءات `defer:{reason}:present` أو
-  `fariq:{difference}:present` بما يطابق ما تقبله النواة.
+  `فارق:{difference}:present` بما يطابق ما تقبله النواة.
 - يجب أن تُحفظ `Trace` في بنية المرشح المُخرَج.
 
 ---
@@ -280,7 +280,7 @@ WeakLink = HypothesisGenerator only
 9. **Residuals**:
    - `defer:reality_type_ambiguous:present` (احتمالان أو أكثر).
    - `defer:domain_unresolved:present` (لا يُعرف مجال الوجود).
-   - `fariq:reality_type_conflict:present` (شواهد متعارضة).
+   - `فارق:reality_type_conflict:present` (شواهد متعارضة).
 10. **Trace**: `{jamid_token, candidate_reality_types[], chosen_domain, supporting_evidence_refs[]}`.
 
 ---
@@ -305,7 +305,7 @@ WeakLink = HypothesisGenerator only
 9. **Residuals**:
    - `defer:derivational_role_ambiguous:present`.
    - `defer:role_context_missing:present`.
-   - `fariq:role_conflict:present`.
+   - `فارق:role_conflict:present`.
 10. **Trace**: `{form, candidate_roles[], chosen_role, contextual_signals[]}`.
 
 ---
@@ -330,7 +330,7 @@ WeakLink = HypothesisGenerator only
 9. **Residuals**:
    - `defer:lexical_attestation_missing:present`.
    - `defer:root_status_unknown:present`.
-   - `fariq:attestation_conflict:present`.
+   - `فارق:attestation_conflict:present`.
 10. **Trace**: `{root_skeleton, attestation_sources[], status, productivity_indicators[]}`.
 
 ---
@@ -363,7 +363,7 @@ WeakLink = HypothesisGenerator only
    - `PROVEN` غالبًا غير ممكن داخل الطبقة وحدها.
 9. **Residuals**:
    - `defer:lexical_path_ambiguous:present`.
-   - `fariq:path_conflict:present`.
+   - `فارق:path_conflict:present`.
    - `defer:residual_path_unclassified:present`.
 10. **Trace**: `{token, candidate_paths[], chosen_path, classification_evidence[]}`.
 
@@ -385,7 +385,7 @@ WeakLink = HypothesisGenerator only
    - `LICENSED` عند توافق الصيغة مع قواعد الوظيفة دون معارض.
 9. **Residuals**:
    - `defer:verbal_signified_underspecified:present`.
-   - `fariq:form_function_conflict:present`.
+   - `فارق:form_function_conflict:present`.
 10. **Trace**: `{form, structural_signals[], opened_signified_facets[]}`.
 
 ---
@@ -413,7 +413,7 @@ WeakLink = HypothesisGenerator only
 9. **Residuals**:
    - `defer:wadh_scope_unresolved:present`.
    - `defer:domain_mismatch:present`.
-   - `fariq:wadh_source_conflict:present`.
+   - `فارق:wadh_source_conflict:present`.
 10. **Trace**: `{signified, candidate_wadh_types[], chosen_scope, domain_evidence[]}`.
 
 ---
@@ -443,7 +443,7 @@ WeakLink = HypothesisGenerator only
      بشاهد إضافي + مرور عبر `HypothesisGate` إن لزم (7.13).
 9. **Residuals**:
    - `defer:dalalah_type_ambiguous:present`.
-   - `fariq:dalalah_relation_conflict:present`.
+   - `فارق:dalalah_relation_conflict:present`.
 10. **Trace**: `{wadh, candidate_relations[], chosen_relation, justification[]}`.
 
 ---
@@ -468,8 +468,8 @@ WeakLink = HypothesisGenerator only
 9. **Residuals**:
    - `defer:antecedent_missing:present`.
    - `defer:deictic_context_missing:present`.
-   - `fariq:multiple_candidate_referents:present`.
-   - `fariq:agreement_conflict:present`.
+   - `فارق:multiple_candidate_referents:present`.
+   - `فارق:agreement_conflict:present`.
 10. **Trace**: `{reference_token, candidate_referents[], chosen_referent, contextual_signals[]}`.
 
 ---
@@ -496,7 +496,7 @@ WeakLink = HypothesisGenerator only
 9. **Residuals**:
    - `defer:ifadah_incomplete:present`.
    - `defer:nisbah_type_unresolved:present`.
-   - `fariq:ifadah_type_conflict:present`.
+   - `فارق:ifadah_type_conflict:present`.
 10. **Trace**: `{nisbah_type, components[], completion_status, ifadah_subtype}`.
 
 ---
@@ -524,7 +524,7 @@ WeakLink = HypothesisGenerator only
    - `LICENSED` عند تحديد القوة دون معارض.
 9. **Residuals**:
    - `defer:speech_force_ambiguous:present`.
-   - `fariq:speech_force_conflict:present`.
+   - `فارق:speech_force_conflict:present`.
 10. **Trace**: `{ifadah, candidate_forces[], chosen_force, pragmatic_signals[]}`.
 
 ---
@@ -562,8 +562,8 @@ WeakLink = HypothesisGenerator only
    - `defer:evidence_insufficient:present`.
    - `defer:conditions_unmet:present`.
    - `defer:blocker_present:present`.
-   - `fariq:domain_mismatch:present`.
-   - `fariq:evidence_conflict:present`.
+   - `فارق:domain_mismatch:present`.
+   - `فارق:evidence_conflict:present`.
 10. **Trace**: `{norm_ready_id, evidence_refs[], conditions_satisfied[], blockers_absent[], hukm_type, domain}`.
 
 ---
@@ -588,7 +588,7 @@ WeakLink = HypothesisGenerator only
 9. **Residuals**:
    - `defer:manat_unrealized:present`.
    - `defer:incident_unidentified:present`.
-   - `fariq:manat_domain_mismatch:present`.
+   - `فارق:manat_domain_mismatch:present`.
 10. **Trace**: `{general_hukm, manat, incident, realization_evidence[], chosen_tanzil}`.
 
 ---
@@ -616,7 +616,7 @@ WeakLink = HypothesisGenerator only
    `LICENSED` تستلزم اختبارًا في طبقة لاحقة (PR تنفيذي مستقل).
 9. **Residuals**:
    - `defer:hypothesis_untested:present` (افتراضيًا، حتى يثبت العكس).
-   - `fariq:weak_link_conflict:present`.
+   - `فارق:weak_link_conflict:present`.
 10. **Trace**: `{source, target, link_type, similarity_basis, domain_distance, evidence_refs[]}`.
 
 ---
@@ -646,7 +646,7 @@ WeakLink = HypothesisGenerator only
      الأكثر، ما لم يوجد دليل مستقل في المجال الهدف.
 9. **Residuals**:
    - `defer:cross_domain_evidence_missing:present`.
-   - `fariq:target_domain_rejects_link:present`.
+   - `فارق:target_domain_rejects_link:present`.
    - `defer:rank_downgrade_required:present`.
 10. **Trace**: `{strong_link, source_domain, target_domain, transfer_evidence[], rank_before, rank_after}`.
 
@@ -856,7 +856,7 @@ candidate_set = QiyasKernel().apply(request)
 (`Arabic Unicode Block` بهوية `identity:arabic_unicode_block`) والفرع
 (`InputCodepoint` بهوية `identity:codepoint:<hex>`)، ثم `EvidenceSet`،
 ثم يمرر الطلب إلى `QiyasKernel`. عند `codepoint` غير عربي يضيف
-`fariq:non_arabic_codepoint:present` فيمنع kernel النتيجة. هذا هو
+`فارق:non_arabic_codepoint:present` فيمنع kernel النتيجة. هذا هو
 المعنى الدقيق لـ "Arabic Unicode membership as Qiyas operation":
 
 ```
@@ -942,7 +942,7 @@ qiyas_core نواة جبرية كاملة للقياس المحكوم:
 | دليل                     | Evidence                | شاهد من نوع متفق عليه يفتح بوابة محددة.                                     |
 | مجال                     | Domain                  | نطاق صلاحية الدليل (لغوي، صرفي، نحوي، دلالي، تداولي، واقعي، شرعي…).         |
 | رتبة                     | Rank                    | درجة الترخيص: `CANDIDATE` < `LICENSED` < `PROVEN`.                          |
-| بقايا                    | Residuals               | ما لم يُحسم؛ يُمثَّل بـ `defer:*:present` أو `fariq:*:present`.             |
+| بقايا                    | Residuals               | ما لم يُحسم؛ يُمثَّل بـ `defer:*:present` أو `فارق:*:present`.             |
 | أثر                      | Trace                   | بنية تربط المخرج بمدخلاته وأدلته وبوابته.                                   |
 | مخرج ممنوع               | Forbidden Output        | نوع مخرج لا يُسمح للقاعدة بإنتاجه (يطابق `forbidden_outputs` في النواة).    |
 | قفزة ممنوعة              | Forbidden Jump          | انتقال غير مرخَّص من طبقة إلى أعلى منها بلا بوابة.                          |
@@ -980,7 +980,7 @@ qiyas_core نواة جبرية كاملة للقياس المحكوم:
 وفق الترتيب الذي يحدده صاحب القرار الدستوري، وبشرط:
   - احترام محظورات القسم 2.2.
   - استخدام forbidden_outputs بنفس نمط النواة القائمة.
-  - تمثيل البقايا بـ defer:*:present و fariq:*:present فقط.
+  - تمثيل البقايا بـ defer:*:present و فارق:*:present فقط.
   - حفظ Trace قابل للتدقيق.
 
 ولا تُفتح بوابة جديدة قبل إغلاق التي قبلها.

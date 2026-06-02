@@ -92,7 +92,7 @@ Required evidence:
   - wasf:has_manner:stop:evidenced
   - wasf:has_nasal:false:evidenced
   - wasf:has_abjad_value:2:evidenced (if applicable)
-  - fariq:{difference}:absent (for each invalidating difference)
+  - فارق:{difference}:absent (for each invalidating difference)
 ```
 
 **Critical Constraint:**

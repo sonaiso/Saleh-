@@ -212,7 +212,7 @@ SourceOfTruthEntry(
     truth_type="coordinate",
     truth_name="abjad_numeric_value",
 
-    canonical_source="src/qiyas_core/systems/abjad_system.py",
+    canonical_source="src/qiyas_core/abjad_system.py",
     source_type="system",
 
     evidence_rank=EvidenceRank.FORMAL_STRUCTURE,
@@ -221,7 +221,7 @@ SourceOfTruthEntry(
     consuming_components=[
         "src/qiyas_core/letter_coordinate_adapter.py",
         "src/qiyas_core/rules/letter_coordinate_rules.py",
-        "tests/qiyas_core/test_letter_coordinate.py",
+        "tests/qiyas_core/test_letter_coordinate_carrier.py",
     ],
 
     forbidden_duplicates=[
@@ -242,8 +242,8 @@ SourceOfTruthEntry(
 
 | Truth | Canonical Source | Status |
 |-------|-----------------|--------|
-| Arabic Unicode ranges | `unicode_constants.py` | ✓ Canonical (needs creation) |
-| Unicode validation | `unicode_layer_adapter.py` | ✓ Canonical |
+| Arabic Unicode ranges | `unicode_constants.py` | ⚠️ Needs creation |
+| Unicode validation | `unicode_adapter.py` | ✓ Canonical |
 
 ### Layer 1: TypedCodePoint Classification
 
@@ -275,8 +275,10 @@ SourceOfTruthEntry(
 |-------|-----------------|--------|
 | Makhraj coordinates | `makhraj_coordinate_registry.py` | ⚠️ Needs creation |
 | Sifat vectors | `sifat_vector_registry.py` | ⚠️ Needs creation |
-| Abjad system | `abjad_system.py` | ✓ Canonical (partial: 4 letters) |
+| Abjad system | `abjad_system.py` | ✓ Canonical (complete: 28 letters) |
 | Phonetic proxy | `phonetic_proxy_registry.py` | ⚠️ Needs creation |
+
+**Note on Abjad:** The source-of-truth in `abjad_system.py` defines complete Abjad values for all 28 traditional Arabic letters. Current Layer 2X consumption (ArabicLetterCoordinateCarrier) uses only BAA/TAA/SEEN/KAF as a minimal slice. To expand coordinate coverage, extend consumption in `letter_coordinate_adapter.py`, not the Abjad source.
 | Glyph classification | `glyph_classification_registry.py` | ❌ Not implemented |
 | Letter role taxonomy | `letter_role_taxonomy.py` | ❌ Not implemented |
 
@@ -348,20 +350,18 @@ src/qiyas_core/taxonomies/
 ```python
 # letter_coordinate_adapter.py
 
-from qiyas_core.systems.abjad_system import AbjadSystem
+from qiyas_core.abjad_system import get_abjad_coordinate
 
 class ArabicLetterCoordinateAdapter:
-    def __init__(self):
-        self.abjad = AbjadSystem()  # Import from canonical source
-
     def add_abjad_coordinate(self, letter_identity: LetterIdentityCarrier):
         # Use canonical source, not local definition
-        abjad_coord = self.abjad.get_coordinate(letter_identity.name_identity)
+        abjad_coord = get_abjad_coordinate(letter_identity.codepoint)
 
-        evidence.add_claim(
-            f"coordinate:abjad:{letter_identity.name_identity}:{abjad_coord.numeric_value}:evidenced",
-            source="abjad_system.py"  # Cite source
-        )
+        if abjad_coord:
+            evidence.add_claim(
+                f"coordinate:abjad:{letter_identity.name_identity}:{abjad_coord.numeric_value}:evidenced",
+                source="abjad_system.py"  # Cite source
+            )
 ```
 
 **Example (Forbidden):**
@@ -484,9 +484,11 @@ def detect_truth_duplication(codebase: Path):
 def validate_evidence_citations(evidence_set: EvidenceSet):
     """Ensure evidence cites canonical sources."""
 
-    for claim in evidence_set.claims:
-        if claim.startswith("coordinate:") or claim.startswith("identity:"):
-            if "source=" not in claim and evidence_set.source is None:
+    for item in evidence_set.items:
+        source_layer = item.source_layer
+        for claim in item.proves:
+            if claim.startswith("coordinate:") or claim.startswith("identity:"):
+                if "source=" not in claim and not source_layer:
                 raise MissingSourceCitation(
                     claim=claim,
                     error="Coordinate/identity claims must cite source"

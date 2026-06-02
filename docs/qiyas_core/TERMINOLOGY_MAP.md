@@ -131,6 +131,6 @@ to the kernel’s algebraic behavior.
 - `RESET_CONSTITUTION.md` §7 — prohibits adopting any SlotGeometry under
   `src/` before constitutional validation.
 - `LAYER_CONTRACT_CONSTITUTION.md` §2.3 — describes the prefix-based
-  evidence machinery (`fariq:`, `defer:`) the kernel already enforces.
+  evidence machinery (`فارق:`, `defer:`) the kernel already enforces.
 - `ALGEBRAIC_FOUNDATION_CONTRACT.md` — fixes the algebraic skeleton that
   this vocabulary describes.

@@ -578,13 +578,13 @@ No exceptions without trace
 **Layer 2A: LetterIdentityCarrier (4 types)**
 - defer:letter_identity_ambiguous:present
 - defer:script_identity_uncertain:present
-- fariq:letter_identity_conflict:present
+- فارق:letter_identity_conflict:present
 - defer:letter_class_unknown:present
 
 **Layer 2B: HarakaFunctionCarrier (4 types)**
 - defer:haraka_function_unknown:present
 - defer:haraka_function_context_dependent:present
-- fariq:haraka_function_conflict:present
+- فارق:haraka_function_conflict:present
 - defer:haraka_operation_requires_carrier:present
 
 **Layer 2C: PositionCarrier (2 types)**
@@ -594,7 +594,7 @@ No exceptions without trace
 **Layer 2D: ConditionedTypedSequence (4 types)**
 - defer:alignment_missing:present
 - defer:carrier_binding_incomplete:present
-- fariq:alignment_conflict:present
+- فارق:alignment_conflict:present
 - defer:boundary_preservation_required:present
 
 **Layer 2X: ArabicLetterCoordinateCarrier (20+ types)**
@@ -620,7 +620,7 @@ No exceptions without trace
 - No candidate produced
 - Must be resolved before continuing
 
-**Fariq (fariq:*:present):**
+**Fariq (فارق:*:present):**
 - Invalidating difference detected
 - Identity claim is WRONG
 - BLOCKS candidate production

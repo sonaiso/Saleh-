@@ -2,7 +2,7 @@
 
 > **Purpose:** 6-axis phonetic discrimination system for Arabic letters.
 >
-> **Constraint:** Full SifatVector is NOT optional decoration — it is the mechanism for negating invalidating differences (fariq).
+> **Constraint:** Full SifatVector is NOT optional decoration — it is the mechanism for negating invalidating differences (فارق/fariq).
 
 ---
 
@@ -180,8 +180,8 @@ class NasalityValue(Enum):
   Both VOICED + STOP + NON_EMPHATIC
   Difference: ORAL vs NASAL ← CRITICAL
 
-Fariq negation:
-  fariq:baa_vs_meem_nasality:absent
+Fariq (invalidating difference) negation claim:
+  فارق:baa_vs_meem_nasality:absent
 ```
 
 ### Axis 4: FricationAxis
@@ -205,8 +205,8 @@ class FricationValue(Enum):
 و (WAW) vs ف (FAA):
   Need FRICATION distinction
 
-Fariq negation:
-  fariq:waw_vs_faa_frication:absent
+Fariq (invalidating difference) negation claim:
+  فارق:waw_vs_faa_frication:absent
 ```
 
 ### Axis 5: ContinuancyAxis
@@ -258,8 +258,8 @@ class EmphasisValue(Enum):
   Both VOICELESS + STOP + ORAL + NON_FRICATIVE + NON_CONTINUANT
   Difference: EMPHATIC vs NON_EMPHATIC ← CRITICAL
 
-Fariq negation:
-  fariq:taa_emphatic_vs_taa_plain_emphasis:absent
+Fariq (invalidating difference) negation claim:
+  فارق:taa_emphatic_vs_taa_plain_emphasis:absent
 ```
 
 ---
@@ -324,9 +324,9 @@ fariq_baa_vs_meem = [
 ]
 
 # Evidence for ب:
-evidence.add_claim("fariq:baa_vs_meem_nasality:absent")
-evidence.add_claim("fariq:baa_vs_meem_manner:absent")
-evidence.add_claim("fariq:baa_vs_meem_continuancy:absent")
+evidence.add_claim("فارق:baa_vs_meem_nasality:absent")
+evidence.add_claim("فارق:baa_vs_meem_manner:absent")
+evidence.add_claim("فارق:baa_vs_meem_continuancy:absent")
 ```
 
 ### Example: س vs ص
@@ -358,7 +358,7 @@ fariq_seen_vs_saad = [
 ]
 
 # Evidence for س:
-evidence.add_claim("fariq:seen_vs_saad_emphasis:absent")
+evidence.add_claim("فارق:seen_vs_saad_emphasis:absent")
 ```
 
 ---
@@ -406,9 +406,9 @@ evidence.add_claim(f"وصف:has_frication:{frication.value}:evidenced")
 evidence.add_claim(f"وصف:has_continuancy:{continuancy.value}:evidenced")
 evidence.add_claim(f"وصف:has_emphasis:{emphasis.value}:evidenced")
 
-# Fariq negation:
+# Fariq (invalidating difference) negation:
 for fariq in fariq_set:
-    evidence.add_claim(f"fariq:{fariq}:absent")
+    evidence.add_claim(f"فارق:{fariq}:absent")
 
 # Source citation:
 evidence.source = "sifat_vector_system.py"
@@ -436,7 +436,7 @@ defer:sifat_axis_ambiguous:{axis}:present
   Cause: Specific axis requires context
   Example: و (WAW) voicing context-dependent in some theories
 
-fariq:sifat_conflict:present
+فارق:sifat_conflict:present
   Cause: Sifat values conflict with letter identity
   Example: VOICED assigned to inherently voiceless letter
 ```
