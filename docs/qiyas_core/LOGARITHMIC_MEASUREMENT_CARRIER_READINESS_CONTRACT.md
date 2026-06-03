@@ -161,8 +161,8 @@ class LogMeasurementReadinessCarrier:
     - Preparation for potential future integration (separately licensed)
     """
 
-    # Source LogMeasuredQuantity reference
-    source_log_quantity_id: str
+    # Provenance reference to logarithmic measurement operation
+    source_log_measurement_ref: str
 
     # Bridge readiness status
     is_bridge_ready: bool
@@ -193,11 +193,14 @@ class LogMeasurementReadinessCarrier:
 
 ### 3.3 Field Semantics
 
-**source_log_quantity_id:**
-- Identity reference to source LogMeasuredQuantity
-- Must be preserved from LogMeasuredQuantity
-- NOT replaced by trace
-- NOT derived from value
+**source_log_measurement_ref:**
+- Operational/provenance reference to the logarithmic measurement result
+- It is NOT identity
+- It must NOT replace original_quantity_id
+- It must NOT be used as Candidate authority
+- Until LogMeasuredQuantity exposes an independent log_measurement_id,
+  the readiness contract may construct a provenance reference string for traceability,
+  but this reference MUST NOT be treated as identity
 
 **is_bridge_ready:**
 - True if LogMeasuredQuantity passes bridge readiness conditions
@@ -221,9 +224,10 @@ class LogMeasurementReadinessCarrier:
 - NOT derived
 
 **original_quantity_id:**
-- Identity from original LicensedMeasuredQuantity
+- Preserves the identity of the original LicensedMeasuredQuantity
 - Must be preserved through chain: LicensedMeasuredQuantity → LogMeasuredQuantity → Carrier
 - Identity preservation is mandatory
+- This is the TRUE identity, NOT source_log_measurement_ref
 
 **trace_ids:**
 - Preserved from LogMeasuredQuantity
@@ -238,9 +242,10 @@ class LogMeasurementReadinessCarrier:
 - Mandatory preservation
 
 **carrier_readiness_trace:**
-- New trace entry: `f"trace:carrier_readiness:{source_log_quantity_id}"`
+- New trace entry: `f"trace:carrier_readiness:{original_quantity_id}"`
 - Appended to trace_ids when creating Carrier
 - Records carrier readiness operation
+- Does NOT create or replace identity
 
 ---
 
@@ -309,7 +314,7 @@ Ensure:
 
 ```python
 return LogMeasurementReadinessCarrier(
-    source_log_quantity_id=log_quantity.source_quantity_id,
+    source_log_measurement_ref=f"log_measurement:{log_quantity.source_quantity_id}",
     is_bridge_ready=(len(blocking_conditions) == 0),
     blocking_conditions=tuple(blocking_conditions),
     constitutional_compliance=True,
@@ -317,7 +322,9 @@ return LogMeasurementReadinessCarrier(
     unit=log_quantity.unit,
     rank=log_quantity.rank,
     original_quantity_id=log_quantity.source_quantity_id,
-    trace_ids=log_quantity.trace_ids,
+    trace_ids=log_quantity.trace_ids + (
+        f"trace:carrier_readiness:{log_quantity.source_quantity_id}",
+    ),
     residual_ids=log_quantity.residual_ids,
     carrier_readiness_trace=f"trace:carrier_readiness:{log_quantity.source_quantity_id}"
 )
@@ -355,7 +362,6 @@ return LogMeasurementReadinessCarrier(
 ```python
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import tuple
 from qiyas_core.logarithmic_measurement import LogMeasuredQuantity, LogMeasurementError
 ```
 
