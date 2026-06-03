@@ -12,20 +12,23 @@ Tests verify that the contract document:
 - Confirms isolated readiness carrier only
 - Confirms no general Carrier adapter
 - Confirms no authority derivation
+- Confirms identity preservation (original_quantity_id)
+- Confirms provenance reference is NOT identity (source_log_measurement_ref)
+- Prevents ambiguous language from returning
 """
 
 import pytest
 from pathlib import Path
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def contract_doc_path():
     """Path to the Carrier Readiness Contract document."""
     repo_root = Path(__file__).parent.parent.parent
     return repo_root / "docs" / "qiyas_core" / "LOGARITHMIC_MEASUREMENT_CARRIER_READINESS_CONTRACT.md"
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def contract_content(contract_doc_path):
     """Read contract document content."""
     assert contract_doc_path.exists(), f"Contract document not found: {contract_doc_path}"
@@ -332,3 +335,99 @@ def test_contract_constitutional_authority(contract_content):
     ]
     for phrase in required_phrases:
         assert phrase in contract_content, f"Missing required constitutional reference: {phrase}"
+
+
+def test_contract_confirms_original_quantity_id_is_identity(contract_content):
+    """Contract must confirm original_quantity_id preserves identity of original LicensedMeasuredQuantity."""
+    required_phrases = [
+        "original_quantity_id",
+        "Preserves the identity of the original LicensedMeasuredQuantity",
+        "This is the TRUE identity",
+    ]
+    for phrase in required_phrases:
+        assert phrase in contract_content, f"Missing required phrase for original_quantity_id identity: {phrase}"
+
+
+def test_contract_confirms_source_log_measurement_ref_is_not_identity(contract_content):
+    """Contract must confirm source_log_measurement_ref is a provenance reference, NOT identity."""
+    required_phrases = [
+        "source_log_measurement_ref",
+        "Operational/provenance reference",
+        "It is NOT identity",
+        "must NOT replace original_quantity_id",
+        "must NOT be used as Candidate authority",
+        "this reference MUST NOT be treated as identity",
+    ]
+    for phrase in required_phrases:
+        assert phrase in contract_content, f"Missing required phrase for source_log_measurement_ref non-identity: {phrase}"
+
+
+def test_contract_confirms_carrier_readiness_trace_not_identity(contract_content):
+    """Contract must confirm carrier_readiness_trace does not create or replace identity."""
+    required_phrases = [
+        "carrier_readiness_trace",
+        "Does NOT create or replace identity",
+    ]
+    for phrase in required_phrases:
+        assert phrase in contract_content, f"Missing required phrase for carrier_readiness_trace non-identity: {phrase}"
+
+
+def test_contract_confirms_trace_must_not_be_used_as_identity(contract_content):
+    """Contract must confirm trace MUST NOT be used as identity."""
+    required_phrases = [
+        "NOT mixed with identity",
+        "Trace extension does not replace identity",
+    ]
+    for phrase in required_phrases:
+        assert phrase in contract_content, f"Missing required phrase for trace/identity separation: {phrase}"
+
+
+def test_contract_prevents_ambiguous_source_log_quantity_id_phrase(contract_content):
+    """Contract must NOT contain the old ambiguous field name source_log_quantity_id."""
+    # The old field name should not appear in the dataclass definition or field semantics
+    # It may appear in historical context, but not as the current field name
+    ambiguous_phrase = "source_log_quantity_id: str"
+    assert ambiguous_phrase not in contract_content, (
+        f"Ambiguous phrase found: {ambiguous_phrase}. "
+        "Field should be source_log_measurement_ref, not source_log_quantity_id"
+    )
+
+
+def test_contract_prevents_ambiguous_identity_reference_phrase(contract_content):
+    """Contract must NOT describe source_log_measurement_ref as 'Identity reference'."""
+    # Check that the new field is not described as identity
+    prohibited_patterns = [
+        "source_log_measurement_ref:\n    - Identity reference",
+        "source_log_measurement_ref: Identity reference",
+    ]
+    for pattern in prohibited_patterns:
+        # Normalize whitespace for comparison
+        normalized_content = contract_content.replace("    ", " ").replace("\n", " ")
+        normalized_pattern = pattern.replace("    ", " ").replace("\n", " ")
+        assert normalized_pattern not in normalized_content, (
+            f"Prohibited pattern found: {pattern}. "
+            "source_log_measurement_ref must NOT be described as identity reference"
+        )
+
+
+def test_contract_example_uses_source_log_measurement_ref(contract_content):
+    """Contract example code must use source_log_measurement_ref, not source_log_quantity_id."""
+    # The example should use the new field name
+    assert "source_log_measurement_ref=" in contract_content, (
+        "Example code must use source_log_measurement_ref field"
+    )
+
+    # The example should construct a provenance reference
+    assert 'source_log_measurement_ref=f"log_measurement:' in contract_content, (
+        "Example code must construct provenance reference with log_measurement: prefix"
+    )
+
+
+def test_contract_confirms_no_tuple_import_from_typing(contract_content):
+    """Contract must not import tuple from typing (built-in type)."""
+    prohibited_import = "from typing import tuple"
+    assert prohibited_import not in contract_content, (
+        f"Prohibited import found: {prohibited_import}. "
+        "tuple is a built-in type in Python 3.9+ and should not be imported from typing"
+    )
+
