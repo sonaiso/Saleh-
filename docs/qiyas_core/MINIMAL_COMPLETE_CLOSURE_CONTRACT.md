@@ -187,8 +187,8 @@ under L's per-extend gate policy.
 
 For every `Extend` invocation in `G`'s construction history (read
 off the canonical trace), the binding evidence satisfied the
-conjunctive six-gate predicate `(CAUSE ∧ CONDITION ∧ OBSTACLE ∧
-VALIDITY ∧ CORRUPTION ∧ NULLITY)` and produced an accepted (not
+conjunctive six-gate predicate with explicit gate states:
+`CAUSE established ∧ CONDITION satisfied ∧ OBSTACLE absent ∧ VALIDITY valid ∧ CORRUPTION absent ∧ NULLITY absent` and produced an accepted (not
 blocked, not deferred) extension. This condition is not new; it is
 the running invariant of §7 of the recursive extension contract,
 re-checked at closure time so that no historically-deferred binding
@@ -365,12 +365,12 @@ later layer's own contract.
 ## 6. Word Layer Instance
 
 At the word layer, `IsMinimallyComplete` applies to
-`SentenceGeometryCandidate(n)`:
+`WordGeometryCandidate(n)`:
 
 ```text
-IsMinimallyComplete(SentenceGeometry) :=
-    licensed beginning under SentenceBeginningRule
-  ∧ licensed ending    under SentenceEndingRule
+IsMinimallyComplete(WordGeometry) :=
+    licensed beginning under WordBeginningRule
+  ∧ licensed ending    under WordEndingRule
   ∧ all WordBindingEvidence accepted
   ∧ Demand Catalogue (word layer) discharged
   ∧ no blocking difference
@@ -379,7 +379,7 @@ IsMinimallyComplete(SentenceGeometry) :=
   ∧ output_flags ⊇ {CandidateOnly} and clean of finals
 ```
 
-A closed-by-candidacy `SentenceGeometryCandidate` is admissible
+A closed-by-candidacy `WordGeometryCandidate` is admissible
 only as a consumable for the strictly later sentence layer's own
 admission contract. It is **not** admissible as `FinalMeaning`,
 `HukmCandidate`, `RealityClaim`, or `FinalCaseJudgment`.
