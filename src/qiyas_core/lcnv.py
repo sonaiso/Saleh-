@@ -76,12 +76,28 @@ class GateStateBundle:
 
     def __post_init__(self) -> None:
         """Validate constitutional constraints."""
-        # CLOSED ≠ 0
-        if self.mclo_state == 0:
-            raise LCNVError(
-                "MCLO state cannot be 0 (CLOSED ≠ 0). "
-                "Use CLOSED constant for unopened gates."
-            )
+        # CLOSED ≠ 0 validation for all gate states
+        states_to_validate = [
+            ("MCLO", self.mclo_state),
+            ("Lexical", self.lexical_state),
+            ("Meaning", self.meaning_state),
+            ("Binding", self.binding_state),
+            ("Mutabaqah", self.mutabaqah_state),
+            ("Tadammun", self.tadammun_state),
+            ("Iltizam", self.iltizam_state),
+        ]
+
+        for state_name, state_value in states_to_validate:
+            if state_value == 0:
+                raise LCNVError(
+                    f"{state_name} state cannot be 0 (CLOSED ≠ 0). "
+                    "Use CLOSED constant for unopened gates."
+                )
+            if isinstance(state_value, int) and state_value < 0:
+                raise LCNVError(
+                    f"{state_name} state cannot be negative. "
+                    "Must be either CLOSED or positive integer."
+                )
 
 
 @dataclass(frozen=True)
@@ -111,6 +127,9 @@ class EncodedStateProjection:
 
     # Trace reference (NOT full trace, only reference)
     trace_ref: str | None = None
+
+    # Constitutional constraint: semantic_force is FORBIDDEN
+    semantic_force: Literal["FORBIDDEN"] = "FORBIDDEN"
 
     def __post_init__(self) -> None:
         """Validate projection constraints."""
@@ -152,19 +171,39 @@ class LCNV:
     # Rank and residual encoding (must preserve)
     rank_block: int | None = None
     residual_block: int = 0
+    has_blocking_residuals: bool = False
 
     # Metadata
     encoding_version: str = "mclo_only_v1"
     source_layer: str | None = None
 
+    # Constitutional constraint: semantic_force is FORBIDDEN
+    semantic_force: Literal["FORBIDDEN"] = "FORBIDDEN"
+
     def __post_init__(self) -> None:
         """Validate LCNV constitutional constraints."""
-        # CLOSED ≠ 0 validation
-        if self.mclo_block == 0:
-            raise LCNVError(
-                "MCLO block cannot be 0 (CLOSED ≠ 0). "
-                "Use CLOSED constant for unopened gates."
-            )
+        # CLOSED ≠ 0 validation for all blocks
+        blocks_to_validate = [
+            ("MCLO", self.mclo_block),
+            ("Lexical", self.lexical_block),
+            ("Meaning", self.meaning_block),
+            ("Binding", self.binding_block),
+            ("Mutabaqah", self.mutabaqah_block),
+            ("Tadammun", self.tadammun_block),
+            ("Iltizam", self.iltizam_block),
+        ]
+
+        for block_name, block_value in blocks_to_validate:
+            if block_value == 0:
+                raise LCNVError(
+                    f"{block_name} block cannot be 0 (CLOSED ≠ 0). "
+                    "Use CLOSED constant for unopened gates."
+                )
+            if isinstance(block_value, int) and block_value < 0:
+                raise LCNVError(
+                    f"{block_name} block cannot be negative. "
+                    "Must be either CLOSED or positive integer."
+                )
 
         # Block ordering dependency: no higher layers before binding
         if self.binding_block == CLOSED:
@@ -277,6 +316,7 @@ def pack(
         mclo_block=mclo_value,
         rank_block=rank_ceiling,
         residual_block=residual_count,
+        has_blocking_residuals=has_blocking_residuals,
         source_layer=source_layer_id,
     )
 
@@ -326,7 +366,7 @@ def unpack(lcnv: LCNV) -> EncodedStateProjection:
         iltizam_state=lcnv.iltizam_block,
         rank_ceiling=lcnv.rank_block,
         residual_count=lcnv.residual_block,
-        has_blocking_residuals=False,  # Future: decode from residual_block
+        has_blocking_residuals=lcnv.has_blocking_residuals,
     )
 
     # Build trace reference (not full trace)
@@ -334,10 +374,17 @@ def unpack(lcnv: LCNV) -> EncodedStateProjection:
     if lcnv.source_layer:
         trace_ref = f"lcnv_trace:{lcnv.source_layer}:{lcnv.mclo_block}"
 
+    # Require source_layer for EncodedStateProjection
+    if not lcnv.source_layer:
+        raise LCNVError(
+            "Cannot unpack LCNV without source_layer. "
+            "No projection without source layer."
+        )
+
     # Return EncodedStateProjection, NOT Candidate
     return EncodedStateProjection(
         gate_states=gate_states,
-        source_layer_id=lcnv.source_layer or "unknown",
+        source_layer_id=lcnv.source_layer,
         encoding_format=lcnv.encoding_version,
         trace_ref=trace_ref,
     )

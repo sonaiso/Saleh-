@@ -835,22 +835,26 @@ LCNV:
 
 ## 8. Implementation Constraints
 
-### 8.1 When to Implement
+### 8.1 Implementation Status
 
-**DO NOT implement LCNV runtime yet.**
+**Minimal isolated Track B LCNV runtime now exists (PR #65).**
 
-**Required before implementation:**
-1. ✓ PR #43 merged (glyph gate + specific residuals)
-2. ✓ This document (PR #44) merged
-3. ⚠️ PR #45 merged (inverse + logarithmic measurement law)
-4. ⚠️ PR #46 merged (Full SifatVector structure)
-5. ⚠️ PR #47 merged (source-of-truth registries)
-6. ⚠️ PR #48 merged (full coordinate coverage)
+**Current implementation:**
+- MCLO-only encoding (SignifierOnly block)
+- pack() / unpack() operations
+- LCNV, EncodedStateProjection, GateStateBundle dataclasses
+- Constitutional law enforcement (CLOSED ≠ 0, block ordering, etc.)
+- Track isolation (no SlotGeometry/LogMeasurement imports)
 
-**Only THEN:**
-7. PR #50: SignifierOnlyValue / MCLO prototype
+**Current limitations:**
+- MCLO block only (other layers remain CLOSED)
+- Does NOT restore Candidate (only EncodedStateProjection)
+- Does NOT create authority
+- Does NOT derive Meaning/Ifadah/Hukm
+- Does NOT integrate with logarithmic measurement
+- Does NOT integrate with billing/product layers
 
-**Reason:** LCNV implementation requires:
+**Future expansion requirements:**
 - Complete sifat axes (to encode all distinctions)
 - Source-of-truth registries (to prevent duplication)
 - Full coordinate coverage (to encode all letters)
