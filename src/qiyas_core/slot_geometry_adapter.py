@@ -44,7 +44,30 @@ from .rules.slot_geometry_rules import (
 # functions below; never by `identity_ids`.
 _LENGTH_TRACE_PREFIX = "trace:slot_geometry:length:"
 _MODE_TRACE_PREFIX = "trace:slot_geometry:construction_mode:"
+
+# Per `SLOT_GEOMETRY_ALIGNMENT_TRACE_CONTRACT.md` §2.2, the consumed
+# `SlotCandidate` must carry FIVE explicit substring breadcrumbs in
+# its `trace_ids` so the four Phase-1 contributing proofs and the
+# alignment ref can be audited from the slot alone:
+#
+#   alignment_ref     — CTS alignment witness, written by SlotLayerAdapter
+#                       when an explicit alignment proof was consumed.
+#   letter_identity   — LetterIdentityQiyas source breadcrumb.
+#   haraka_function   — HarakaFunctionQiyas source breadcrumb.
+#   position          — PositionQiyas source breadcrumb.
+#   carrier_binding   — ConditionedTypedSequenceQiyas / CarrierBindingCandidate
+#                       source breadcrumb.
+#
+# Each substring must appear in at least one `trace_ids` entry of the
+# slot. Each absence is recorded as a distinct invalidating-difference
+# claim (`فارق:*:present`), so the kernel blocks the candidate with
+# `blocking_fariq_present` rather than silently accepting a
+# half-audited slot.
 _ALIGNMENT_REF_SUBSTRING = ":alignment_ref:"
+_LETTER_IDENTITY_BREADCRUMB = ":letter_identity:"
+_HARAKA_FUNCTION_BREADCRUMB = ":haraka_function:"
+_POSITION_BREADCRUMB = ":position:"
+_CARRIER_BINDING_BREADCRUMB = ":carrier_binding:"
 
 # Fingerprint of a valid `SlotCandidate`, per
 # `SLOT_GEOMETRY_ALIGNMENT_TRACE_CONTRACT.md` §2.1.
@@ -168,8 +191,28 @@ def get_construction_mode(candidate: Candidate) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+def _has_substring_in_trace(slot: Candidate, substring: str) -> bool:
+    return any(substring in tid for tid in slot.trace_ids)
+
+
 def _has_alignment_ref(slot: Candidate) -> bool:
-    return any(_ALIGNMENT_REF_SUBSTRING in tid for tid in slot.trace_ids)
+    return _has_substring_in_trace(slot, _ALIGNMENT_REF_SUBSTRING)
+
+
+def _has_letter_identity_breadcrumb(slot: Candidate) -> bool:
+    return _has_substring_in_trace(slot, _LETTER_IDENTITY_BREADCRUMB)
+
+
+def _has_haraka_function_breadcrumb(slot: Candidate) -> bool:
+    return _has_substring_in_trace(slot, _HARAKA_FUNCTION_BREADCRUMB)
+
+
+def _has_position_breadcrumb(slot: Candidate) -> bool:
+    return _has_substring_in_trace(slot, _POSITION_BREADCRUMB)
+
+
+def _has_carrier_binding_breadcrumb(slot: Candidate) -> bool:
+    return _has_substring_in_trace(slot, _CARRIER_BINDING_BREADCRUMB)
 
 
 def _is_candidate_only(slot: Candidate) -> bool:
@@ -182,16 +225,6 @@ def _has_no_forbidden_final_flags(slot: Candidate) -> bool:
 
 def _identity_trace_disjoint(slot: Candidate) -> bool:
     return not (set(slot.identity_ids) & set(slot.trace_ids))
-
-
-def _has_codepoint_identity(slot: Candidate) -> bool:
-    """A SlotCandidate produced by ``slot.composition`` carries the
-    letter and haraka codepoint identities in its ``identity_ids``
-    (per ``slot_adapter.py``'s pillar-merge). The presence of at least
-    one ``identity:codepoint:*`` entry is the structural witness of
-    the letter-identity and haraka-function source breadcrumbs
-    required by §2.2."""
-    return any(iid.startswith("identity:codepoint:") for iid in slot.identity_ids)
 
 
 # ---------------------------------------------------------------------------
@@ -609,30 +642,31 @@ class SlotGeometryLayerAdapter:
         else:
             proves.append("فارق:rank_zero:present")
 
-        # 2.2 trace audit — the structural witnesses for the four
-        # Phase-1 contributing proofs. The `alignment_ref` substring
-        # is the CTS / carrier-binding witness (written only by
-        # slot_adapter when an alignment proof was consumed). The
-        # `identity:codepoint:` prefix on identity_ids is the
-        # letter+haraka codepoint provenance. The `source_rule_id ==
-        # "slot.composition"` plus the slot rule's preconditions
-        # constitute the letter-identity / haraka-function / position
-        # source breadcrumbs.
+        # 2.2 trace audit — five explicit substring breadcrumbs in the
+        # slot's `trace_ids`. Each pillar is checked independently,
+        # and each absence becomes its own invalidating-difference
+        # claim so the kernel blocks a half-audited slot rather than
+        # silently accepting it.
         if _has_alignment_ref(slot):
             proves.append("وصف:alignment_ref_in_trace:evidenced")
-            proves.append("وصف:cts_carrier_binding_source_audited:evidenced")
         else:
             proves.append("فارق:missing_alignment_ref:present")
-        if _has_codepoint_identity(slot):
+        if _has_letter_identity_breadcrumb(slot):
             proves.append("وصف:letter_identity_source_audited:evidenced")
+        else:
+            proves.append("فارق:missing_letter_identity_breadcrumb:present")
+        if _has_haraka_function_breadcrumb(slot):
             proves.append("وصف:haraka_function_source_audited:evidenced")
-        # Position source breadcrumb is implied by
-        # `source_rule_id == "slot.composition"` (the slot rule
-        # requires has_position_carrier as a precondition). When the
-        # source-rule check above held, we emit the position audit
-        # claim.
-        if slot.source_rule_id == _REQUIRED_SLOT_SOURCE_RULE_ID:
+        else:
+            proves.append("فارق:missing_haraka_function_breadcrumb:present")
+        if _has_position_breadcrumb(slot):
             proves.append("وصف:position_source_audited:evidenced")
+        else:
+            proves.append("فارق:missing_position_breadcrumb:present")
+        if _has_carrier_binding_breadcrumb(slot):
+            proves.append("وصف:cts_carrier_binding_source_audited:evidenced")
+        else:
+            proves.append("فارق:missing_carrier_binding_breadcrumb:present")
 
         return proves
 

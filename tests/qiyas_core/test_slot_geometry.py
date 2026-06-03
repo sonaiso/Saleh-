@@ -53,20 +53,40 @@ def _make_slot_candidate(
     *,
     letter_cp: str = "0628",
     haraka_cp: str = "064e",
-    trace_label: str = "slot0",
+    trace_label: str = "S1",
     source_rule_id: str = "slot.composition",
     candidate_type: str = "SlotCandidate",
     include_alignment_ref: bool = True,
+    include_letter_identity_breadcrumb: bool = True,
+    include_haraka_function_breadcrumb: bool = True,
+    include_position_breadcrumb: bool = True,
+    include_carrier_binding_breadcrumb: bool = True,
     rank: EvidenceRank = EvidenceRank.FORMAL_STRUCTURE,
     extra_identity: tuple[str, ...] = (),
     output_flags: frozenset[str] = frozenset({"CandidateOnly"}),
 ) -> Candidate:
-    """Construct a SlotCandidate-shaped fixture matching the §2 contract.
+    """Construct an honest ``SlotCandidate`` test fixture per
+    ``SLOT_GEOMETRY_ALIGNMENT_TRACE_CONTRACT.md`` §2.
 
-    Defaults to a slot for بـَ (ba + fatha): letter identity at
-    U+0628, haraka function at U+064E, with an alignment_ref trace
-    entry written as ``slot_adapter`` would. Adjust any flag to
-    produce a §2-violating fixture for the rejection tests.
+    This is **explicitly a test fixture**, not a slot produced by
+    ``run_qiyas.py`` — but it carries the five breadcrumbs that §2.2
+    requires, so the slot-geometry adapter can audit each pillar
+    source independently. Each ``include_*_breadcrumb`` flag toggles
+    one breadcrumb off, used by the rejection tests below.
+
+    Default trace shape mirrors the user-spec example:
+
+        trace_ids = (
+          "trace:slot:alignment_ref:test:S1",
+          "trace:letter_identity:test:S1",
+          "trace:haraka_function:test:S1",
+          "trace:position:test:S1",
+          "trace:carrier_binding:test:S1",
+        )
+
+    All five breadcrumbs are present by default; the fixture is
+    honest about being a fixture (trace labels start with
+    ``test:``).
     """
     identity_ids = (
         f"identity:codepoint:{letter_cp}",
@@ -75,21 +95,27 @@ def _make_slot_candidate(
         *extra_identity,
     )
     trace_ids: list[str] = [
-        f"trace:{trace_label}:ev",
+        f"trace:fixture:{trace_label}:ev",
     ]
     if include_alignment_ref:
-        trace_ids.append(
-            f"trace:{trace_label}:alignment_ref:cb_{uuid.uuid4().hex[:8]}"
-        )
+        trace_ids.append(f"trace:slot:alignment_ref:test:{trace_label}")
+    if include_letter_identity_breadcrumb:
+        trace_ids.append(f"trace:letter_identity:test:{trace_label}")
+    if include_haraka_function_breadcrumb:
+        trace_ids.append(f"trace:haraka_function:test:{trace_label}")
+    if include_position_breadcrumb:
+        trace_ids.append(f"trace:position:test:{trace_label}")
+    if include_carrier_binding_breadcrumb:
+        trace_ids.append(f"trace:carrier_binding:test:{trace_label}")
 
     return Candidate(
-        candidate_id=f"slot:{trace_label}:{uuid.uuid4().hex[:8]}",
+        candidate_id=f"slot:fixture:{trace_label}:{uuid.uuid4().hex[:8]}",
         candidate_type=candidate_type,
         status=CandidateStatus.ACCEPTED,
         layer="SlotQiyas",
         source_rule_id=source_rule_id,
         asl_id="اصل:slot_composition_domain",
-        far_id=f"فرع:slot:{trace_label}",
+        far_id=f"فرع:slot:fixture:{trace_label}",
         identity_ids=identity_ids,
         rank=rank,
         residuals=(),
@@ -189,6 +215,74 @@ def test_seed_rejects_slot_candidate_not_from_slot_composition():
     assert "blocking_fariq_present" in residual_types
 
 
+# ---------------------------------------------------------------------------
+# Per-pillar breadcrumb rejection — extending spec test 3 to each of
+# the four §2.2 source-trace audit pillars.
+# ---------------------------------------------------------------------------
+
+
+def test_seed_rejects_slot_candidate_without_letter_identity_breadcrumb():
+    """§2.2: a SlotCandidate missing the ``:letter_identity:``
+    substring in its ``trace_ids`` is blocked with a
+    ``missing_letter_identity_breadcrumb`` fariq."""
+    slot = _make_slot_candidate(include_letter_identity_breadcrumb=False)
+    result = _adapter().seed_geometry(slot)
+    assert len(result.accepted) == 0
+    assert len(result.blocked) == 1
+    residual_types = {r.residual_type for r in result.blocked[0].residuals}
+    assert "blocking_fariq_present" in residual_types
+
+
+def test_seed_rejects_slot_candidate_without_haraka_function_breadcrumb():
+    """§2.2: a SlotCandidate missing the ``:haraka_function:``
+    substring in its ``trace_ids`` is blocked with a
+    ``missing_haraka_function_breadcrumb`` fariq."""
+    slot = _make_slot_candidate(include_haraka_function_breadcrumb=False)
+    result = _adapter().seed_geometry(slot)
+    assert len(result.accepted) == 0
+    assert len(result.blocked) == 1
+    residual_types = {r.residual_type for r in result.blocked[0].residuals}
+    assert "blocking_fariq_present" in residual_types
+
+
+def test_seed_rejects_slot_candidate_without_position_breadcrumb():
+    """§2.2: a SlotCandidate missing the ``:position:`` substring in
+    its ``trace_ids`` is blocked with a ``missing_position_breadcrumb``
+    fariq."""
+    slot = _make_slot_candidate(include_position_breadcrumb=False)
+    result = _adapter().seed_geometry(slot)
+    assert len(result.accepted) == 0
+    assert len(result.blocked) == 1
+    residual_types = {r.residual_type for r in result.blocked[0].residuals}
+    assert "blocking_fariq_present" in residual_types
+
+
+def test_seed_rejects_slot_candidate_without_carrier_binding_breadcrumb():
+    """§2.2: a SlotCandidate missing the ``:carrier_binding:`` substring
+    in its ``trace_ids`` is blocked with a
+    ``missing_carrier_binding_breadcrumb`` fariq."""
+    slot = _make_slot_candidate(include_carrier_binding_breadcrumb=False)
+    result = _adapter().seed_geometry(slot)
+    assert len(result.accepted) == 0
+    assert len(result.blocked) == 1
+    residual_types = {r.residual_type for r in result.blocked[0].residuals}
+    assert "blocking_fariq_present" in residual_types
+
+
+def test_default_fixture_carries_all_five_breadcrumbs():
+    """The default fixture is honest about being a fixture but carries
+    all five §2.2 breadcrumbs — `alignment_ref`, `letter_identity`,
+    `haraka_function`, `position`, and `carrier_binding`. This guards
+    against silent drift in the fixture's audit shape."""
+    slot = _make_slot_candidate()
+    joined = " | ".join(slot.trace_ids)
+    assert ":alignment_ref:" in joined
+    assert ":letter_identity:" in joined
+    assert ":haraka_function:" in joined
+    assert ":position:" in joined
+    assert ":carrier_binding:" in joined
+
+
 # ===========================================================================
 # Extend tests — spec items 5, 6, 7, 8, 9, 10, 11.
 # ===========================================================================
@@ -197,7 +291,7 @@ def test_seed_rejects_slot_candidate_not_from_slot_composition():
 def _seed_geometry_for_extend() -> Candidate:
     """Produce an accepted length-1 SlotGeometryCandidate for use as
     the ``previous`` argument to an extend call."""
-    seed = _make_slot_candidate(trace_label="slot_a", letter_cp="0628")
+    seed = _make_slot_candidate(trace_label="Sa", letter_cp="0628")
     result = _adapter().seed_geometry(seed)
     assert len(result.accepted) == 1
     return result.accepted[0]
@@ -209,7 +303,7 @@ def test_extend_accepts_valid_geometry_plus_next_slot_plus_binding():
     a valid next slot, and a §5-compliant binding."""
     previous = _seed_geometry_for_extend()
     next_slot = _make_slot_candidate(
-        trace_label="slot_b", letter_cp="062a", haraka_cp="0652"
+        trace_label="Sb", letter_cp="062a", haraka_cp="0652"
     )
     result = _adapter().extend_geometry(previous, next_slot, _binding())
 
@@ -224,7 +318,7 @@ def test_extend_increments_length():
     ``extend_geometry`` call."""
     previous = _seed_geometry_for_extend()
     next_slot = _make_slot_candidate(
-        trace_label="slot_b", letter_cp="062a", haraka_cp="0652"
+        trace_label="Sb", letter_cp="062a", haraka_cp="0652"
     )
     result = _adapter().extend_geometry(previous, next_slot, _binding())
 
@@ -238,7 +332,7 @@ def test_extend_sets_construction_mode_extension():
     ``"extension"`` — never ``"seed"`` or anything else."""
     previous = _seed_geometry_for_extend()
     next_slot = _make_slot_candidate(
-        trace_label="slot_b", letter_cp="062a", haraka_cp="0652"
+        trace_label="Sb", letter_cp="062a", haraka_cp="0652"
     )
     result = _adapter().extend_geometry(previous, next_slot, _binding())
 
@@ -252,7 +346,7 @@ def test_extend_preserves_identity_and_trace_separation():
     ``identity_ids`` (CLAUDE.md §4 invariants 1–3, 4)."""
     previous = _seed_geometry_for_extend()
     next_slot = _make_slot_candidate(
-        trace_label="slot_b", letter_cp="062a", haraka_cp="0652"
+        trace_label="Sb", letter_cp="062a", haraka_cp="0652"
     )
     result = _adapter().extend_geometry(previous, next_slot, _binding())
 
@@ -271,7 +365,7 @@ def test_extend_uses_rank_meet():
     FORMAL_STRUCTURE, never rises above."""
     previous = _seed_geometry_for_extend()
     next_slot = _make_slot_candidate(
-        trace_label="slot_b", letter_cp="062a", haraka_cp="0652"
+        trace_label="Sb", letter_cp="062a", haraka_cp="0652"
     )
     result = _adapter().extend_geometry(previous, next_slot, _binding())
 
@@ -287,7 +381,7 @@ def test_extend_rejects_cross_boundary_binding():
     the boundary-crossing claim."""
     previous = _seed_geometry_for_extend()
     next_slot = _make_slot_candidate(
-        trace_label="slot_b", letter_cp="062a", haraka_cp="0652"
+        trace_label="Sb", letter_cp="062a", haraka_cp="0652"
     )
     bad_binding = _binding(
         prev_segment_id=0,
@@ -307,7 +401,7 @@ def test_extend_rejects_missing_slot_binding_evidence():
     with a ``binding_evidence_missing`` fariq."""
     previous = _seed_geometry_for_extend()
     next_slot = _make_slot_candidate(
-        trace_label="slot_b", letter_cp="062a", haraka_cp="0652"
+        trace_label="Sb", letter_cp="062a", haraka_cp="0652"
     )
     result = _adapter().extend_geometry(previous, next_slot, None)
 
@@ -324,7 +418,7 @@ def test_extend_rejects_cross_punctuation_binding():
     as distinct fariq classes.)"""
     previous = _seed_geometry_for_extend()
     next_slot = _make_slot_candidate(
-        trace_label="slot_b", letter_cp="062a", haraka_cp="0652"
+        trace_label="Sb", letter_cp="062a", haraka_cp="0652"
     )
     bad_binding = _binding(
         prev_segment_id=0,
