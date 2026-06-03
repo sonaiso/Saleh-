@@ -40,6 +40,12 @@ from .position_rules import (
     ISOLATED_POSITION_RULE,
     get_position_rule,
 )
+from .slot_geometry_rules import (
+    SLOT_GEOMETRY_EXTEND_RULE,
+    SLOT_GEOMETRY_RULES,
+    SLOT_GEOMETRY_SEED_RULE,
+    get_slot_geometry_rule_for_construction_mode,
+)
 from .slot_rules import SLOT_COMPOSITION_RULE
 
 __all__ = [
@@ -78,4 +84,9 @@ __all__ = [
     "get_position_rule",
     # Slot
     "SLOT_COMPOSITION_RULE",
+    # SlotGeometry (Phase-2 Batch 1)
+    "SLOT_GEOMETRY_SEED_RULE",
+    "SLOT_GEOMETRY_EXTEND_RULE",
+    "SLOT_GEOMETRY_RULES",
+    "get_slot_geometry_rule_for_construction_mode",
 ]
