@@ -48,7 +48,20 @@ def test_log_roundtrip_for_licensed_quantity():
     assert isinstance(restored, LicensedMeasuredQuantity)
     assert restored.quantity_id == q.quantity_id
     assert restored.unit == q.unit
-    assert restored.trace_ids == q.trace_ids
+    # Trace is monotonic across log → inverse_log:
+    # `log_quantity` appends an operation trace
+    # (LICENSED_LOGARITHMIC_MEASUREMENT_LAW.md §304 / §463), and
+    # `inverse_log_quantity` must preserve it (§196 — "trace is
+    # preserved"). Silently dropping it would violate CLAUDE.md §4
+    # invariant 7 ("residuals must not be hidden or silently
+    # discarded") and the same preservation discipline the
+    # constitution applies to trace. The original `q.trace_ids`
+    # therefore appears as a strict prefix of `restored.trace_ids`,
+    # and the appended log-operation trace entry is visible.
+    assert restored.trace_ids[: len(q.trace_ids)] == q.trace_ids
+    assert any(
+        t.startswith("trace:log_quantity:") for t in restored.trace_ids
+    ), "log_quantity operation trace must be preserved through inverse"
     assert restored.residual_ids == q.residual_ids
     assert restored.value == pytest.approx(q.value)
 
