@@ -77,18 +77,42 @@ where each block is:
 
 ### Law 1: Reversibility Requirement
 
+**CRITICAL AMENDMENT:** See `INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md` for full constitutional correction.
+
 ```
-Pack/Unpack must be reversible:
+Pack/Unpack must be reversible for gate state projection:
 
-Unpack(Pack(x)) = x
+Unpack(Pack(c)) = EncodedCandidateStateProjection(c)
 
-∀ candidate c:
-  Unpack(LCNV(c)) = c
+Where:
+  EncodedCandidateStateProjection(c) contains:
+    - Decoded gate states from LCNV layers
+    - Layer structure (which layers were encoded)
+    - Rank/residual encoding from LCNV
+    - References to required stores
+
+  EncodedCandidateStateProjection(c) does NOT contain:
+    - Independent semantic authority
+    - Complete evidence reconstruction
+    - Full trace reconstruction
+    - Source identity reconstruction
 ```
 
-**Reason:** If numeric encoding is not reversible, it becomes a hash or flat scalar that loses layer structure. This would violate identity preservation and trace preservation.
+**Full Candidate reconstruction requires stores:**
 
-**Implication:** LCNV is NOT a lossy compression. It is a structured encoding.
+```
+projection = Unpack(LCNV(c))
+candidate = ReconstructCandidate(
+    projection,           # Gate states + structure from LCNV
+    candidate_store,      # Source of truth for Candidates
+    evidence_store,       # Source of truth for Evidence
+    trace_store          # Source of truth for Trace
+)
+```
+
+**Reason:** LCNV is an **encoding of gate states**, NOT source of truth. Candidate primacy requires that full Candidate reconstruction use Candidate/Evidence/Trace stores. The previous unsafe formulation (`Unpack returns full Candidate directly`) would make LCNV source of truth, violating constitutional architecture.
+
+**Implication:** LCNV is NOT a lossy compression. It is a structured encoding of gate states that requires stores for full Candidate authority.
 
 ### Law 2: Candidate Primacy
 
@@ -415,37 +439,45 @@ def pack(candidate: Candidate) -> LCNV:
 
 ### 4.2 Unpack Operation
 
+**CRITICAL:** See `INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md` for correct implementation.
+
 ```python
-def unpack(lcnv: LCNV) -> Candidate:
+def unpack(lcnv: LCNV) -> EncodedCandidateStateProjection:
     """
-    Decode LCNV back to candidate state.
+    Decode LCNV to gate state projection.
 
     Preconditions:
     - lcnv must have been produced by pack()
     - lcnv must preserve structure
 
     Returns:
-    - Original candidate with full:
-      - identity_ids
-      - evidence
-      - rank
-      - trace_ids
-      - residuals
+    - EncodedCandidateStateProjection with:
+      - Decoded gate states (binding, mutabaqah, tadammun, iltizam)
+      - Layer block values (MCLO, LexicalOnly, MeaningOnly)
+      - Rank/residual encoding
+      - Store references (for full Candidate reconstruction)
+
+    Does NOT return:
+    - Full Candidate (requires stores)
+    - Evidence (stored in EvidenceStore)
+    - Trace (stored in TraceStore)
+    - Source identity (stored in CandidateStore)
 
     Guarantees:
-    - Unpack(Pack(c)) = c
-    - All layer structure preserved
-    - No information loss
+    - Unpack(Pack(c)) = EncodedCandidateStateProjection(c)
+    - All gate state structure preserved
+    - Store references included for reconstruction
     """
-    return reconstruct_candidate(
-        signifier=decode_signifier(lcnv.mclo) if lcnv.mclo != CLOSED else None,
-        lexical=decode_lexical(lcnv.lexical) if lcnv.lexical != CLOSED else None,
-        meaning=decode_meaning(lcnv.meaning) if lcnv.meaning != CLOSED else None,
-        binding=decode_binding(lcnv.binding) if lcnv.binding != CLOSED else None,
-        mutabaqah=decode_mutabaqah(lcnv.mutabaqah) if lcnv.mutabaqah != CLOSED else None,
-        tadammun=decode_tadammun(lcnv.tadammun) if lcnv.tadammun != CLOSED else None,
-        iltizam=decode_iltizam(lcnv.iltizam) if lcnv.iltizam != CLOSED else None,
-        rank_residual=decode_rank_residual(lcnv.rank_residual),
+    return EncodedCandidateStateProjection(
+        mclo_state=decode_signifier(lcnv.mclo) if lcnv.mclo != CLOSED else None,
+        lexical_only_state=decode_lexical(lcnv.lexical) if lcnv.lexical != CLOSED else None,
+        meaning_only_state=decode_meaning(lcnv.meaning) if lcnv.meaning != CLOSED else None,
+        binding_gate=decode_binding(lcnv.binding),
+        mutabaqah_gate=decode_mutabaqah(lcnv.mutabaqah),
+        tadammun_gate=decode_tadammun(lcnv.tadammun),
+        iltizam_gate=decode_iltizam(lcnv.iltizam),
+        rank_residual_state=decode_rank_residual(lcnv.rank_residual),
+        requires_stores=True,  # ALWAYS True
     )
 ```
 
@@ -682,11 +714,11 @@ LCNV:
 
 **Required before implementation:**
 1. ✓ PR #43 merged (glyph gate + specific residuals)
-2. ✓ This document (PR #44) merged
-3. ⚠️ PR #45 merged (inverse + logarithmic measurement law)
-4. ⚠️ PR #46 merged (Full SifatVector structure)
-5. ⚠️ PR #47 merged (source-of-truth registries)
-6. ⚠️ PR #48 merged (full coordinate coverage)
+2. ✓ PR #44 merged (this document)
+3. ✓ PR #50 merged (inverse + logarithmic measurement law + authority audit)
+4. ⚠️ Full SifatVector structure
+5. ⚠️ Source-of-truth registries complete
+6. ⚠️ Full coordinate coverage verified
 
 **Only THEN:**
 7. PR #50: SignifierOnlyValue / MCLO prototype
@@ -761,7 +793,7 @@ LCNV:
 """
 LCNV Governing Laws:
 
-1. Reversibility: Unpack(Pack(x)) = x
+1. Reversibility: Unpack(Pack(c)) = EncodedCandidateStateProjection(c)
 2. Candidate Primacy: Candidate = source of truth, LCNV = encoding
 3. Gate Awareness: CLOSED = gate not opened (not zero)
 4. Semantic Force: semantic_force = FORBIDDEN for all blocks
@@ -792,9 +824,12 @@ Forbidden:
 - abjad_system.py — conventional Abjad coordinates with semantic_force=FORBIDDEN
 - Layer 2 coordinate adapters — glyph-gated coordinate production
 
+**Governing Laws (MANDATORY):**
+- INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md — **CORRECTS** § 2.1 (Reversibility Requirement)
+- PR_1_49_AUTHORITY_AUDIT.md — Governance framework preventing doc-authority mismatch
+
 **Future Documents:**
-- INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md (PR #45)
-- SIFAT_VECTOR_CONTRACT.md (extended by PR #46)
+- SIFAT_VECTOR_CONTRACT.md (extended coordinate systems)
 
 **Related Memories:**
 - numeric coordinate derivation (makhraj + branch + degree + system + evidence + rank, semantic_force=FORBIDDEN)
@@ -836,8 +871,8 @@ No closure without computed residuals.
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2026-06-02
-**Status:** Constitutional constraint document
+**Document Version:** 1.0 (Amended by PR #50)
+**Last Updated:** 2026-06-03
+**Status:** Constitutional constraint document (amended)
 **Authority:** Governs all numeric encoding of qiyas layer state
-**Next Document:** INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md (PR #45)
+**Governing Law:** INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md (corrects § 2.1)
