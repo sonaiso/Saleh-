@@ -141,6 +141,24 @@ FORBIDDEN_CONDITIONED_TYPED_SEQUENCE: tuple[str, ...] = (
     "FinalCaseJudgment",
 )
 
+# SlotGeometry layer (PR #64 → PR #65 centralization)
+# Per SLOT_GEOMETRY_ALIGNMENT_TRACE_CONTRACT.md §9 and §11:
+# SlotGeometryQiyas produces only SlotGeometryCandidate (§9).
+# Seed and extension are construction modes, not separate candidate types.
+# MinimalCompletionReadinessCandidate is future-reserved, NOT admissible yet.
+FORBIDDEN_SLOT_GEOMETRY: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    "FinalCaseJudgment",
+    "DalalahCandidate",
+    "WordCandidate",
+    "LafzCandidate",
+    "SentenceCandidate",
+    "ParagraphCandidate",
+    "DiscourseGeometryCandidate",
+    "TextGeometryCandidate",
+    "MinimalCompletionReadinessCandidate",
+)
+
 
 # ---------------------------------------------------------------------------
 # Registry mapping layer name → forbidden tuple
@@ -153,6 +171,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "PositionQiyas": FORBIDDEN_POSITION,
     "ConditionedTypedSequenceQiyas": FORBIDDEN_CONDITIONED_TYPED_SEQUENCE,
     "SlotQiyas": FORBIDDEN_SLOT,
+    "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,
 }
 
