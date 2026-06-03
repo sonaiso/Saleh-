@@ -36,6 +36,30 @@ class LogMeasurementError(ValueError):
     """Raised when logarithmic measurement is attempted outside its licensed domain."""
 
 
+def _has_blocking_residual(residual_ids: tuple[str, ...]) -> bool:
+    """
+    Check if any residual is blocking.
+
+    Blocking residuals prevent logarithmic operations.
+    Patterns that indicate blocking:
+    - residual:blocking:*
+    - *:blocking:*
+    - blocking:*
+
+    Args:
+        residual_ids: Tuple of residual identifier strings
+
+    Returns:
+        True if any residual is blocking, False otherwise
+    """
+    return any(
+        r.startswith("residual:blocking")
+        or ":blocking:" in r
+        or r.startswith("blocking:")
+        for r in residual_ids
+    )
+
+
 @dataclass(frozen=True)
 class LicensedMeasuredQuantity:
     """
@@ -68,6 +92,8 @@ class LicensedMeasuredQuantity:
             raise LogMeasurementError("log requires declared unit")
         if not self.trace_ids:
             raise LogMeasurementError("log requires trace_ids")
+        if _has_blocking_residual(self.residual_ids):
+            raise LogMeasurementError("log rejects blocking residuals")
 
 
 @dataclass(frozen=True)
@@ -146,13 +172,16 @@ def log_quantity(
 
     result = Decimal(str(_log(float(shifted_value), float(base))))
 
+    # Extend trace with log operation trace
+    extended_trace = quantity.trace_ids + (f"trace:log_quantity:{quantity.quantity_id}",)
+
     return LogMeasuredQuantity(
         source_quantity_id=quantity.quantity_id,
         log_value=result,
         base=base,
         shift=shift,
         unit=quantity.unit,
-        trace_ids=quantity.trace_ids,
+        trace_ids=extended_trace,
         residual_ids=quantity.residual_ids,
         rank=quantity.rank,
     )

@@ -158,10 +158,10 @@ def test_log_preserves_unit():
 
 def test_log_preserves_trace():
     """
-    Verify logarithm preserves trace_ids.
+    Verify logarithm preserves and extends trace_ids.
 
     Constitutional requirement:
-    Trace must be preserved through log/inverse_log.
+    Trace must be preserved AND extended through log operation.
     """
     q = LicensedMeasuredQuantity(
         quantity_id="quantity:test",
@@ -174,8 +174,14 @@ def test_log_preserves_trace():
     lq = log_quantity(q, base=Decimal("10"), shift=Decimal("1"))
     restored = inverse_log_quantity(lq)
 
-    assert lq.trace_ids == ("trace:qiyas:1", "trace:qiyas:2")
-    assert restored.trace_ids == ("trace:qiyas:1", "trace:qiyas:2")
+    # Log output should include original traces plus log operation trace
+    assert "trace:qiyas:1" in lq.trace_ids
+    assert "trace:qiyas:2" in lq.trace_ids
+    assert len(lq.trace_ids) > len(q.trace_ids)
+
+    # Restored should preserve the extended trace
+    assert "trace:qiyas:1" in restored.trace_ids
+    assert "trace:qiyas:2" in restored.trace_ids
 
 
 def test_log_preserves_residuals():
@@ -286,3 +292,86 @@ def test_log_with_different_bases():
     lq10 = log_quantity(q, base=Decimal("10"), shift=Decimal("1"))
     restored10 = inverse_log_quantity(lq10)
     assert restored10.value == pytest.approx(q.value)
+
+
+def test_log_rejects_blocking_residuals():
+    """
+    Verify logarithm rejects quantities with blocking residuals.
+
+    Constitutional requirement:
+    log requires absence of blocking residuals (No blocking residuals in al-mani').
+    """
+    # Test residual:blocking:* pattern
+    with pytest.raises(LogMeasurementError, match="log rejects blocking residuals"):
+        LicensedMeasuredQuantity(
+            quantity_id="quantity:blocked1",
+            value=Decimal("9"),
+            unit="count",
+            gate="OPEN",
+            trace_ids=("trace:x",),
+            residual_ids=("residual:blocking:unit_uncertain",),
+        )
+
+    # Test *:blocking:* pattern
+    with pytest.raises(LogMeasurementError, match="log rejects blocking residuals"):
+        LicensedMeasuredQuantity(
+            quantity_id="quantity:blocked2",
+            value=Decimal("9"),
+            unit="count",
+            gate="OPEN",
+            trace_ids=("trace:x",),
+            residual_ids=("domain:blocking:invalid",),
+        )
+
+    # Test blocking:* pattern
+    with pytest.raises(LogMeasurementError, match="log rejects blocking residuals"):
+        LicensedMeasuredQuantity(
+            quantity_id="quantity:blocked3",
+            value=Decimal("9"),
+            unit="count",
+            gate="OPEN",
+            trace_ids=("trace:x",),
+            residual_ids=("blocking:gate_conflict",),
+        )
+
+    # Verify non-blocking residuals are still accepted
+    q_nonblocking = LicensedMeasuredQuantity(
+        quantity_id="quantity:ok",
+        value=Decimal("9"),
+        unit="count",
+        gate="OPEN",
+        trace_ids=("trace:x",),
+        residual_ids=("residual:non_blocking:minor_issue",),
+    )
+    assert q_nonblocking is not None
+
+
+def test_log_extends_trace():
+    """
+    Verify logarithm extends trace with operation trace.
+
+    Constitutional requirement:
+    Trace must be preserved AND extended with log operation trace.
+    """
+    q = LicensedMeasuredQuantity(
+        quantity_id="quantity:test",
+        value=Decimal("9"),
+        unit="count",
+        gate="OPEN",
+        trace_ids=("trace:qiyas:1", "trace:qiyas:2"),
+    )
+
+    lq = log_quantity(q, base=Decimal("10"), shift=Decimal("1"))
+
+    # Trace should include original traces
+    assert "trace:qiyas:1" in lq.trace_ids
+    assert "trace:qiyas:2" in lq.trace_ids
+
+    # Trace should include log operation trace
+    assert any("trace:log_quantity:" in t for t in lq.trace_ids), (
+        f"Expected log operation trace in {lq.trace_ids}"
+    )
+
+    # Trace should have more entries than original
+    assert len(lq.trace_ids) > len(q.trace_ids)
+

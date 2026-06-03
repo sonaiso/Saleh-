@@ -297,12 +297,15 @@ def test_logarithm_law_preserves_algebraic_invariants():
     )
 
 
-def test_logarithm_law_no_runtime_implementation():
+def test_logarithm_law_declares_initial_isolated_runtime():
     """
-    Verify the document explicitly states NO runtime implementation yet.
+    Verify the document declares initial isolated runtime implementation status.
 
-    This is a constitutional constraint document only.
-    Runtime implementation must come later in a separate PR.
+    The document must state:
+    - Initial isolated runtime exists
+    - No LCNV integration yet
+    - No Candidate integration yet
+    - No MCLO integration yet
     """
     doc_path = Path(__file__).parent.parent.parent / "docs" / "qiyas_core" / "LICENSED_LOGARITHMIC_MEASUREMENT_LAW.md"
 
@@ -310,10 +313,9 @@ def test_logarithm_law_no_runtime_implementation():
 
     text = doc_path.read_text(encoding="utf-8")
 
-    # Must state no runtime implementation
-    assert "no runtime implementation yet" in text.lower() or "No runtime implementation yet" in text, (
-        "Document must explicitly state that no runtime implementation exists yet. "
-        "This is a constitutional constraint document only."
+    # Must state initial isolated runtime exists
+    assert "initial isolated runtime implementation" in text, (
+        "Document must explicitly state that initial isolated runtime implementation exists."
     )
 
     # Must have implementation status section
@@ -321,9 +323,21 @@ def test_logarithm_law_no_runtime_implementation():
         "Document must have an 'Implementation Status' section."
     )
 
-    # Must state it's constitutional constraint only
-    assert "Constitutional constraint" in text or "constitutional constraint" in text, (
-        "Document must identify itself as a constitutional constraint document."
+    # Must state what is NOT implemented
+    required_not_implemented = [
+        "No LCNV integration",
+        "No Candidate integration",
+        "No MCLO integration",
+    ]
+
+    missing = []
+    for phrase in required_not_implemented:
+        if phrase not in text:
+            missing.append(phrase)
+
+    assert not missing, (
+        f"Document must explicitly state what is NOT implemented: {missing}\n\n"
+        f"This prevents confusion about the scope of the initial isolated runtime."
     )
 
 

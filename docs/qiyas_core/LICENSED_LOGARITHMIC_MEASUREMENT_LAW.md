@@ -18,7 +18,7 @@
 
 **Document Version:** 1.0
 
-**Status:** Constitutional constraint—no runtime implementation yet
+**Status:** Constitutional constraint with initial isolated runtime implementation
 
 **Purpose:**
 - Define what logarithmic operations ARE permitted (licensed measured quantities only)
@@ -441,23 +441,34 @@ It may ONLY be used on numeric blocks that:
 
 ## 10. Implementation Status
 
-**Current status:** Constitutional constraint only
+**Current status:** Constitutional constraint with initial isolated runtime implementation
 
-**No runtime implementation yet.**
+**What exists:**
+
+A minimal isolated runtime implementation exists in `src/qiyas_core/logarithmic_measurement.py` providing:
+- LicensedMeasuredQuantity dataclass
+- LogMeasuredQuantity dataclass
+- log_quantity function with wad' validation
+- inverse_log_quantity function with wad' validation
+
+**What is NOT implemented:**
+- No LCNV integration
+- No Candidate integration
+- No MCLO integration
+- No Pack/Unpack integration
+- No semantic or hukm integration
+
+**What IS implemented:**
+- Blocking residual classification and validation (rejects residual:blocking:*, *:blocking:*, blocking:*)
+- Operation trace extension (appends trace:log_quantity:{quantity_id} to trace_ids)
 
 **Future implementation requirements:**
 
-When implementing logarithmic measurement operations, the implementation MUST:
-1. Define LicensedMeasuredQuantity dataclass
-2. Define LogMeasuredQuantity dataclass
-3. Implement log function with wad' validation
-4. Implement inverse_log function with wad' validation
-5. Add runtime tests verifying all constraints
-6. Add farq qadih detection
-7. Add rank preservation
-8. Add residual preservation
-9. Add trace preservation
-10. Add blocking for non-quantities
+Future enhancements to logarithmic measurement operations MUST:
+1. Add farq qadih detection beyond basic type checking
+2. Add rank preservation verification tests
+3. Add comprehensive residual preservation tests
+4. Prevent any integration with Candidate, LCNV, Meaning, Hukm systems
 
 **Implementation MUST NOT:**
 - Accept Candidate as input
