@@ -501,6 +501,125 @@ Root(ب) from numeric  ✗ (semantic derivation)
 
 ---
 
+## External Data Registries
+
+**These are NOT qiyas layers. They provide prior classified knowledge (metadata) that MAY support later evidence, but do NOT license transitions.**
+
+### External Registry: ArabicArticulationRegistry
+
+**Type:** External data registry (NOT a qiyas layer)
+**Constitutional Role:** `external_data_registry_only`
+**Status:** canonical
+**Source PR:** #60
+**Coverage:** 32 Arabic letter/particle articulation entries (4 makhraj groups: jawf, throat, tongue, lips)
+
+**Purpose:** Provides phonetic/articulatory metadata for Arabic symbols as prior classified knowledge. This registry implements the principle:
+
+```
+لا تصور بلا معلومات، ولا معلومات بلا تصنيف
+No conception without information, no information without classification
+```
+
+**Registry Contents:**
+- Symbol → Makhraj group mapping
+- Madd vs non-madd variant distinction (و، ي)
+- Functional particle records (همزة الاستفهام أ)
+- Minimal independent unit signals (metadata only, 8 symbols: و، ف، ب، ك، ل، س، أ، ت)
+
+**Three Governing Laws:**
+
+1. **makhraj ≠ letter_identity**
+   - Articulation place does NOT prove letter identity
+   - Registry provides supporting metadata only
+   - Independent identity proof contract still required
+
+2. **can_function_as_minimal_independent_unit ≠ licensed_slot**
+   - The `minimal_independent_unit` field is a metadata signal only
+   - Does NOT license slot admission
+   - Requires later proofs: `licensed_slot` + `minimal_complete_closure` + `later_dalalah_evidence`
+
+3. **registry metadata ≠ transition authorization**
+   - Registry does NOT authorize qiyas transitions
+   - Must NOT be used to produce Carrier or Candidate directly
+   - May only serve as supporting evidence in independent proof contracts
+
+**Architectural Position:**
+
+```
+PriorClassifiedKnowledge.AlphabetArticulationRegistry
+```
+
+NOT:
+- ❌ LetterIdentityLayer
+- ❌ SlotGeometry
+- ❌ DalalahCandidate
+- ❌ HukmCandidate
+
+**Permitted Flow (Supporting Evidence):**
+
+```
+ArabicArticulationRegistry
+  → supporting metadata only
+  → later LetterIdentity proof MAY consult it
+  → later minimal closure MAY test it
+  → later slot licensing MAY use it
+  → later dalalah evidence MAY interpret it
+```
+
+**FORBIDDEN Shortcuts:**
+
+```
+ArabicArticulationRegistry → LetterIdentityCarrier     ❌ ILLEGAL
+ArabicArticulationRegistry → SlotCandidate             ❌ ILLEGAL
+ArabicArticulationRegistry → SlotGeometry              ❌ ILLEGAL
+ArabicArticulationRegistry → DalalahCandidate          ❌ ILLEGAL
+```
+
+**Reader Module Isolation:**
+- `src/qiyas_core/arabic_articulation_registry.py` uses stdlib only
+- Does NOT import: `Candidate`, `QiyasRule`, `QiyasKernel`, `SlotCandidate`, `SlotGeometry`
+- Tests 16-19 in `test_arabic_articulation_registry.py` enforce import isolation
+
+**Constitutional Constraints (from JSON):**
+```json
+"constitutional_constraints": [
+  "does_not_produce_Candidate",
+  "does_not_use_QiyasRule",
+  "does_not_use_QiyasKernel",
+  "does_not_produce_SlotCandidate",
+  "does_not_produce_SlotGeometry",
+  "does_not_produce_DalalahCandidate",
+  "does_not_produce_FinalMeaning",
+  "does_not_produce_HukmCandidate",
+  "does_not_produce_RealityClaim",
+  "metadata_may_support_later_evidence_only"
+]
+```
+
+**Primary Articulation Discipline:**
+- `get_primary_articulation("و")` → `None` (refuses to pick variant without evidence)
+- `get_primary_articulation("ي")` → `None` (same discipline)
+- Choosing variant without contextual evidence would be unconstitutional
+
+**Scope Note:**
+This registry covers letter articulation entries and functional particles. It does NOT cover all phonological features:
+- ❌ Ghunnah (nasal resonance quality)
+- ❌ Qalqalah (vibration quality)
+- ❌ Tafkhim/Tarqiq (emphasis/thinness)
+- ❌ Madd duration quantities
+
+**Future Consumer Requirement:**
+
+Any adapter that consumes this registry MUST:
+1. Implement independent identity/closure/licensing proof contracts
+2. Use registry as supporting evidence only
+3. NOT produce LetterIdentityCarrier or SlotCandidate directly from registry metadata
+4. Pass constitutional validation before canonical adoption
+
+**Note:** This registry establishes the foundation for prior classified knowledge in the phono-orthographic domain, but remains constitutionally isolated from algebraic transitions. Per CLAUDE.md § 6-8, LetterIdentityCarrier proof does NOT require this registry, and this registry does NOT produce LetterIdentityCarrier.
+
+---
+
 ## Deprecated / Experimental Layers
 
 **These layers exist in experimental/ but are NOT canonical.**
