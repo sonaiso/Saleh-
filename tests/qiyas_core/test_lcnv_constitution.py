@@ -223,6 +223,26 @@ class TestLCNVPackUnpack:
         assert lcnv.rank_block == 5
         assert lcnv.residual_block == 2
 
+    def test_pack_preserves_blocking_residuals_false(self):
+        """Pack preserves has_blocking_residuals=False."""
+        lcnv = pack(
+            mclo_value=42,
+            source_layer_id="test_layer",
+            has_blocking_residuals=False,
+        )
+
+        assert lcnv.has_blocking_residuals is False
+
+    def test_pack_preserves_blocking_residuals_true(self):
+        """Pack preserves has_blocking_residuals=True."""
+        lcnv = pack(
+            mclo_value=42,
+            source_layer_id="test_layer",
+            has_blocking_residuals=True,
+        )
+
+        assert lcnv.has_blocking_residuals is True
+
     def test_unpack_preserves_gate_states(self):
         """Unpack preserves all gate states."""
         lcnv = pack(
@@ -238,6 +258,64 @@ class TestLCNVPackUnpack:
         assert projection.gate_states.lexical_state == CLOSED
         assert projection.gate_states.rank_ceiling == 5
         assert projection.gate_states.residual_count == 2
+
+    def test_unpack_preserves_blocking_residuals_false(self):
+        """Unpack preserves has_blocking_residuals=False."""
+        lcnv = pack(
+            mclo_value=42,
+            source_layer_id="test_layer",
+            has_blocking_residuals=False,
+        )
+
+        projection = unpack(lcnv)
+
+        assert projection.gate_states.has_blocking_residuals is False
+
+    def test_unpack_preserves_blocking_residuals_true(self):
+        """Unpack preserves has_blocking_residuals=True."""
+        lcnv = pack(
+            mclo_value=42,
+            source_layer_id="test_layer",
+            has_blocking_residuals=True,
+        )
+
+        projection = unpack(lcnv)
+
+        assert projection.gate_states.has_blocking_residuals is True
+
+    def test_blocking_residuals_round_trip(self):
+        """has_blocking_residuals round-trips through pack/unpack."""
+        # Test with False
+        lcnv_false = pack(
+            mclo_value=42,
+            source_layer_id="test_layer",
+            has_blocking_residuals=False,
+        )
+        projection_false = unpack(lcnv_false)
+        assert projection_false.gate_states.has_blocking_residuals is False
+
+        # Test with True
+        lcnv_true = pack(
+            mclo_value=99,
+            source_layer_id="test_layer",
+            has_blocking_residuals=True,
+        )
+        projection_true = unpack(lcnv_true)
+        assert projection_true.gate_states.has_blocking_residuals is True
+
+    def test_unpack_requires_source_layer(self):
+        """Unpack MUST fail if source_layer is missing."""
+        lcnv = LCNV(mclo_block=42, source_layer=None)
+
+        with pytest.raises(LCNVError, match="Cannot unpack LCNV without source_layer"):
+            unpack(lcnv)
+
+    def test_unpack_rejects_empty_source_layer(self):
+        """Unpack MUST fail if source_layer is empty string."""
+        lcnv = LCNV(mclo_block=42, source_layer="")
+
+        with pytest.raises(LCNVError, match="Cannot unpack LCNV without source_layer"):
+            unpack(lcnv)
 
     def test_unpack_creates_trace_reference(self):
         """Unpack creates trace reference, NOT full trace."""
@@ -383,3 +461,181 @@ class TestLCNVValidation:
                 source_layer_id="test",
                 encoding_format="",
             )
+
+
+class TestLCNVSemanticForce:
+    """Test semantic_force = FORBIDDEN enforcement."""
+
+    def test_lcnv_has_semantic_force_forbidden(self):
+        """LCNV MUST have semantic_force = FORBIDDEN."""
+        lcnv = pack(mclo_value=42, source_layer_id="test_layer")
+
+        assert hasattr(lcnv, "semantic_force")
+        assert lcnv.semantic_force == "FORBIDDEN"
+
+    def test_encoded_state_projection_has_semantic_force_forbidden(self):
+        """EncodedStateProjection MUST have semantic_force = FORBIDDEN."""
+        lcnv = pack(mclo_value=42, source_layer_id="test_layer")
+        projection = unpack(lcnv)
+
+        assert hasattr(projection, "semantic_force")
+        assert projection.semantic_force == "FORBIDDEN"
+
+    def test_semantic_force_is_testable(self):
+        """semantic_force is a real field, not just documentation."""
+        lcnv = LCNV(mclo_block=42, source_layer="test")
+
+        # Field is accessible and testable
+        assert lcnv.semantic_force == "FORBIDDEN"
+
+        # Cannot be changed (frozen dataclass)
+        with pytest.raises(Exception):  # FrozenInstanceError or AttributeError
+            lcnv.semantic_force = "ALLOWED"  # type: ignore
+
+
+class TestLCNVBlockValidation:
+    """Test hardened block validation (0 and negative rejection)."""
+
+    def test_mclo_block_rejects_zero(self):
+        """MCLO block rejects 0 (CLOSED ≠ 0)."""
+        with pytest.raises(LCNVError, match="MCLO block cannot be 0"):
+            LCNV(mclo_block=0)
+
+    def test_mclo_block_rejects_negative(self):
+        """MCLO block rejects negative values."""
+        with pytest.raises(LCNVError, match="MCLO block cannot be negative"):
+            LCNV(mclo_block=-1)
+
+    def test_lexical_block_rejects_zero(self):
+        """Lexical block rejects 0."""
+        with pytest.raises(LCNVError, match="Lexical block cannot be 0"):
+            LCNV(mclo_block=42, lexical_block=0)
+
+    def test_lexical_block_rejects_negative(self):
+        """Lexical block rejects negative values."""
+        with pytest.raises(LCNVError, match="Lexical block cannot be negative"):
+            LCNV(mclo_block=42, lexical_block=-5)
+
+    def test_meaning_block_rejects_zero(self):
+        """Meaning block rejects 0."""
+        with pytest.raises(LCNVError, match="Meaning block cannot be 0"):
+            LCNV(mclo_block=42, meaning_block=0)
+
+    def test_meaning_block_rejects_negative(self):
+        """Meaning block rejects negative values."""
+        with pytest.raises(LCNVError, match="Meaning block cannot be negative"):
+            LCNV(mclo_block=42, meaning_block=-10)
+
+    def test_binding_block_rejects_zero(self):
+        """Binding block rejects 0."""
+        with pytest.raises(LCNVError, match="Binding block cannot be 0"):
+            LCNV(mclo_block=42, binding_block=0)
+
+    def test_binding_block_rejects_negative(self):
+        """Binding block rejects negative values."""
+        with pytest.raises(LCNVError, match="Binding block cannot be negative"):
+            LCNV(mclo_block=42, binding_block=-3)
+
+    def test_mutabaqah_block_rejects_zero(self):
+        """Mutabaqah block rejects 0."""
+        with pytest.raises(LCNVError, match="Mutabaqah block cannot be 0"):
+            LCNV(mclo_block=42, binding_block=10, mutabaqah_block=0)
+
+    def test_mutabaqah_block_rejects_negative(self):
+        """Mutabaqah block rejects negative values."""
+        with pytest.raises(LCNVError, match="Mutabaqah block cannot be negative"):
+            LCNV(mclo_block=42, binding_block=10, mutabaqah_block=-7)
+
+    def test_tadammun_block_rejects_zero(self):
+        """Tadammun block rejects 0."""
+        with pytest.raises(LCNVError, match="Tadammun block cannot be 0"):
+            LCNV(mclo_block=42, binding_block=10, tadammun_block=0)
+
+    def test_tadammun_block_rejects_negative(self):
+        """Tadammun block rejects negative values."""
+        with pytest.raises(LCNVError, match="Tadammun block cannot be negative"):
+            LCNV(mclo_block=42, binding_block=10, tadammun_block=-2)
+
+    def test_iltizam_block_rejects_zero(self):
+        """Iltizam block rejects 0."""
+        with pytest.raises(LCNVError, match="Iltizam block cannot be 0"):
+            LCNV(mclo_block=42, binding_block=10, iltizam_block=0)
+
+    def test_iltizam_block_rejects_negative(self):
+        """Iltizam block rejects negative values."""
+        with pytest.raises(LCNVError, match="Iltizam block cannot be negative"):
+            LCNV(mclo_block=42, binding_block=10, iltizam_block=-4)
+
+
+class TestGateStateBundleValidation:
+    """Test hardened GateStateBundle validation."""
+
+    def test_mclo_state_rejects_zero(self):
+        """MCLO state rejects 0 (CLOSED ≠ 0)."""
+        with pytest.raises(LCNVError, match="MCLO state cannot be 0"):
+            GateStateBundle(mclo_state=0)
+
+    def test_mclo_state_rejects_negative(self):
+        """MCLO state rejects negative values."""
+        with pytest.raises(LCNVError, match="MCLO state cannot be negative"):
+            GateStateBundle(mclo_state=-1)
+
+    def test_lexical_state_rejects_zero(self):
+        """Lexical state rejects 0."""
+        with pytest.raises(LCNVError, match="Lexical state cannot be 0"):
+            GateStateBundle(mclo_state=42, lexical_state=0)
+
+    def test_lexical_state_rejects_negative(self):
+        """Lexical state rejects negative values."""
+        with pytest.raises(LCNVError, match="Lexical state cannot be negative"):
+            GateStateBundle(mclo_state=42, lexical_state=-5)
+
+    def test_meaning_state_rejects_zero(self):
+        """Meaning state rejects 0."""
+        with pytest.raises(LCNVError, match="Meaning state cannot be 0"):
+            GateStateBundle(mclo_state=42, meaning_state=0)
+
+    def test_meaning_state_rejects_negative(self):
+        """Meaning state rejects negative values."""
+        with pytest.raises(LCNVError, match="Meaning state cannot be negative"):
+            GateStateBundle(mclo_state=42, meaning_state=-10)
+
+    def test_binding_state_rejects_zero(self):
+        """Binding state rejects 0."""
+        with pytest.raises(LCNVError, match="Binding state cannot be 0"):
+            GateStateBundle(mclo_state=42, binding_state=0)
+
+    def test_binding_state_rejects_negative(self):
+        """Binding state rejects negative values."""
+        with pytest.raises(LCNVError, match="Binding state cannot be negative"):
+            GateStateBundle(mclo_state=42, binding_state=-3)
+
+    def test_mutabaqah_state_rejects_zero(self):
+        """Mutabaqah state rejects 0."""
+        with pytest.raises(LCNVError, match="Mutabaqah state cannot be 0"):
+            GateStateBundle(mclo_state=42, mutabaqah_state=0)
+
+    def test_mutabaqah_state_rejects_negative(self):
+        """Mutabaqah state rejects negative values."""
+        with pytest.raises(LCNVError, match="Mutabaqah state cannot be negative"):
+            GateStateBundle(mclo_state=42, mutabaqah_state=-7)
+
+    def test_tadammun_state_rejects_zero(self):
+        """Tadammun state rejects 0."""
+        with pytest.raises(LCNVError, match="Tadammun state cannot be 0"):
+            GateStateBundle(mclo_state=42, tadammun_state=0)
+
+    def test_tadammun_state_rejects_negative(self):
+        """Tadammun state rejects negative values."""
+        with pytest.raises(LCNVError, match="Tadammun state cannot be negative"):
+            GateStateBundle(mclo_state=42, tadammun_state=-2)
+
+    def test_iltizam_state_rejects_zero(self):
+        """Iltizam state rejects 0."""
+        with pytest.raises(LCNVError, match="Iltizam state cannot be 0"):
+            GateStateBundle(mclo_state=42, iltizam_state=0)
+
+    def test_iltizam_state_rejects_negative(self):
+        """Iltizam state rejects negative values."""
+        with pytest.raises(LCNVError, match="Iltizam state cannot be negative"):
+            GateStateBundle(mclo_state=42, iltizam_state=-4)
