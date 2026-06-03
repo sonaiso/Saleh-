@@ -16,6 +16,8 @@ Track isolation:
 See: docs/qiyas_core/LAYERED_COMPRESSED_NUMERIC_VALUE_ARCHITECTURE.md
 """
 
+from dataclasses import FrozenInstanceError
+
 import pytest
 
 from qiyas_core.lcnv import (
@@ -489,7 +491,7 @@ class TestLCNVSemanticForce:
         assert lcnv.semantic_force == "FORBIDDEN"
 
         # Cannot be changed (frozen dataclass)
-        with pytest.raises(Exception):  # FrozenInstanceError or AttributeError
+        with pytest.raises(FrozenInstanceError):
             lcnv.semantic_force = "ALLOWED"  # type: ignore
 
 
@@ -639,3 +641,126 @@ class TestGateStateBundleValidation:
         """Iltizam state rejects negative values."""
         with pytest.raises(LCNVError, match="Iltizam state cannot be negative"):
             GateStateBundle(mclo_state=42, iltizam_state=-4)
+
+
+class TestLCNVSemanticForceHardening:
+    """Test semantic_force cannot be overridden (PR #67)."""
+
+    def test_lcnv_semantic_force_cannot_be_overridden_via_init(self):
+        """LCNV semantic_force cannot be overridden through constructor."""
+        # init=False prevents passing semantic_force to constructor
+        lcnv = LCNV(mclo_block=42, source_layer="test")
+        assert lcnv.semantic_force == "FORBIDDEN"
+
+        # Attempting to pass semantic_force should fail (not in __init__)
+        # This is enforced by dataclass field(init=False)
+
+    def test_projection_semantic_force_cannot_be_overridden_via_init(self):
+        """EncodedStateProjection semantic_force cannot be overridden."""
+        projection = EncodedStateProjection(
+            gate_states=GateStateBundle(mclo_state=42),
+            source_layer_id="test",
+            encoding_format="test",
+        )
+        assert projection.semantic_force == "FORBIDDEN"
+
+        # Attempting to pass semantic_force should fail (not in __init__)
+
+    def test_lcnv_semantic_force_cannot_be_mutated(self):
+        """LCNV semantic_force cannot be mutated after creation."""
+        lcnv = LCNV(mclo_block=42, source_layer="test")
+
+        with pytest.raises(FrozenInstanceError):
+            lcnv.semantic_force = "ALLOWED"  # type: ignore
+
+    def test_projection_semantic_force_cannot_be_mutated(self):
+        """EncodedStateProjection semantic_force cannot be mutated."""
+        projection = EncodedStateProjection(
+            gate_states=GateStateBundle(mclo_state=42),
+            source_layer_id="test",
+            encoding_format="test",
+        )
+
+        with pytest.raises(FrozenInstanceError):
+            projection.semantic_force = "ALLOWED"  # type: ignore
+
+
+class TestLCNVFloatRejection:
+    """Test LCNV rejects float values for blocks (PR #67)."""
+
+    def test_lcnv_rejects_float_negative_block(self):
+        """LCNV rejects negative float for MCLO block."""
+        with pytest.raises(LCNVError, match="MCLO block cannot be float"):
+            LCNV(mclo_block=-1.0)  # type: ignore
+
+    def test_lcnv_rejects_float_positive_block(self):
+        """LCNV rejects positive float for MCLO block."""
+        with pytest.raises(LCNVError, match="MCLO block cannot be float"):
+            LCNV(mclo_block=1.5)  # type: ignore
+
+    def test_lcnv_rejects_float_lexical_block(self):
+        """LCNV rejects float for lexical block."""
+        with pytest.raises(LCNVError, match="Lexical block cannot be float"):
+            LCNV(mclo_block=42, lexical_block=2.5)  # type: ignore
+
+    def test_lcnv_rejects_float_meaning_block(self):
+        """LCNV rejects float for meaning block."""
+        with pytest.raises(LCNVError, match="Meaning block cannot be float"):
+            LCNV(mclo_block=42, meaning_block=3.7)  # type: ignore
+
+    def test_lcnv_rejects_float_binding_block(self):
+        """LCNV rejects float for binding block."""
+        with pytest.raises(LCNVError, match="Binding block cannot be float"):
+            LCNV(mclo_block=42, binding_block=4.2)  # type: ignore
+
+    def test_gate_state_bundle_rejects_float_negative_state(self):
+        """GateStateBundle rejects negative float for state."""
+        with pytest.raises(LCNVError, match="MCLO state cannot be float"):
+            GateStateBundle(mclo_state=-1.0)  # type: ignore
+
+    def test_gate_state_bundle_rejects_float_positive_state(self):
+        """GateStateBundle rejects positive float for state."""
+        with pytest.raises(LCNVError, match="MCLO state cannot be float"):
+            GateStateBundle(mclo_state=1.5)  # type: ignore
+
+    def test_gate_state_bundle_rejects_float_lexical_state(self):
+        """GateStateBundle rejects float for lexical state."""
+        with pytest.raises(LCNVError, match="Lexical state cannot be float"):
+            GateStateBundle(mclo_state=42, lexical_state=2.5)  # type: ignore
+
+
+class TestLCNVStringRejection:
+    """Test LCNV rejects string values for blocks (PR #67)."""
+
+    def test_lcnv_rejects_string_block(self):
+        """LCNV rejects string value for MCLO block (except CLOSED)."""
+        with pytest.raises(LCNVError, match="MCLO block must be either CLOSED or positive integer"):
+            LCNV(mclo_block="1")  # type: ignore
+
+    def test_lcnv_rejects_string_lexical_block(self):
+        """LCNV rejects string for lexical block (except CLOSED)."""
+        with pytest.raises(LCNVError, match="Lexical block must be either CLOSED or positive integer"):
+            LCNV(mclo_block=42, lexical_block="2")  # type: ignore
+
+    def test_gate_state_bundle_rejects_string_state(self):
+        """GateStateBundle rejects string value for state (except CLOSED)."""
+        with pytest.raises(LCNVError, match="MCLO state must be either CLOSED or positive integer"):
+            GateStateBundle(mclo_state="42")  # type: ignore
+
+    def test_gate_state_bundle_rejects_string_lexical_state(self):
+        """GateStateBundle rejects string for lexical state (except CLOSED)."""
+        with pytest.raises(LCNVError, match="Lexical state must be either CLOSED or positive integer"):
+            GateStateBundle(mclo_state=42, lexical_state="2")  # type: ignore
+
+
+class TestUnpackDocstring:
+    """Test unpack() docstring documents source_layer requirement (PR #67)."""
+
+    def test_unpack_docstring_mentions_missing_source_layer(self):
+        """unpack() docstring mentions LCNVError when source_layer is missing."""
+        # Check that the docstring includes the Raises section
+        assert unpack.__doc__ is not None
+        assert "Raises:" in unpack.__doc__
+        assert "LCNVError" in unpack.__doc__
+        assert "source_layer" in unpack.__doc__
+

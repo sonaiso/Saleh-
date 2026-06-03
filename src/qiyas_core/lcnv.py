@@ -33,7 +33,7 @@ See: docs/qiyas_core/LAYERED_COMPRESSED_NUMERIC_VALUE_ARCHITECTURE.md
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 
@@ -98,6 +98,18 @@ class GateStateBundle:
                     f"{state_name} state cannot be negative. "
                     "Must be either CLOSED or positive integer."
                 )
+            # Reject float values (including negative and positive floats)
+            if isinstance(state_value, float):
+                raise LCNVError(
+                    f"{state_name} state cannot be float. "
+                    "Must be either CLOSED or positive integer."
+                )
+            # Reject any numeric type that is not int or CLOSED string
+            if state_value != CLOSED and not isinstance(state_value, int):
+                raise LCNVError(
+                    f"{state_name} state must be either CLOSED or positive integer, "
+                    f"got {type(state_value).__name__}."
+                )
 
 
 @dataclass(frozen=True)
@@ -129,7 +141,7 @@ class EncodedStateProjection:
     trace_ref: str | None = None
 
     # Constitutional constraint: semantic_force is FORBIDDEN
-    semantic_force: Literal["FORBIDDEN"] = "FORBIDDEN"
+    semantic_force: Literal["FORBIDDEN"] = field(default="FORBIDDEN", init=False)
 
     def __post_init__(self) -> None:
         """Validate projection constraints."""
@@ -178,7 +190,7 @@ class LCNV:
     source_layer: str | None = None
 
     # Constitutional constraint: semantic_force is FORBIDDEN
-    semantic_force: Literal["FORBIDDEN"] = "FORBIDDEN"
+    semantic_force: Literal["FORBIDDEN"] = field(default="FORBIDDEN", init=False)
 
     def __post_init__(self) -> None:
         """Validate LCNV constitutional constraints."""
@@ -203,6 +215,18 @@ class LCNV:
                 raise LCNVError(
                     f"{block_name} block cannot be negative. "
                     "Must be either CLOSED or positive integer."
+                )
+            # Reject float values (including negative and positive floats)
+            if isinstance(block_value, float):
+                raise LCNVError(
+                    f"{block_name} block cannot be float. "
+                    "Must be either CLOSED or positive integer."
+                )
+            # Reject any numeric type that is not int or CLOSED string
+            if block_value != CLOSED and not isinstance(block_value, int):
+                raise LCNVError(
+                    f"{block_name} block must be either CLOSED or positive integer, "
+                    f"got {type(block_value).__name__}."
                 )
 
         # Block ordering dependency: no higher layers before binding
@@ -354,6 +378,9 @@ def unpack(lcnv: LCNV) -> EncodedStateProjection:
 
     Returns:
         EncodedStateProjection (NOT Candidate)
+
+    Raises:
+        LCNVError: If source_layer is missing (unpack requires source_layer)
     """
     # Extract gate states
     gate_states = GateStateBundle(
