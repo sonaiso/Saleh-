@@ -77,16 +77,40 @@ where each block is:
 
 ### Law 1: Reversibility Requirement
 
+**CRITICAL AMENDMENT:** See `INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md` for full constitutional correction.
+
 ```
-Pack/Unpack must be reversible:
+Pack/Unpack must be reversible for gate state projection:
 
-Unpack(Pack(x)) = x
+Unpack(Pack(c)) = EncodedCandidateStateProjection(c)
 
-∀ candidate c:
-  Unpack(LCNV(c)) = c
+Where:
+  EncodedCandidateStateProjection(c) contains:
+    - Decoded gate states from LCNV layers
+    - Layer structure (which layers were encoded)
+    - Rank/residual encoding from LCNV
+    - References to required stores
+
+  EncodedCandidateStateProjection(c) does NOT contain:
+    - Independent semantic authority
+    - Complete evidence reconstruction
+    - Full trace reconstruction
+    - Source identity reconstruction
 ```
 
-**Reason:** If numeric encoding is not reversible, it becomes a hash or flat scalar that loses layer structure. This would violate identity preservation and trace preservation.
+**Full Candidate reconstruction requires stores:**
+
+```
+projection = Unpack(LCNV(c))
+candidate = ReconstructCandidate(
+    projection,           # Gate states + structure from LCNV
+    candidate_store,      # Source of truth for Candidates
+    evidence_store,       # Source of truth for Evidence
+    trace_store          # Source of truth for Trace
+)
+```
+
+**Reason:** LCNV is an **encoding of gate states**, NOT source of truth. Candidate primacy requires that full Candidate reconstruction use Candidate/Evidence/Trace stores. If `Unpack(LCNV(c)) = c` were true, LCNV would become source of truth, violating constitutional architecture.
 
 **Implication:** LCNV is NOT a lossy compression. It is a structured encoding.
 
@@ -792,8 +816,10 @@ Forbidden:
 - abjad_system.py — conventional Abjad coordinates with semantic_force=FORBIDDEN
 - Layer 2 coordinate adapters — glyph-gated coordinate production
 
+**Governing Laws:**
+- INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md — **MANDATORY** amendment to § 2.1 (Reversibility Requirement)
+
 **Future Documents:**
-- INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md (PR #45)
 - SIFAT_VECTOR_CONTRACT.md (extended by PR #46)
 
 **Related Memories:**
