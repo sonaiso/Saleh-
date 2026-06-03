@@ -75,20 +75,75 @@ where each block is:
 
 ## 2. Fundamental Laws
 
-### Law 1: Reversibility Requirement
+### Law 1: Inverse Law (EncodedStateProjection, NOT Candidate)
 
 ```
-Pack/Unpack must be reversible:
+LCNV inverse law:
 
-Unpack(Pack(x)) = x
+Unpack(Pack(c)) ≠ Candidate(c)
 
-∀ candidate c:
-  Unpack(LCNV(c)) = c
+Unpack(Pack(c)) = EncodedStateProjection(c)
 ```
 
-**Reason:** If numeric encoding is not reversible, it becomes a hash or flat scalar that loses layer structure. This would violate identity preservation and trace preservation.
+**More precise formulation:**
 
-**Implication:** LCNV is NOT a lossy compression. It is a structured encoding.
+```
+Pack(c) does not compress the full authoritative Candidate,
+but compresses a licensed projection of its state.
+
+Unpack(Pack(c)) does not restore Candidate,
+but restores EncodedStateProjection(c).
+
+CandidateAuthority is NOT restored through unpacking alone,
+but only through:
+  EncodedStateProjection
+  + CandidateStore
+  + EvidenceStore
+  + TraceStore
+  + ResidualStore
+  + Validation
+```
+
+**Algebraic formulation:**
+
+```
+CandidateAuthority(c)
+≠ Unpack(Pack(c))
+
+CandidateAuthority(c)
+= Validate(
+    EncodedStateProjection(c),
+    CandidateStore,
+    EvidenceStore,
+    TraceStore,
+    ResidualStore
+  )
+```
+
+**Constitutional principle:**
+
+```
+LCNV is reversible within projection bounds,
+NOT reversible within epistemological authority bounds.
+```
+
+**In Arabic:**
+
+```
+العكس في LCNV يفكّ ترميز حالة مرخّصة،
+ولا يستردّ المرشح بوصفه أصلًا أو حجة أو مصدر حقيقة.
+```
+
+**Translation:**
+
+```
+Inverse in LCNV unpacks licensed state encoding,
+and does NOT restore the Candidate as origin, proof, or source of truth.
+```
+
+**Reason:** If unpacking produced authoritative Candidate, numeric encoding would become a source of truth, violating Candidate primacy. LCNV encodes state; it does NOT create epistemological authority.
+
+**Implication:** LCNV is reversible for state reconstruction but requires validation and store reunification for authority restoration.
 
 ### Law 2: Candidate Primacy
 
@@ -202,6 +257,54 @@ LCNV does NOT:
 - Eliminate residuals
 - Hide blocking residuals
 - Upgrade rank by numeric manipulation
+```
+
+### Law 7: Forbidden Derivations from Unpack(LCNV)
+
+**Explicitly forbidden derivations:**
+
+```
+Unpack(LCNV) ⇏ CandidateAuthority
+Unpack(LCNV) ⇏ Meaning
+Unpack(LCNV) ⇏ Ifadah
+Unpack(LCNV) ⇏ Hukm
+Unpack(LCNV) ⇏ RealityClaim
+Unpack(LCNV) ⇏ Evidence
+Unpack(LCNV) ⇏ Trace
+```
+
+**The ONLY permitted derivation:**
+
+```
+Unpack(LCNV) → EncodedStateProjection
+EncodedStateProjection → GateStateBundle
+```
+
+**For authoritative restoration:**
+
+```
+GateStateBundle
++ Stores
++ Validation
+→ CandidateAuthority
+```
+
+**The governing principle:**
+
+```
+Candidate هو مصدر السلطة.
+LCNV أثر مضغوط.
+الأثر لا يصبح أصلًا.
+والرقم لا ينتج معرفة.
+```
+
+**Translation:**
+
+```
+Candidate is the source of authority.
+LCNV is compressed trace.
+Trace does not become origin.
+Number does not produce knowledge.
 ```
 
 ---
@@ -416,28 +519,33 @@ def pack(candidate: Candidate) -> LCNV:
 ### 4.2 Unpack Operation
 
 ```python
-def unpack(lcnv: LCNV) -> Candidate:
+def unpack(lcnv: LCNV) -> EncodedStateProjection:
     """
-    Decode LCNV back to candidate state.
+    Decode LCNV to EncodedStateProjection (NOT full Candidate).
 
     Preconditions:
     - lcnv must have been produced by pack()
     - lcnv must preserve structure
 
     Returns:
-    - Original candidate with full:
-      - identity_ids
-      - evidence
-      - rank
-      - trace_ids
-      - residuals
+    - EncodedStateProjection with:
+      - Gate state bundle
+      - Encoded layer states
+      - Rank/residual encoding
+      - NOT: CandidateAuthority
+      - NOT: Full evidence
+      - NOT: Full trace
+      - NOT: Source-of-truth status
 
     Guarantees:
-    - Unpack(Pack(c)) = c
-    - All layer structure preserved
-    - No information loss
+    - Unpack(Pack(c)) = EncodedStateProjection(c)
+    - Unpack(Pack(c)) ≠ Candidate(c)
+    - Layer structure preserved
+    - State reconstruction possible
+    - Authority NOT restored
     """
-    return reconstruct_candidate(
+    return EncodedStateProjection(
+        gate_state_bundle=decode_gate_states(lcnv),
         signifier=decode_signifier(lcnv.mclo) if lcnv.mclo != CLOSED else None,
         lexical=decode_lexical(lcnv.lexical) if lcnv.lexical != CLOSED else None,
         meaning=decode_meaning(lcnv.meaning) if lcnv.meaning != CLOSED else None,
@@ -446,6 +554,57 @@ def unpack(lcnv: LCNV) -> Candidate:
         tadammun=decode_tadammun(lcnv.tadammun) if lcnv.tadammun != CLOSED else None,
         iltizam=decode_iltizam(lcnv.iltizam) if lcnv.iltizam != CLOSED else None,
         rank_residual=decode_rank_residual(lcnv.rank_residual),
+    )
+```
+
+### 4.3 Authoritative Restoration
+
+```python
+def restore_candidate_authority(
+    projection: EncodedStateProjection,
+    candidate_store: CandidateStore,
+    evidence_store: EvidenceStore,
+    trace_store: TraceStore,
+    residual_store: ResidualStore,
+) -> Candidate:
+    """
+    Restore CandidateAuthority from EncodedStateProjection + Stores.
+
+    This is the ONLY way to restore Candidate from LCNV.
+    Unpack alone does NOT produce Candidate.
+
+    Preconditions:
+    - projection from unpack(lcnv)
+    - stores contain original candidate data
+    - validation passes
+
+    Returns:
+    - Full authoritative Candidate with:
+      - identity_ids (from store)
+      - evidence (from evidence_store)
+      - trace_ids (from trace_store)
+      - residuals (from residual_store)
+      - rank (from projection + validation)
+      - source-of-truth status
+
+    Formula:
+      CandidateAuthority(c) = Validate(
+          EncodedStateProjection(c),
+          CandidateStore,
+          EvidenceStore,
+          TraceStore,
+          ResidualStore
+      )
+    """
+    validate_projection(projection)
+
+    return Candidate(
+        identity_ids=candidate_store.get_identity_ids(projection.ref),
+        evidence=evidence_store.get_evidence(projection.ref),
+        trace_ids=trace_store.get_trace(projection.ref),
+        residuals=residual_store.get_residuals(projection.ref),
+        rank=validate_rank(projection.rank_residual),
+        status=validate_status(projection.gate_state_bundle),
     )
 ```
 
@@ -703,8 +862,27 @@ LCNV:
 
 1. **Pack/Unpack functions with tests:**
    ```python
-   test_reversibility():
-       assert unpack(pack(candidate)) == candidate
+   test_inverse_law():
+       candidate = create_test_candidate()
+       lcnv = pack(candidate)
+       projection = unpack(lcnv)
+       # Unpack produces EncodedStateProjection, NOT Candidate
+       assert isinstance(projection, EncodedStateProjection)
+       assert projection != candidate
+
+   test_authority_restoration():
+       candidate = create_test_candidate()
+       lcnv = pack(candidate)
+       projection = unpack(lcnv)
+       restored = restore_candidate_authority(
+           projection,
+           candidate_store,
+           evidence_store,
+           trace_store,
+           residual_store,
+       )
+       # Only after store reunification + validation is Candidate restored
+       assert restored == candidate
    ```
 
 2. **Semantic force enforcement:**
@@ -725,9 +903,20 @@ LCNV:
 
 4. **Forbidden output tests:**
    ```python
+   test_no_candidate_from_unpack():
+       lcnv = pack(candidate)
+       projection = unpack(lcnv)
+       assert not isinstance(projection, Candidate)
+       assert isinstance(projection, EncodedStateProjection)
+
    test_no_meaning_from_mclo():
        with pytest.raises(ForbiddenOutputError):
            derive_meaning_from_mclo(mclo_value)
+
+   test_no_authority_from_unpack():
+       with pytest.raises(ForbiddenOutputError):
+           # Unpack alone cannot produce CandidateAuthority
+           unpack(lcnv).get_authority()
    ```
 
 5. **Residual preservation tests:**
@@ -735,7 +924,8 @@ LCNV:
    test_residual_preservation():
        candidate_with_residuals = ...
        lcnv = pack(candidate_with_residuals)
-       restored = unpack(lcnv)
+       projection = unpack(lcnv)
+       restored = restore_candidate_authority(projection, stores...)
        assert restored.residuals == candidate_with_residuals.residuals
    ```
 
@@ -761,14 +951,29 @@ LCNV:
 """
 LCNV Governing Laws:
 
-1. Reversibility: Unpack(Pack(x)) = x
+1. Inverse Law: Unpack(Pack(c)) = EncodedStateProjection(c), NOT Candidate(c)
 2. Candidate Primacy: Candidate = source of truth, LCNV = encoding
 3. Gate Awareness: CLOSED = gate not opened (not zero)
 4. Semantic Force: semantic_force = FORBIDDEN for all blocks
 5. Block Ordering: No Mutabaqah/Tadammun/Iltizam before Binding
 6. Rank-Residual: Preserve rank ceiling and all residuals
+7. Forbidden Derivations: Unpack(LCNV) ⇏ CandidateAuthority/Meaning/Hukm/Evidence/Trace
+
+Authority Restoration Formula:
+  CandidateAuthority(c) = Validate(
+      EncodedStateProjection(c),
+      CandidateStore,
+      EvidenceStore,
+      TraceStore,
+      ResidualStore
+  )
+
+Constitutional Principle:
+  LCNV is reversible within projection bounds,
+  NOT reversible within epistemological authority bounds.
 
 Forbidden:
+- Unpack(LCNV) → CandidateAuthority (requires stores + validation)
 - MCLO → Meaning
 - AbjadValue → SemanticRoot
 - LogScore → Hukm
@@ -777,6 +982,17 @@ Forbidden:
 - Closed block as zero
 - Meaning from number
 - Certainty from low cost
+
+Governing Principle:
+  Candidate هو مصدر السلطة.
+  LCNV أثر مضغوط.
+  الأثر لا يصبح أصلًا.
+  والرقم لا ينتج معرفة.
+
+  (Candidate is source of authority.
+   LCNV is compressed trace.
+   Trace does not become origin.
+   Number does not produce knowledge.)
 """
 ```
 
@@ -836,8 +1052,9 @@ No closure without computed residuals.
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2026-06-02
-**Status:** Constitutional constraint document
+**Document Version:** 2.0
+**Last Updated:** 2026-06-03
+**Status:** Constitutional constraint document (LCNV Inverse Law corrected)
 **Authority:** Governs all numeric encoding of qiyas layer state
+**Critical Change:** Law 1 corrected - Unpack(Pack(c)) = EncodedStateProjection(c), NOT Candidate(c)
 **Next Document:** INVERSE_EXTRACTION_AND_LOGARITHMIC_MEASUREMENT_LAW.md (PR #45)
