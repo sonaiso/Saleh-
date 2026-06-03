@@ -30,16 +30,12 @@ no new gate, and no new rank. The Arabic-rooted claim grammar
 `TERMINOLOGY_MAP.md` §4 is the canonical grammar consumed by the
 kernel; the public English prefixes appear in documentation only.
 
-Forbidden outputs are declared locally in `_FORBIDDEN_SLOT_GEOMETRY`
-below rather than added to `forbidden_outputs.py`, to keep this
-Batch Implementation PR's scope inside the three new files plus an
-export entry in `rules/__init__.py`. Centralising the tuple into
-`forbidden_outputs.py` is a separate Micro Safety PR per
-`PR_SCHEDULING_POLICY.md` §1.2.
+Forbidden outputs are now centralized in `forbidden_outputs.py`
+per PR #65 (Micro Safety PR following `PR_SCHEDULING_POLICY.md` §1.2).
 """
 
 from qiyas_core.enums import EvidenceRank, QiyasPattern, WadiGate
-from qiyas_core.forbidden_outputs import CONSTITUTIONAL_BASE
+from qiyas_core.forbidden_outputs import FORBIDDEN_SLOT_GEOMETRY
 from qiyas_core.rule import QiyasRule
 
 
@@ -50,32 +46,6 @@ _ALL_WADI = (
     WadiGate.VALIDITY,
     WadiGate.CORRUPTION,
     WadiGate.NULLITY,
-)
-
-
-# Forbidden outputs for SlotGeometryQiyas. Composed from:
-#   * CONSTITUTIONAL_BASE (HukmCandidate, RealityClaim, FinalMeaning),
-#   * the contract §9 list (eight higher-layer typed units that
-#     SlotGeometryQiyas may not produce),
-#   * the contract §11 forbidden-jump list (final judgments and
-#     higher-layer typed units the slot-geometry layer must not
-#     skip into).
-#
-# `MinimalCompletionReadinessCandidate` appears here because §9 of
-# the alignment-trace contract explicitly states that it is a
-# future-reserved name only and is NOT an admissible output of this
-# contract. A later implementation PR may reopen this decision.
-_FORBIDDEN_SLOT_GEOMETRY: tuple[str, ...] = (
-    *CONSTITUTIONAL_BASE,
-    "FinalCaseJudgment",
-    "DalalahCandidate",
-    "WordCandidate",
-    "LafzCandidate",
-    "SentenceCandidate",
-    "ParagraphCandidate",
-    "DiscourseGeometryCandidate",
-    "TextGeometryCandidate",
-    "MinimalCompletionReadinessCandidate",
 )
 
 
@@ -140,7 +110,7 @@ SLOT_GEOMETRY_SEED_RULE = QiyasRule(
     ),
     neutral_identity_domain="slot_geometry_identity",
     output_candidate_type="SlotGeometryCandidate",
-    forbidden_outputs=_FORBIDDEN_SLOT_GEOMETRY,
+    forbidden_outputs=FORBIDDEN_SLOT_GEOMETRY,
     rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )
 
@@ -234,7 +204,7 @@ SLOT_GEOMETRY_EXTEND_RULE = QiyasRule(
     ),
     neutral_identity_domain="slot_geometry_identity",
     output_candidate_type="SlotGeometryCandidate",
-    forbidden_outputs=_FORBIDDEN_SLOT_GEOMETRY,
+    forbidden_outputs=FORBIDDEN_SLOT_GEOMETRY,
     rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
 )
 
