@@ -30,21 +30,19 @@
 
 ### 1.1 Non-Existent Files Claimed by Memory System
 
-The following files were claimed to exist but **DO NOT EXIST**:
+**SUPERSEDED:** This section contained incorrect claims that have been corrected.
+
+**Previous incorrect claim:** src/qiyas_core/lcnv.py does not exist
+**Actual state:** src/qiyas_core/lcnv.py DOES exist (minimal isolated runtime)
+
+**Previous incorrect claim:** tests/qiyas_core/test_lcnv_constitution.py does not exist
+**Actual state:** tests/qiyas_core/test_lcnv_constitution.py DOES exist
+
+The following files genuinely do not exist:
 
 ```
-❌ src/qiyas_core/lcnv.py
-❌ tests/qiyas_core/test_lcnv_constitution.py
 ❌ docs/qiyas_core/LCNV_MINIMAL_RUNTIME_STABILIZATION_CLOSURE.md
 ❌ docs/product/BILLING_ARCHITECTURE_CONTRACT.md
-```
-
-**Verification method:**
-```bash
-ls -la src/qiyas_core/lcnv.py           # No such file
-ls -la tests/qiyas_core/test_lcnv_*.py  # Only test_lcnv_inverse_law_guard.py exists
-find docs -name "*LCNV*CLOSURE*.md"     # No results
-find docs -name "*BILLING*.md"          # No results
 ```
 
 **Memory corrections applied:**
@@ -88,11 +86,14 @@ git log --oneline | head -5
 
 ### 2.2 LCNV Runtime Status
 
-**DOES NOT EXIST:** `src/qiyas_core/lcnv.py`
+**EXISTS:** `src/qiyas_core/lcnv.py` (minimal isolated runtime)
 
-**Status:** Constitutional prohibition active
-**Prerequisites:** PRs #46-48 must merge first
+**Status:** Minimal runtime implementation exists
+**Implementation:** LCNV, GateStateBundle, EncodedStateProjection, pack(), unpack()
 **Track:** Track B (isolated from SlotGeometry Track A)
+**Constitutional constraints:** Remains non-authoritative, does not produce Candidate/Meaning/Hukm
+
+**Note:** Previous audit incorrectly claimed this file does not exist. This correction supersedes that claim.
 
 ### 2.3 LCNV Constitutional Guard Status
 
@@ -132,13 +133,15 @@ tests/qiyas_core/
 └── test_lcnv_inverse_law_guard.py      # ✓ Constitutional guard only
 ```
 
-### 3.2 Missing Components (By Constitutional Design)
+### 3.2 Implemented Components
 
-**NOT implemented (as required by constitutional prohibition):**
+**Implemented (minimal isolated runtime):**
 ```
-src/qiyas_core/lcnv.py                  # Prohibited until PRs #46-48 merge
-tests/qiyas_core/test_lcnv_constitution.py  # Not needed yet
+src/qiyas_core/lcnv.py                  # ✓ Minimal runtime exists
+tests/qiyas_core/test_lcnv_constitution.py  # ✓ Constitutional tests exist
 ```
+
+**Note:** These files exist. Previous audit incorrectly claimed they do not exist.
 
 ### 3.3 Logarithmic Measurement Status
 
@@ -162,15 +165,17 @@ tests/qiyas_core/test_lcnv_constitution.py  # Not needed yet
 
 ### 4.2 Track B: LCNV + LogMeasurement
 
-**Status:** Documentation complete, runtime prohibited
+**Status:** Minimal runtime implemented (isolated)
 **Files:**
 - `docs/qiyas_core/LAYERED_COMPRESSED_NUMERIC_VALUE_ARCHITECTURE.md` ✓
 - `src/qiyas_core/logarithmic_measurement.py` ✓
-- `src/qiyas_core/lcnv.py` ❌ (constitutionally prohibited)
+- `src/qiyas_core/lcnv.py` ✓ (minimal isolated runtime)
+- `tests/qiyas_core/test_lcnv_constitution.py` ✓
 
 **Constitutional principle:**
 ```
-Track B must not be implemented until Track A prerequisites merge.
+LCNV remains isolated and non-authoritative.
+LCNV does not produce Candidate/Meaning/Hukm/RealityClaim.
 ```
 
 ---
@@ -277,16 +282,16 @@ Track B implementation is blocked until Track A prerequisites merge.
 
 ## 8. Audit Conclusion
 
-### 8.1 Ground Truth Established
+### 8.1 Ground Truth Established (CORRECTED)
 
 **Verified facts:**
 1. LCNV documentation exists and is correct
-2. LCNV runtime does NOT exist (by constitutional design)
+2. LCNV runtime DOES exist (minimal isolated implementation) — **previous audit claim corrected**
 3. Logarithmic measurement exists and is isolated
 4. Constitutional guards are active
-5. Memory hallucinations have been corrected
+5. Memory hallucinations have been corrected (including this audit document)
 6. Track isolation is verified
-7. Prerequisites are clearly defined
+7. LCNV remains non-authoritative and does not produce Candidate/Meaning/Hukm
 
 ### 8.2 Data Registry Planning Phase: CLOSED
 

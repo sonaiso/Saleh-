@@ -41,6 +41,38 @@ class LCNVError(ValueError):
     """Raised when LCNV operations violate constitutional constraints."""
 
 
+def _validate_optional_positive_int(name: str, value: object | None) -> None:
+    """Validate that value is None or positive integer (not bool, not 0, not negative)."""
+    if value is None:
+        return
+    if type(value) is bool:
+        raise LCNVError(f"{name} cannot be bool. Must be None or positive integer.")
+    if type(value) is not int:
+        raise LCNVError(
+            f"{name} must be None or positive integer, got {type(value).__name__}."
+        )
+    if value <= 0:
+        raise LCNVError(f"{name} must be positive integer (> 0), got {value}.")
+
+
+def _validate_non_negative_int(name: str, value: object) -> None:
+    """Validate that value is non-negative integer (not bool, not negative)."""
+    if type(value) is bool:
+        raise LCNVError(f"{name} cannot be bool. Must be non-negative integer.")
+    if type(value) is not int:
+        raise LCNVError(
+            f"{name} must be non-negative integer, got {type(value).__name__}."
+        )
+    if value < 0:
+        raise LCNVError(f"{name} cannot be negative, got {value}.")
+
+
+def _validate_bool(name: str, value: object) -> None:
+    """Validate that value is strictly bool (not int, not other types)."""
+    if type(value) is not bool:
+        raise LCNVError(f"{name} must be bool, got {type(value).__name__}.")
+
+
 # Gate state indicators
 CLOSED = "CLOSED"  # Gate not opened (CLOSED ≠ 0)
 GateState = Literal["CLOSED"] | int
@@ -76,6 +108,11 @@ class GateStateBundle:
 
     def __post_init__(self) -> None:
         """Validate constitutional constraints."""
+        # Validate rank/residual fields
+        _validate_optional_positive_int("rank_ceiling", self.rank_ceiling)
+        _validate_non_negative_int("residual_count", self.residual_count)
+        _validate_bool("has_blocking_residuals", self.has_blocking_residuals)
+
         # CLOSED ≠ 0 validation for all gate states
         states_to_validate = [
             ("MCLO", self.mclo_state),
@@ -88,12 +125,19 @@ class GateStateBundle:
         ]
 
         for state_name, state_value in states_to_validate:
+            # Reject bool explicitly (bool is subclass of int in Python)
+            # Check bool BEFORE checking == 0, since False == 0
+            if type(state_value) is bool:
+                raise LCNVError(
+                    f"{state_name} state cannot be bool. "
+                    "Must be either CLOSED or positive integer."
+                )
             if state_value == 0:
                 raise LCNVError(
                     f"{state_name} state cannot be 0 (CLOSED ≠ 0). "
                     "Use CLOSED constant for unopened gates."
                 )
-            if isinstance(state_value, int) and state_value < 0:
+            if type(state_value) is int and state_value < 0:
                 raise LCNVError(
                     f"{state_name} state cannot be negative. "
                     "Must be either CLOSED or positive integer."
@@ -105,7 +149,7 @@ class GateStateBundle:
                     "Must be either CLOSED or positive integer."
                 )
             # Reject any numeric type that is not int or CLOSED string
-            if state_value != CLOSED and not isinstance(state_value, int):
+            if state_value != CLOSED and type(state_value) is not int:
                 raise LCNVError(
                     f"{state_name} state must be either CLOSED or positive integer, "
                     f"got {type(state_value).__name__}."
@@ -194,6 +238,11 @@ class LCNV:
 
     def __post_init__(self) -> None:
         """Validate LCNV constitutional constraints."""
+        # Validate rank/residual fields
+        _validate_optional_positive_int("rank_block", self.rank_block)
+        _validate_non_negative_int("residual_block", self.residual_block)
+        _validate_bool("has_blocking_residuals", self.has_blocking_residuals)
+
         # CLOSED ≠ 0 validation for all blocks
         blocks_to_validate = [
             ("MCLO", self.mclo_block),
@@ -206,12 +255,19 @@ class LCNV:
         ]
 
         for block_name, block_value in blocks_to_validate:
+            # Reject bool explicitly (bool is subclass of int in Python)
+            # Check bool BEFORE checking == 0, since False == 0
+            if type(block_value) is bool:
+                raise LCNVError(
+                    f"{block_name} block cannot be bool. "
+                    "Must be either CLOSED or positive integer."
+                )
             if block_value == 0:
                 raise LCNVError(
                     f"{block_name} block cannot be 0 (CLOSED ≠ 0). "
                     "Use CLOSED constant for unopened gates."
                 )
-            if isinstance(block_value, int) and block_value < 0:
+            if type(block_value) is int and block_value < 0:
                 raise LCNVError(
                     f"{block_name} block cannot be negative. "
                     "Must be either CLOSED or positive integer."
@@ -223,7 +279,7 @@ class LCNV:
                     "Must be either CLOSED or positive integer."
                 )
             # Reject any numeric type that is not int or CLOSED string
-            if block_value != CLOSED and not isinstance(block_value, int):
+            if block_value != CLOSED and type(block_value) is not int:
                 raise LCNVError(
                     f"{block_name} block must be either CLOSED or positive integer, "
                     f"got {type(block_value).__name__}."
@@ -284,6 +340,16 @@ class LCNV:
         Returns:
             LCNV instance with MCLO block filled, others CLOSED
         """
+        if type(value) is bool:
+            raise LCNVError(
+                "compact value cannot be bool. Must be positive integer."
+            )
+
+        if type(value) is not int:
+            raise LCNVError(
+                f"compact value must be positive integer, got {type(value).__name__}."
+            )
+
         if value <= 0:
             raise LCNVError(
                 f"Invalid LCNV compact value {value}. "
@@ -327,6 +393,14 @@ def pack(
     Raises:
         LCNVError: If mclo_value violates constraints
     """
+    if type(mclo_value) is bool:
+        raise LCNVError("mclo_value cannot be bool. Must be positive integer.")
+
+    if type(mclo_value) is not int:
+        raise LCNVError(
+            f"mclo_value must be positive integer, got {type(mclo_value).__name__}."
+        )
+
     if mclo_value <= 0:
         raise LCNVError(
             f"Invalid MCLO value {mclo_value}. "
@@ -335,6 +409,11 @@ def pack(
 
     if not source_layer_id:
         raise LCNVError("pack() requires source_layer_id")
+
+    # Validate rank/residual parameters
+    _validate_optional_positive_int("rank_ceiling", rank_ceiling)
+    _validate_non_negative_int("residual_count", residual_count)
+    _validate_bool("has_blocking_residuals", has_blocking_residuals)
 
     return LCNV(
         mclo_block=mclo_value,
