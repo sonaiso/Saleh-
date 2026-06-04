@@ -764,3 +764,256 @@ class TestUnpackDocstring:
         assert "LCNVError" in unpack.__doc__
         assert "source_layer" in unpack.__doc__
 
+
+class TestLCNVBoolRejection:
+    """Test LCNV rejects bool values (bool is subclass of int in Python)."""
+
+    def test_lcnv_rejects_bool_true_mclo_block(self):
+        """LCNV rejects True for MCLO block."""
+        with pytest.raises(LCNVError, match="MCLO block cannot be bool"):
+            LCNV(mclo_block=True)  # type: ignore
+
+    def test_lcnv_rejects_bool_false_mclo_block(self):
+        """LCNV rejects False for MCLO block."""
+        with pytest.raises(LCNVError, match="MCLO block cannot be bool"):
+            LCNV(mclo_block=False)  # type: ignore
+
+    def test_lcnv_rejects_bool_true_lexical_block(self):
+        """LCNV rejects True for lexical block."""
+        with pytest.raises(LCNVError, match="Lexical block cannot be bool"):
+            LCNV(mclo_block=42, lexical_block=True)  # type: ignore
+
+    def test_lcnv_rejects_bool_false_lexical_block(self):
+        """LCNV rejects False for lexical block."""
+        with pytest.raises(LCNVError, match="Lexical block cannot be bool"):
+            LCNV(mclo_block=42, lexical_block=False)  # type: ignore
+
+    def test_gate_state_bundle_rejects_bool_true_mclo_state(self):
+        """GateStateBundle rejects True for MCLO state."""
+        with pytest.raises(LCNVError, match="MCLO state cannot be bool"):
+            GateStateBundle(mclo_state=True)  # type: ignore
+
+    def test_gate_state_bundle_rejects_bool_false_mclo_state(self):
+        """GateStateBundle rejects False for MCLO state."""
+        with pytest.raises(LCNVError, match="MCLO state cannot be bool"):
+            GateStateBundle(mclo_state=False)  # type: ignore
+
+    def test_gate_state_bundle_rejects_bool_true_lexical_state(self):
+        """GateStateBundle rejects True for lexical state."""
+        with pytest.raises(LCNVError, match="Lexical state cannot be bool"):
+            GateStateBundle(mclo_state=42, lexical_state=True)  # type: ignore
+
+    def test_gate_state_bundle_rejects_bool_false_lexical_state(self):
+        """GateStateBundle rejects False for lexical state."""
+        with pytest.raises(LCNVError, match="Lexical state cannot be bool"):
+            GateStateBundle(mclo_state=42, lexical_state=False)  # type: ignore
+
+    def test_pack_rejects_bool_true_mclo_value(self):
+        """pack() rejects True for mclo_value."""
+        with pytest.raises(LCNVError, match="mclo_value cannot be bool"):
+            pack(mclo_value=True, source_layer_id="test")  # type: ignore
+
+    def test_pack_rejects_bool_false_mclo_value(self):
+        """pack() rejects False for mclo_value."""
+        with pytest.raises(LCNVError, match="mclo_value cannot be bool"):
+            pack(mclo_value=False, source_layer_id="test")  # type: ignore
+
+    def test_from_compact_int_rejects_bool_true(self):
+        """LCNV.from_compact_int() rejects True."""
+        with pytest.raises(LCNVError, match="compact value cannot be bool"):
+            LCNV.from_compact_int(True)  # type: ignore
+
+    def test_from_compact_int_rejects_bool_false(self):
+        """LCNV.from_compact_int() rejects False."""
+        with pytest.raises(LCNVError, match="compact value cannot be bool"):
+            LCNV.from_compact_int(False)  # type: ignore
+
+
+class TestLCNVRankResidualValidation:
+    """Test LCNV validates rank and residual fields."""
+
+    def test_lcnv_rejects_bool_true_rank_block(self):
+        """LCNV rejects True for rank_block."""
+        with pytest.raises(LCNVError, match="rank_block cannot be bool"):
+            LCNV(mclo_block=42, rank_block=True)  # type: ignore
+
+    def test_lcnv_rejects_zero_rank_block(self):
+        """LCNV rejects 0 for rank_block."""
+        with pytest.raises(LCNVError, match="rank_block must be positive integer"):
+            LCNV(mclo_block=42, rank_block=0)  # type: ignore
+
+    def test_lcnv_rejects_negative_rank_block(self):
+        """LCNV rejects negative rank_block."""
+        with pytest.raises(LCNVError, match="rank_block must be positive integer"):
+            LCNV(mclo_block=42, rank_block=-1)  # type: ignore
+
+    def test_lcnv_accepts_none_rank_block(self):
+        """LCNV accepts None for rank_block."""
+        lcnv = LCNV(mclo_block=42, rank_block=None)
+        assert lcnv.rank_block is None
+
+    def test_lcnv_accepts_positive_rank_block(self):
+        """LCNV accepts positive integer for rank_block."""
+        lcnv = LCNV(mclo_block=42, rank_block=5)
+        assert lcnv.rank_block == 5
+
+    def test_lcnv_rejects_bool_true_residual_block(self):
+        """LCNV rejects True for residual_block."""
+        with pytest.raises(LCNVError, match="residual_block cannot be bool"):
+            LCNV(mclo_block=42, residual_block=True)  # type: ignore
+
+    def test_lcnv_rejects_negative_residual_block(self):
+        """LCNV rejects negative residual_block."""
+        with pytest.raises(LCNVError, match="residual_block cannot be negative"):
+            LCNV(mclo_block=42, residual_block=-1)  # type: ignore
+
+    def test_lcnv_accepts_zero_residual_block(self):
+        """LCNV accepts 0 for residual_block."""
+        lcnv = LCNV(mclo_block=42, residual_block=0)
+        assert lcnv.residual_block == 0
+
+    def test_lcnv_accepts_positive_residual_block(self):
+        """LCNV accepts positive integer for residual_block."""
+        lcnv = LCNV(mclo_block=42, residual_block=3)
+        assert lcnv.residual_block == 3
+
+    def test_lcnv_rejects_string_has_blocking_residuals(self):
+        """LCNV rejects string 'true' for has_blocking_residuals."""
+        with pytest.raises(LCNVError, match="has_blocking_residuals must be bool"):
+            LCNV(mclo_block=42, has_blocking_residuals="true")  # type: ignore
+
+    def test_lcnv_rejects_int_has_blocking_residuals(self):
+        """LCNV rejects int 1 for has_blocking_residuals."""
+        with pytest.raises(LCNVError, match="has_blocking_residuals must be bool"):
+            LCNV(mclo_block=42, has_blocking_residuals=1)  # type: ignore
+
+    def test_lcnv_accepts_true_has_blocking_residuals(self):
+        """LCNV accepts True for has_blocking_residuals."""
+        lcnv = LCNV(mclo_block=42, has_blocking_residuals=True)
+        assert lcnv.has_blocking_residuals is True
+
+    def test_lcnv_accepts_false_has_blocking_residuals(self):
+        """LCNV accepts False for has_blocking_residuals."""
+        lcnv = LCNV(mclo_block=42, has_blocking_residuals=False)
+        assert lcnv.has_blocking_residuals is False
+
+    def test_gate_state_bundle_rejects_bool_true_rank_ceiling(self):
+        """GateStateBundle rejects True for rank_ceiling."""
+        with pytest.raises(LCNVError, match="rank_ceiling cannot be bool"):
+            GateStateBundle(mclo_state=42, rank_ceiling=True)  # type: ignore
+
+    def test_gate_state_bundle_rejects_zero_rank_ceiling(self):
+        """GateStateBundle rejects 0 for rank_ceiling."""
+        with pytest.raises(LCNVError, match="rank_ceiling must be positive integer"):
+            GateStateBundle(mclo_state=42, rank_ceiling=0)  # type: ignore
+
+    def test_gate_state_bundle_rejects_negative_rank_ceiling(self):
+        """GateStateBundle rejects negative rank_ceiling."""
+        with pytest.raises(LCNVError, match="rank_ceiling must be positive integer"):
+            GateStateBundle(mclo_state=42, rank_ceiling=-1)  # type: ignore
+
+    def test_gate_state_bundle_accepts_none_rank_ceiling(self):
+        """GateStateBundle accepts None for rank_ceiling."""
+        bundle = GateStateBundle(mclo_state=42, rank_ceiling=None)
+        assert bundle.rank_ceiling is None
+
+    def test_gate_state_bundle_accepts_positive_rank_ceiling(self):
+        """GateStateBundle accepts positive integer for rank_ceiling."""
+        bundle = GateStateBundle(mclo_state=42, rank_ceiling=5)
+        assert bundle.rank_ceiling == 5
+
+    def test_gate_state_bundle_rejects_bool_true_residual_count(self):
+        """GateStateBundle rejects True for residual_count."""
+        with pytest.raises(LCNVError, match="residual_count cannot be bool"):
+            GateStateBundle(mclo_state=42, residual_count=True)  # type: ignore
+
+    def test_gate_state_bundle_rejects_negative_residual_count(self):
+        """GateStateBundle rejects negative residual_count."""
+        with pytest.raises(LCNVError, match="residual_count cannot be negative"):
+            GateStateBundle(mclo_state=42, residual_count=-1)  # type: ignore
+
+    def test_gate_state_bundle_accepts_zero_residual_count(self):
+        """GateStateBundle accepts 0 for residual_count."""
+        bundle = GateStateBundle(mclo_state=42, residual_count=0)
+        assert bundle.residual_count == 0
+
+    def test_gate_state_bundle_accepts_positive_residual_count(self):
+        """GateStateBundle accepts positive integer for residual_count."""
+        bundle = GateStateBundle(mclo_state=42, residual_count=3)
+        assert bundle.residual_count == 3
+
+    def test_gate_state_bundle_rejects_int_has_blocking_residuals(self):
+        """GateStateBundle rejects int 1 for has_blocking_residuals."""
+        with pytest.raises(LCNVError, match="has_blocking_residuals must be bool"):
+            GateStateBundle(mclo_state=42, has_blocking_residuals=1)  # type: ignore
+
+    def test_gate_state_bundle_accepts_true_has_blocking_residuals(self):
+        """GateStateBundle accepts True for has_blocking_residuals."""
+        bundle = GateStateBundle(mclo_state=42, has_blocking_residuals=True)
+        assert bundle.has_blocking_residuals is True
+
+    def test_gate_state_bundle_accepts_false_has_blocking_residuals(self):
+        """GateStateBundle accepts False for has_blocking_residuals."""
+        bundle = GateStateBundle(mclo_state=42, has_blocking_residuals=False)
+        assert bundle.has_blocking_residuals is False
+
+    def test_pack_rejects_bool_true_rank_ceiling(self):
+        """pack() rejects True for rank_ceiling."""
+        with pytest.raises(LCNVError, match="rank_ceiling cannot be bool"):
+            pack(mclo_value=42, source_layer_id="test", rank_ceiling=True)  # type: ignore
+
+    def test_pack_rejects_zero_rank_ceiling(self):
+        """pack() rejects 0 for rank_ceiling."""
+        with pytest.raises(LCNVError, match="rank_ceiling must be positive integer"):
+            pack(mclo_value=42, source_layer_id="test", rank_ceiling=0)  # type: ignore
+
+    def test_pack_rejects_negative_rank_ceiling(self):
+        """pack() rejects negative rank_ceiling."""
+        with pytest.raises(LCNVError, match="rank_ceiling must be positive integer"):
+            pack(mclo_value=42, source_layer_id="test", rank_ceiling=-1)  # type: ignore
+
+    def test_pack_accepts_none_rank_ceiling(self):
+        """pack() accepts None for rank_ceiling."""
+        lcnv = pack(mclo_value=42, source_layer_id="test", rank_ceiling=None)
+        assert lcnv.rank_block is None
+
+    def test_pack_accepts_positive_rank_ceiling(self):
+        """pack() accepts positive integer for rank_ceiling."""
+        lcnv = pack(mclo_value=42, source_layer_id="test", rank_ceiling=5)
+        assert lcnv.rank_block == 5
+
+    def test_pack_rejects_bool_true_residual_count(self):
+        """pack() rejects True for residual_count."""
+        with pytest.raises(LCNVError, match="residual_count cannot be bool"):
+            pack(mclo_value=42, source_layer_id="test", residual_count=True)  # type: ignore
+
+    def test_pack_rejects_negative_residual_count(self):
+        """pack() rejects negative residual_count."""
+        with pytest.raises(LCNVError, match="residual_count cannot be negative"):
+            pack(mclo_value=42, source_layer_id="test", residual_count=-1)  # type: ignore
+
+    def test_pack_accepts_zero_residual_count(self):
+        """pack() accepts 0 for residual_count."""
+        lcnv = pack(mclo_value=42, source_layer_id="test", residual_count=0)
+        assert lcnv.residual_block == 0
+
+    def test_pack_accepts_positive_residual_count(self):
+        """pack() accepts positive integer for residual_count."""
+        lcnv = pack(mclo_value=42, source_layer_id="test", residual_count=3)
+        assert lcnv.residual_block == 3
+
+    def test_pack_rejects_int_has_blocking_residuals(self):
+        """pack() rejects int 1 for has_blocking_residuals."""
+        with pytest.raises(LCNVError, match="has_blocking_residuals must be bool"):
+            pack(mclo_value=42, source_layer_id="test", has_blocking_residuals=1)  # type: ignore
+
+    def test_pack_accepts_true_has_blocking_residuals(self):
+        """pack() accepts True for has_blocking_residuals."""
+        lcnv = pack(mclo_value=42, source_layer_id="test", has_blocking_residuals=True)
+        assert lcnv.has_blocking_residuals is True
+
+    def test_pack_accepts_false_has_blocking_residuals(self):
+        """pack() accepts False for has_blocking_residuals."""
+        lcnv = pack(mclo_value=42, source_layer_id="test", has_blocking_residuals=False)
+        assert lcnv.has_blocking_residuals is False
+
