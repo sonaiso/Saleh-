@@ -40,6 +40,10 @@ from .position_rules import (
     ISOLATED_POSITION_RULE,
     get_position_rule,
 )
+from .minimal_unit_readiness_rules import (
+    MINIMAL_UNIT_READINESS_ADMIT_RULE,
+    MINIMAL_UNIT_READINESS_RULES,
+)
 from .slot_geometry_rules import (
     SLOT_GEOMETRY_EXTEND_RULE,
     SLOT_GEOMETRY_RULES,
@@ -89,4 +93,7 @@ __all__ = [
     "SLOT_GEOMETRY_EXTEND_RULE",
     "SLOT_GEOMETRY_RULES",
     "get_slot_geometry_rule_for_construction_mode",
+    # MinimalIndependentUnitReadiness (Phase-2 follow-up)
+    "MINIMAL_UNIT_READINESS_ADMIT_RULE",
+    "MINIMAL_UNIT_READINESS_RULES",
 ]
