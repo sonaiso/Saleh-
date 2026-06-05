@@ -159,6 +159,39 @@ FORBIDDEN_SLOT_GEOMETRY: tuple[str, ...] = (
     "MinimalCompletionReadinessCandidate",
 )
 
+# HarakaRoleSpectrum layer (Layer Γ — Gamma-haraka)
+# Per HARAKA_ROLE_SPECTRUM_CONTRACT.md § 8:
+# Γ_haraka (spectrum opener) produces POTENTIAL roles only.
+# Λ (lambda selectors, FUTURE) will consume the spectrum and select roles.
+# Γ ≠ Λ — Gamma opens, Lambda selects.
+FORBIDDEN_HARAKA_ROLE_SPECTRUM: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Weight/Pattern layer (Wazn)
+    "WeightCandidate",
+    "RootCandidate",
+    "PatternCandidate",
+    "MorphemeCandidate",
+    # Case/Composition layer (I'rab)
+    "CaseEffect",
+    "Irab",
+    "CaseJudgment",
+    "CompositionCandidate",
+    # Prosody layer ('Arud)
+    "ArudCandidate",
+    "MeterJudgment",
+    # Selection outputs (Lambda outputs, not Gamma)
+    "SelectedRole",
+    "FinalFunction",
+    "DeterminedRole",
+    # Syllable layer (Λ_syllable output, not Γ output)
+    "SyllableCandidate",
+    "SyllableConstituent",
+    # Higher layers
+    "WordCandidate",
+    "MeaningCandidate",
+    "IfadahCandidate",
+)
+
 
 # ---------------------------------------------------------------------------
 # Registry mapping layer name → forbidden tuple
@@ -172,6 +205,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "ConditionedTypedSequenceQiyas": FORBIDDEN_CONDITIONED_TYPED_SEQUENCE,
     "SlotQiyas": FORBIDDEN_SLOT,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
+    "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,
 }
 
