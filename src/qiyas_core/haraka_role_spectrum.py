@@ -175,7 +175,7 @@ class HarakaRoleSpectrum:
     3. All hypotheses MUST have role_name starting with "possible_" (§ 3.7)
     4. All hypotheses MUST declare forbidden_outputs (§ 3.6)
     5. Non-phonological hypotheses MUST require lambda context (§ 3.8)
-    6. rank_ceiling MUST be EvidenceRank.CANDIDATE (§ 2.2)
+    6. rank_ceiling MUST be EvidenceRank.ANALOGICAL (§ 2.2)
     7. Output candidate type MUST be "HarakaRoleSpectrum" (§ 3.7)
 
     Example:
@@ -200,7 +200,7 @@ class HarakaRoleSpectrum:
                     ...
                 ),
             ),
-            rank_ceiling=EvidenceRank.CANDIDATE,
+            rank_ceiling=EvidenceRank.ANALOGICAL,
             residuals=(),
         )
     """
@@ -273,9 +273,10 @@ class HarakaRoleSpectrum:
     """
     Rank ceiling for the spectrum.
 
-    MUST be EvidenceRank.CANDIDATE (constitutional requirement § 2.2).
+    MUST be EvidenceRank.ANALOGICAL (constitutional requirement § 2.2).
 
-    Γ_haraka produces CANDIDATE-level outputs only, never VERIFIED or higher.
+    Γ_haraka produces analogical/candidate-level outputs only.
+    ANALOGICAL (rank 2) represents qiyas-based hypotheses.
     """
 
     residuals: tuple[Residual, ...]
