@@ -336,6 +336,40 @@ verification_status    : str   — one of:
 
 These fields are **conceptual reservations**. No runtime dataclass exists.
 
+### 12.1 Vocalized Source Identity Discipline
+
+The `surface_form` reservation in §12 above is refined into two distinct fields. This refinement applies retroactively to every textual reference of `surface_form` in §§7–11.
+
+```text
+surface_form_vocalized       : str  — the IDENTITY carrier. The exact NFC-normalized
+                                      vocalized Arabic surface form INCLUDING harakat.
+                                      Two entries with different vocalized forms are
+                                      DIFFERENT identities, regardless of how they
+                                      compare after harakat are stripped.
+
+surface_form_unvocalized_key : str  — a DIAGNOSTIC key only. The NFC-normalized form
+                                      with harakat (U+064B–U+0652, U+0670, U+0653–U+0655)
+                                      stripped. Used for collision detection and
+                                      indexing; NEVER as an identity carrier.
+```
+
+**Six binding rules** (any future detailed source-table contract MUST honour all six):
+
+1. Harakat MUST NOT be stripped for identity purposes. The identity key is `surface_form_vocalized`.
+2. `مِنْ` (preposition, codepoints `U+0645 U+0650 U+0646 U+0652`) and `مَنْ` (conditional / interrogative noun, codepoints `U+0645 U+064E U+0646 U+0652`) are **distinct identities** and MUST NOT be merged.
+3. Harakat-stripped forms are **diagnostic only**. They MAY be carried as a secondary key for indexing or audit; they MUST NOT be the primary identity field.
+4. *Same `surface_form_unvocalized_key`* + *different `surface_form_vocalized`* = **collision**. Each vocalized form is recorded as a separate identity with its own citation; the collision is surfaced explicitly, not silently merged. (Observed external-corpus collision pairs at the time of writing include `{إِنَّ , إِنْ}`, `{أَنَّ , أَنْ}`, `{مَا , ما}`, `{أي , أيَّ}`, `{إِذًا , إذا}`.)
+5. *Same `surface_form_vocalized`* appearing in more than one row = **`exact_duplicate`**. Genuine multi-role operators (e.g., `بِ` for مرور / قسم; `وَ` for قسم / تقليل / معية; `لَا` for نفي / نهي) appear as multiple distinct entries with identical `surface_form_vocalized` and different `Purpose/Usage`. The detailed source-table contract MUST record both rows; it MUST NOT collapse them into a single multi-purpose entry without explicit constitutional warrant.
+6. If a source row's vocalized operator-cell disagrees with the same row's example-vocalization (i.e., the operator inside the worked example carries different harakat than the operator-cell), the row is flagged as **`source_data_discrepancy`** and MUST be referred back to the external corpus maintainer for correction. The Saleh/Qiyas inventory MUST NOT silently pick one of the two vocalizations as canonical, and MUST NOT use the discrepant row as evidence of multi-role status for either form.
+
+**Worked clarification for `مِنْ` / `مَنْ`**: in the external operators-catalog CSV at the time of this writing, two rows share `surface_form_unvocalized_key = "من"`. Both rows write `مِنْ` in the operator-cell, but one row's example-vocalization uses `مَنْ`. This is a **`source_data_discrepancy`** in the external corpus — not evidence that `مِنْ` carries a conditional role. The classical distinction `مِنْ` (preposition of ابتداء الغاية) vs `مَنْ` (conditional / interrogative noun) remains binding under this contract.
+
+**Effect on length buckets (§6)**: the `length_bucket` partitioning in §6 — which counts Arabic letter-glyph codepoints with harakat excluded — is a **diagnostic partitioning** consistent with rule 3 above (harakat-stripped is fine for bucketing). It is NOT an identity statement. Two distinct `surface_form_vocalized` identities MAY fall into the same `length_bucket`.
+
+**Effect on §§7–11 illustrative tables**: the surface-form column in the illustrative §§7–11 tables is to be read as `surface_form_vocalized` (the identity carrier), not as the stripped diagnostic form.
+
+**Effect on `verification_status` (§12)**: the value `"verified_one_source"` does NOT cover a row carrying a `source_data_discrepancy` flag. Discrepant rows are not "verified" by appearing once; they require maintainer correction at the external corpus before they can reach any non-`pending` verification status.
+
 ---
 
 ## 13. What Must Not Be Inferred
@@ -617,7 +651,7 @@ What is **explicitly not** recommended next:
 
 ---
 
-**Document version:** 1.0
-**Last updated:** 2026-06-05
+**Document version:** 1.1
+**Last updated:** 2026-06-06 (added §12.1 Vocalized Source Identity Discipline)
 **Status:** Source-corpus seed contract (docs-only).
 **Authority:** Subordinate to `PROJECT_MATHEMATICAL_FOUNDATION.md` §18 for layer position, to `RECURSIVE_LICENSED_EXTENSION_CONTRACT.md` and `SOURCE_OF_TRUTH_REGISTRY.md` for registry discipline, and to `CLAUDE.md` §0–§21 for the governing project discipline. Does not amend any of them.
