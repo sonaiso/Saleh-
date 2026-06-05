@@ -443,6 +443,140 @@ Root(ب) from numeric  ✗ (semantic derivation)
 
 ---
 
+## Layer Γ: Haraka Role Spectrum (Constitutional Contract Only)
+
+### Layer Γ: HarakaRoleSpectrum
+
+**Input:** SlotCandidate × Option[SlotGeometryCandidate]
+**Output:** HarakaRoleSpectrum
+**Status:** constitutional_contract_only (Phase 1)
+**Source PR:** #TBD
+**Coverage:** None (documentation only)
+
+**Proof Obligation:** What are the POTENTIAL roles of this haraka in different linguistic domains?
+
+**Mathematical Function:**
+```
+Γ_haraka: SlotCandidate × Option[SlotGeometryCandidate] → HarakaRoleSpectrum
+
+Γ_haraka(x, E, D, G) → RoleSpectrumCandidate
+
+where:
+  x = HarakaFunctionCarrier (from Phase 1)
+  E = EvidenceSet (PositionCarrier + AlignmentEvidence)
+  D = HarakaRoleDomain (new domain)
+  G = Option[SlotGeometryCandidate] (optional geometric context)
+```
+
+**Output Structure:**
+```python
+HarakaRoleSpectrum = {
+  source_identity: tuple[str, ...],           # from SlotCandidate
+  haraka_identity: tuple[str, ...],           # haraka-specific identity
+  position_identity: tuple[str, ...],         # from PositionCarrier
+  alignment_trace_ids: tuple[str, ...],       # from AlignmentEvidence
+  geometry_context_trace: tuple[str, ...],    # from SlotGeometry (optional)
+  hypotheses: tuple[HarakaRoleHypothesis, ...], # THE SPECTRUM
+  rank_ceiling: EvidenceRank.CANDIDATE,       # CANDIDATE only
+  residuals: tuple[Residual, ...],
+}
+
+HarakaRoleHypothesis = {
+  role_name: str,                             # e.g., "possible_case_marker_candidate"
+  role_genus: str,                            # e.g., "morphosyntactic"
+  evidence_claims: tuple[str, ...],
+  required_context: tuple[str, ...],          # e.g., "requires_lambda_context"
+  invalidating_differences: tuple[str, ...],
+  forbidden_outputs: tuple[str, ...],         # e.g., ("Wazn", "Iʿrab")
+}
+```
+
+**Constitutional Principle:**
+```
+Γ ≠ Λ
+
+Γ = Spectrum opener (hypothesis generator)
+Λ = Selector (context-dependent chooser, FUTURE)
+
+Γ produces POTENTIAL roles ("possible_*").
+Γ does NOT produce SELECTED roles.
+Γ does NOT produce FINAL judgments.
+```
+
+**Example Hypotheses (Fatha):**
+1. `possible_phonological_opening` (genus: phonological)
+2. `possible_pattern_vowel` (genus: morphological_pattern)
+3. `possible_case_marker_candidate` (genus: morphosyntactic)
+4. `possible_syllabic_vowel` (genus: syllabic)
+5. `possible_arud_relevance` (genus: prosodic)
+
+**SlotGeometry Integration:**
+- SlotGeometry is OPTIONAL context input
+- When provided: adds geometry-aware hypotheses (geometry_length, position_in_geometry, boundaries)
+- When absent: produces basic hypotheses only
+- SlotGeometry does NOT produce HarakaRoleSpectrum
+- Γ_haraka does NOT modify SlotGeometry
+
+**Forbidden Outputs (Layer-Level):**
+- WeightCandidate (Wazn)
+- CaseEffect / Irab (Iʿrab)
+- ArudCandidate (ʿArūḍ)
+- FinalFunction / SelectedRole / DeterminedRole
+- SyllableCandidate (Λ_syllable output, not Γ output)
+- MeaningCandidate
+- HukmCandidate
+- RealityClaim
+
+**Forbidden Outputs (Hypothesis-Level):**
+Each hypothesis MUST declare forbidden outputs including at minimum:
+- All hypotheses: `("HukmCandidate", "RealityClaim", "FinalMeaning")`
+- Morphosyntactic: + `("CaseEffect", "Irab", "FinalCaseJudgment")`
+- Pattern: + `("WeightCandidate", "FinalPattern")`
+- Prosodic: + `("ArudCandidate", "FinalMeterJudgment")`
+
+**Acceptance Law (8 Conditions):**
+1. HasCarrier(x) — HarakaFunctionCarrier present
+2. HasPosition(x) — PositionCarrier present
+3. HasAlignment(x) — AlignmentEvidence present
+4. HasDomainDeclaration(x) — HarakaRoleDomain declared
+5. PreservesIdentity(x) — source identities preserved
+6. DeclaresForbiddenOutputs(x) — every hypothesis declares forbidden outputs
+7. ProducesOnlySpectrum(x) — all role_names start with "possible_"
+8. DeclaresContextRequirement(x) — non-phonological hypotheses require lambda
+
+**Relationship to Future Λ (Lambda):**
+```
+Γ_haraka (NOW, this layer):
+  Opens spectrum of possible roles
+  Produces: HarakaRoleSpectrum
+
+Λ_syllable (FUTURE):
+  Selects syllabic role from spectrum
+  Consumes: HarakaRoleSpectrum
+  Produces: SyllableConstituent | Residual
+
+Λ_pattern (FUTURE):
+  Selects pattern role from spectrum
+  Consumes: HarakaRoleSpectrum
+  Produces: PatternVowel | Residual
+
+Λ_composition (FUTURE):
+  Selects case role from spectrum
+  Consumes: HarakaRoleSpectrum
+  Produces: CaseMarkerCandidate | Residual
+```
+
+**Implementation Phases:**
+- Phase 1 (Current): Constitutional contract document only (`HARAKA_ROLE_SPECTRUM_CONTRACT.md`)
+- Phase 2: Data structures (`HarakaRoleHypothesis`, `HarakaRoleSpectrum` dataclasses)
+- Phase 3: Adapter and rules implementation
+
+**Constitutional Document:** `docs/qiyas_core/HARAKA_ROLE_SPECTRUM_CONTRACT.md`
+
+**Note:** This is a WEAK LINK layer that generates hypotheses only, per LAYER_CONTRACT_CONSTITUTION.md. It does NOT select roles, does NOT produce final judgments, and does NOT cross domain boundaries without explicit Λ gates.
+
+---
+
 ## Not Implemented Layers (Constitutional Contracts Exist)
 
 **These layers have constitutional gates in LAYER_CONTRACT_CONSTITUTION.md but no canonical implementation.**
