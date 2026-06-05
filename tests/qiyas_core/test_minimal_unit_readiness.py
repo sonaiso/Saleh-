@@ -27,6 +27,14 @@ import uuid
 
 import pytest
 
+from qiyas_core import minimal_unit_readiness_adapter as miu_adapter_mod
+from qiyas_core.arabic_variant_resolution_evidence import (
+    ArabicVariantResolutionEvidence,
+    FIXED_GEOMETRY_CONSTRUCTION_MODE,
+    FIXED_GEOMETRY_LAYER,
+    FIXED_GEOMETRY_LENGTH,
+)
+from qiyas_core.arabic_variant_resolver import ArabicVariantResolver
 from qiyas_core.candidate import Candidate
 from qiyas_core.enums import CandidateStatus, EvidenceRank
 from qiyas_core.kernel import QiyasKernel
@@ -583,4 +591,460 @@ def test_overview_visual_readout_of_four_cases():
             f"{label}: expected {expected_bucket}, got {bucket}; "
             f"residuals="
             f"{[_residual_types(c) for c in (result.accepted + result.blocked + result.deferred)]}"
+        )
+
+
+# ===========================================================================
+# 9. PR #82 — optional ArabicVariantResolutionEvidence consumption
+# ===========================================================================
+#
+# Per ARABIC_VARIANT_RESOLUTION_CONTRACT.md §7 / §10.3 the MIU
+# readiness layer accepts an OPTIONAL evidence carrier that removes
+# the `variant_ambiguity` defer reason for multi-variant symbols
+# (و / ي). Presence of evidence does NOT by itself authorise
+# admission; ALL existing MIU invariants still apply.
+#
+# Registry-eligibility facts for this section (verified against
+# data/arabic_articulation_registry.json):
+#   lips_waw_non_madd  →  can_function_as_minimal_independent_unit = True
+#   jawf_waw_madd      →  can_function_as_minimal_independent_unit = False
+#   tongue_ya_non_madd →  can_function_as_minimal_independent_unit = False
+#   jawf_ya_madd       →  can_function_as_minimal_independent_unit = False
+# ---------------------------------------------------------------------------
+
+
+def _make_waw_geometry(*, trace_label: str = "W_var") -> Candidate:
+    return _seed_geometry_for_letter(
+        _CP["و"], trace_label=trace_label, haraka_cp="064e",  # fatha
+    )
+
+
+def _make_ya_geometry(*, trace_label: str = "Y_var") -> Candidate:
+    return _seed_geometry_for_letter(
+        _CP["ي"], trace_label=trace_label, haraka_cp="064e",  # fatha
+    )
+
+
+def _evidence_for(geom: Candidate) -> ArabicVariantResolutionEvidence:
+    """Run the real resolver against a real seed geometry."""
+    ev = ArabicVariantResolver().resolve(geom)
+    assert ev is not None, (
+        "Test fixture broken: resolver returned None for what should be "
+        "a licensed non_madd case."
+    )
+    return ev
+
+
+# --- Case D: وَ + valid non_madd evidence → ACCEPTED -----------------
+
+
+def test_waw_with_valid_non_madd_evidence_is_accepted():
+    """Case D (Phase 4): و is multi-variant; supplied evidence
+    resolves to lips_waw_non_madd which is eligible. With all other
+    MIU gates passing, the result is ACCEPTED. variant_ambiguity is
+    no longer in the residuals."""
+    geom = _make_waw_geometry(trace_label="W_accept")
+    closure = _closure_for(geom)
+    evidence = _evidence_for(geom)
+
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=evidence,
+    )
+    assert len(result.accepted) == 1, (
+        f"وَ + non_madd evidence must accept; "
+        f"blocked={[_residual_types(c) for c in result.blocked]}; "
+        f"deferred={[_residual_types(c) for c in result.deferred]}"
+    )
+    c = result.accepted[0]
+    assert c.candidate_type == "MinimalUnitReadinessCandidate"
+    assert c.status == CandidateStatus.ACCEPTED
+    assert "CandidateOnly" in c.output_flags
+    assert "deferred_variant_ambiguity" not in _residual_types(c)
+
+
+def test_waw_with_evidence_output_has_only_candidate_only_flag():
+    """Variant evidence does not introduce any forbidden output
+    flag. CandidateOnly is the only output flag."""
+    geom = _make_waw_geometry(trace_label="W_flag")
+    closure = _closure_for(geom)
+    evidence = _evidence_for(geom)
+
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=evidence,
+    )
+    c = result.accepted[0]
+    assert c.output_flags == frozenset({"CandidateOnly"})
+
+
+def test_waw_with_evidence_does_not_produce_meaning_or_hukm():
+    """The ACCEPTED candidate's candidate_type and output_flags
+    contain NO Word / Dalalah / FinalMeaning / Hukm / Reality
+    fingerprint."""
+    geom = _make_waw_geometry(trace_label="W_no_meaning")
+    closure = _closure_for(geom)
+    evidence = _evidence_for(geom)
+
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=evidence,
+    )
+    c = result.accepted[0]
+    forbidden = {
+        "WordCandidate", "LafzCandidate", "DalalahCandidate",
+        "FinalMeaning", "HukmCandidate", "RealityClaim",
+        "FinalCaseJudgment", "MinimalIndependentMeaningCandidate",
+    }
+    assert c.candidate_type not in forbidden
+    assert not (frozenset(forbidden) & c.output_flags)
+
+
+def test_waw_with_evidence_records_variant_resolution_trace():
+    """An audit trace entry records that variant resolution
+    evidence was applied; it lives on trace_ids, never on
+    identity_ids."""
+    geom = _make_waw_geometry(trace_label="W_audit")
+    closure = _closure_for(geom)
+    evidence = _evidence_for(geom)
+
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=evidence,
+    )
+    c = result.accepted[0]
+    on_trace = any(
+        t.startswith("trace:miu_readiness:variant_resolution:applied:")
+        for t in c.trace_ids
+    )
+    assert on_trace, (
+        f"variant_resolution applied trace missing; trace_ids={c.trace_ids}"
+    )
+    on_identity = any(
+        i.startswith("trace:miu_readiness:variant_resolution:")
+        for i in c.identity_ids
+    )
+    assert not on_identity, "variant_resolution audit must not appear on identity_ids"
+
+
+# --- Case B repeat: وَ without evidence still DEFERRED ---------------
+
+
+def test_waw_without_evidence_still_deferred():
+    """Case B unchanged: omitting variant_resolution_evidence
+    preserves the existing DEFERRED behaviour for وَ."""
+    geom = _make_waw_geometry(trace_label="W_no_ev")
+    closure = _closure_for(geom)
+    result = _adapter().admit(geom, closure)
+    assert len(result.deferred) == 1
+    c = result.deferred[0]
+    assert c.status == CandidateStatus.DEFERRED
+    assert "deferred_variant_ambiguity" in _residual_types(c)
+
+
+# --- Case C: invalid evidence variants ------------------------------
+
+
+def test_waw_with_evidence_for_different_geometry_is_deferred():
+    """Case F (Phase 4): evidence whose geometry_candidate_id does
+    not match the consumed geometry is foreign; treated as absent
+    (DEFER, never BLOCK)."""
+    geom_a = _make_waw_geometry(trace_label="W_mismatch_a")
+    geom_b = _make_waw_geometry(trace_label="W_mismatch_b")
+    closure = _closure_for(geom_a)
+    evidence_for_b = _evidence_for(geom_b)
+
+    result = _adapter().admit(
+        geom_a, closure, variant_resolution_evidence=evidence_for_b,
+    )
+    assert len(result.deferred) == 1
+    c = result.deferred[0]
+    assert c.status == CandidateStatus.DEFERRED
+    assert "deferred_variant_ambiguity" in _residual_types(c)
+
+
+def test_waw_with_evidence_for_different_symbol_is_deferred():
+    """Evidence whose symbol does not match is foreign; DEFER."""
+    geom_waw = _make_waw_geometry(trace_label="W_wrongsym")
+    geom_ya = _make_ya_geometry(trace_label="Y_wrongsym")
+    closure = _closure_for(geom_waw)
+    evidence_for_ya = _evidence_for(geom_ya)
+
+    result = _adapter().admit(
+        geom_waw, closure, variant_resolution_evidence=evidence_for_ya,
+    )
+    assert len(result.deferred) == 1
+    assert "deferred_variant_ambiguity" in _residual_types(
+        result.deferred[0]
+    )
+
+
+def test_waw_with_malformed_evidence_unreserved_variant_is_deferred():
+    """Evidence carrying a non-reserved variant label is malformed;
+    treated as absent (DEFER, not BLOCK)."""
+    geom = _make_waw_geometry(trace_label="W_malformed_var")
+    closure = _closure_for(geom)
+    malformed = ArabicVariantResolutionEvidence(
+        symbol="و",
+        selected_variant="invented_label",
+        selected_entry_id="lips_waw_non_madd",
+        selection_basis=("haraka_function_self",),
+        geometry_candidate_id=geom.candidate_id,
+        geometry_layer=FIXED_GEOMETRY_LAYER,
+        geometry_length=FIXED_GEOMETRY_LENGTH,
+        geometry_construction_mode=FIXED_GEOMETRY_CONSTRUCTION_MODE,
+        geometry_identity_ids=tuple(geom.identity_ids),
+        geometry_trace_ids=tuple(geom.trace_ids),
+        evidence_id="ev:malformed:001",
+        audit_trace_ids=(),
+    )
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=malformed,
+    )
+    assert len(result.deferred) == 1
+    assert "deferred_variant_ambiguity" in _residual_types(
+        result.deferred[0]
+    )
+
+
+def test_waw_with_malformed_evidence_unknown_entry_id_is_deferred():
+    """Evidence pointing to a registry entry id that does not exist
+    is malformed; treated as absent (DEFER, not BLOCK)."""
+    geom = _make_waw_geometry(trace_label="W_malformed_entry")
+    closure = _closure_for(geom)
+    malformed = ArabicVariantResolutionEvidence(
+        symbol="و",
+        selected_variant="non_madd",
+        selected_entry_id="does_not_exist_in_registry",
+        selection_basis=("haraka_function_self",),
+        geometry_candidate_id=geom.candidate_id,
+        geometry_layer=FIXED_GEOMETRY_LAYER,
+        geometry_length=FIXED_GEOMETRY_LENGTH,
+        geometry_construction_mode=FIXED_GEOMETRY_CONSTRUCTION_MODE,
+        geometry_identity_ids=tuple(geom.identity_ids),
+        geometry_trace_ids=tuple(geom.trace_ids),
+        evidence_id="ev:malformed:002",
+        audit_trace_ids=(),
+    )
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=malformed,
+    )
+    assert len(result.deferred) == 1
+
+
+def test_waw_with_inconsistent_variant_label_is_deferred():
+    """Evidence whose selected_variant disagrees with the registry
+    entry's variant field is inconsistent; treated as absent (DEFER)."""
+    geom = _make_waw_geometry(trace_label="W_inconsistent")
+    closure = _closure_for(geom)
+    # selected_variant says madd but selected_entry_id points to the
+    # non_madd entry — disagreement.
+    inconsistent = ArabicVariantResolutionEvidence(
+        symbol="و",
+        selected_variant="madd",
+        selected_entry_id="lips_waw_non_madd",  # actually non_madd
+        selection_basis=("haraka_function_before",),
+        geometry_candidate_id=geom.candidate_id,
+        geometry_layer=FIXED_GEOMETRY_LAYER,
+        geometry_length=FIXED_GEOMETRY_LENGTH,
+        geometry_construction_mode=FIXED_GEOMETRY_CONSTRUCTION_MODE,
+        geometry_identity_ids=tuple(geom.identity_ids),
+        geometry_trace_ids=tuple(geom.trace_ids),
+        evidence_id="ev:inconsistent:001",
+        audit_trace_ids=(),
+    )
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=inconsistent,
+    )
+    assert len(result.deferred) == 1
+
+
+# --- Case E: synthetic madd evidence ⇒ BLOCKED via eligibility -------
+
+
+def test_waw_with_synthetic_madd_evidence_is_blocked_by_eligibility():
+    """Case E (Phase 4): if a future resolver supplies madd evidence
+    for و, the resolved entry jawf_waw_madd has
+    can_function_as_minimal_independent_unit = False. Variant
+    ambiguity is removed, but the readiness layer BLOCKS via
+    symbol_not_eligible_for_minimal_unit. No meaning, no hukm."""
+    geom = _make_waw_geometry(trace_label="W_madd_block")
+    closure = _closure_for(geom)
+    madd_evidence = ArabicVariantResolutionEvidence(
+        symbol="و",
+        selected_variant="madd",
+        selected_entry_id="jawf_waw_madd",
+        selection_basis=("haraka_function_before",),
+        geometry_candidate_id=geom.candidate_id,
+        geometry_layer=FIXED_GEOMETRY_LAYER,
+        geometry_length=FIXED_GEOMETRY_LENGTH,
+        geometry_construction_mode=FIXED_GEOMETRY_CONSTRUCTION_MODE,
+        geometry_identity_ids=tuple(geom.identity_ids),
+        geometry_trace_ids=tuple(geom.trace_ids),
+        evidence_id="ev:madd_synth:001",
+        audit_trace_ids=(),
+    )
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=madd_evidence,
+    )
+    assert len(result.blocked) == 1, (
+        f"Expected BLOCKED via eligibility; "
+        f"accepted={len(result.accepted)} deferred={len(result.deferred)}"
+    )
+    c = result.blocked[0]
+    assert c.status == CandidateStatus.BLOCKED
+    assert "blocking_fariq_present" in _residual_types(c)
+    # The candidate is still MinimalUnitReadinessCandidate — never
+    # Word / Dalalah / Meaning / Hukm / Reality.
+    assert c.candidate_type == "MinimalUnitReadinessCandidate"
+
+
+# --- يَ — conservative: registry non-eligible for tongue_ya_non_madd ----
+
+
+def test_ya_with_valid_non_madd_evidence_is_blocked_by_eligibility():
+    """ي + valid non_madd evidence: the registry entry
+    `tongue_ya_non_madd` has
+    can_function_as_minimal_independent_unit = False under the
+    current registry. variant_ambiguity is removed, BUT the
+    readiness layer BLOCKS via symbol_not_eligible_for_minimal_unit.
+    This pins the conservative behaviour: presence of evidence does
+    not by itself authorise admission."""
+    geom = _make_ya_geometry(trace_label="Y_block_eligibility")
+    closure = _closure_for(geom)
+    evidence = _evidence_for(geom)
+
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=evidence,
+    )
+    assert len(result.blocked) == 1, (
+        f"يَ + non_madd evidence must be BLOCKED via eligibility under "
+        f"the current registry; accepted={len(result.accepted)} "
+        f"deferred={len(result.deferred)}"
+    )
+    c = result.blocked[0]
+    assert c.candidate_type == "MinimalUnitReadinessCandidate"
+    assert "blocking_fariq_present" in _residual_types(c)
+
+
+# --- Evidence does not override structural gates --------------------
+
+
+def test_evidence_does_not_override_length_greater_than_one():
+    """Case G (Phase 4): variant evidence must not bypass the
+    length=1 gate. A length>1 geometry stays BLOCKED even with
+    valid resolver evidence."""
+    geom = _length_2_geometry()
+    closure = _closure_for(geom)
+    # Build a fixture evidence carrier for this geometry (no real
+    # resolver runs because the resolver requires length=1).
+    forced = ArabicVariantResolutionEvidence(
+        symbol="و",
+        selected_variant="non_madd",
+        selected_entry_id="lips_waw_non_madd",
+        selection_basis=("haraka_function_self",),
+        geometry_candidate_id=geom.candidate_id,
+        geometry_layer=FIXED_GEOMETRY_LAYER,
+        geometry_length=FIXED_GEOMETRY_LENGTH,
+        geometry_construction_mode=FIXED_GEOMETRY_CONSTRUCTION_MODE,
+        geometry_identity_ids=tuple(geom.identity_ids),
+        geometry_trace_ids=tuple(geom.trace_ids),
+        evidence_id="ev:forced_for_length2:001",
+        audit_trace_ids=(),
+    )
+    result = _adapter().admit(
+        geom, closure, variant_resolution_evidence=forced,
+    )
+    assert len(result.accepted) == 0
+    # Length and construction-mode fariqs block regardless of evidence.
+    assert (len(result.blocked) + len(result.deferred)) == 1
+
+
+def test_evidence_does_not_override_missing_closure():
+    """Case G/H continuation: missing closure evidence still
+    BLOCKS, regardless of variant resolution evidence presence."""
+    geom = _make_waw_geometry(trace_label="W_no_closure_with_ev")
+    # Build evidence from the geometry directly so symbol/id match.
+    evidence = ArabicVariantResolver().resolve(geom)
+    assert evidence is not None
+    result = _adapter().admit(
+        geom, closure_evidence=None,
+        variant_resolution_evidence=evidence,
+    )
+    assert len(result.accepted) == 0
+    assert len(result.blocked) == 1
+    c = result.blocked[0]
+    assert "blocking_fariq_present" in _residual_types(c)
+
+
+# --- Constitutional guards on the MIU module ------------------------
+
+
+def test_miu_adapter_does_not_define_forbidden_candidate_types():
+    """The MIU adapter module must NOT define any forbidden Candidate
+    type per CLAUDE.md §3 / §19 + MIU contract §8."""
+    forbidden = (
+        "WordCandidate",
+        "LafzCandidate",
+        "SentenceCandidate",
+        "ParagraphCandidate",
+        "DalalahCandidate",
+        "FinalMeaning",
+        "HukmCandidate",
+        "RealityClaim",
+        "FinalCaseJudgment",
+        "DiscourseGeometryCandidate",
+        "TextGeometryCandidate",
+        "MinimalIndependentMeaningCandidate",
+        "SentenceGeometry",
+    )
+    for name in forbidden:
+        assert not hasattr(miu_adapter_mod, name), (
+            f"forbidden symbol must not be defined in MIU adapter: {name}"
+        )
+
+
+def test_miu_adapter_does_not_import_forbidden_higher_layers():
+    """The MIU adapter module must NOT import from any forbidden
+    higher-layer module (Word/Lafz/Dalalah/Sentence/Discourse/Text/
+    Meaning/Hukm/Reality). The existing QiyasKernel usage is
+    PRESERVED — MIU is a Qiyas-shaped adapter by design and the
+    guard targets only the forbidden higher layers.
+    """
+    import ast as _ast
+    source = inspect.getsource(miu_adapter_mod)
+    tree = _ast.parse(source)
+    imported: set[str] = set()
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.ImportFrom) and node.module:
+            imported.add(node.module)
+        elif isinstance(node, _ast.Import):
+            for alias in node.names:
+                imported.add(alias.name)
+    forbidden_substrings = (
+        "word", "lafz", "dalalah",
+        "sentence", "discourse", "text_geometry",
+        "meaning", "hukm", "reality",
+        "final_case_judgment",
+        "minimal_independent_meaning",
+        "sentence_geometry",
+    )
+    for mod in imported:
+        lower = mod.lower()
+        for needle in forbidden_substrings:
+            assert needle not in lower, (
+                f"forbidden higher-layer import in MIU adapter: {mod}"
+            )
+
+
+def test_miu_adapter_does_not_mutate_registry():
+    """The MIU adapter must consume the registry read-only. No
+    writer / setter / save / mutation helpers may appear."""
+    source = inspect.getsource(miu_adapter_mod)
+    forbidden_calls = (
+        "save_articulation",
+        "set_articulation",
+        "update_articulation",
+        "add_articulation",
+        "delete_articulation",
+    )
+    for needle in forbidden_calls:
+        assert needle not in source, (
+            f"registry-mutation helper must not be called: {needle}"
         )

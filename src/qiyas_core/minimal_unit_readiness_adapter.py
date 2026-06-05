@@ -3,7 +3,9 @@
 Implements the readiness layer's admission predicate per
 ``MINIMAL_INDEPENDENT_UNIT_READINESS_CONTRACT.md``.
 
-The adapter consumes three witnesses (contract §2):
+The adapter consumes three witnesses (contract §2) plus an optional
+fourth (added by PR #82 per ``ARABIC_VARIANT_RESOLUTION_CONTRACT.md``
+§10.3):
 
   1. ``SlotGeometryCandidate(length = 1, construction_mode = "seed")``
   2. ``ArabicArticulationRegistry`` metadata (via the existing read-only
@@ -11,18 +13,24 @@ The adapter consumes three witnesses (contract §2):
   3. ``MinimalCompleteClosureEvidence`` (via the existing
      ``slot_geometry_closure_check`` evidence carrier — produced once,
      consumed read-only here)
+  4. **(optional)** ``ArabicVariantResolutionEvidence`` (via the
+     ``arabic_variant_resolver`` producer — produced once, consumed
+     read-only here). Removes the ``variant_ambiguity`` deferral
+     reason for multi-variant symbols (``و`` / ``ي``) **only**;
+     does NOT by itself authorise admission (§7 / §10.3 of
+     ARABIC_VARIANT_RESOLUTION_CONTRACT.md).
 
 It produces exactly one output type:
 
   ``MinimalUnitReadinessCandidate`` with ``output_flags ⊇ {CandidateOnly}``
 
 The output is **always** a ``MinimalUnitReadinessCandidate``: ACCEPTED
-when all three witnesses pass, BLOCKED when a structural witness fails
-(geometry shape, closure-evidence presence, registry rejection),
-DEFERRED when the registry returns variant ambiguity for the symbol
-(``و`` / ``ي`` have both madd and non-madd entries; the readiness
-layer refuses to choose between variants without future variant
-evidence — contract §4.2 / §7 / §13.3).
+when all witnesses pass, BLOCKED when a structural witness fails
+(geometry shape, closure-evidence presence, registry rejection,
+resolved-variant ineligibility), DEFERRED when the registry returns
+variant ambiguity for the symbol and either (a) no variant resolution
+evidence is supplied, or (b) the supplied evidence is invalid /
+foreign / mismatched (treated as absent per §7 — DEFER, never BLOCK).
 
 Per the contract:
 
@@ -34,6 +42,11 @@ Per the contract:
   * Readiness does NOT consult the registry to substitute for any
     qiyas-layer transition; the registry is metadata only and
     licenses no algebraic transition by itself (contract §10).
+  * Variant resolution evidence is consumed read-only and removes
+    only the ``variant_ambiguity`` defer reason; all other MIU
+    invariants (length=1, construction_mode=seed, closure presence,
+    registry eligibility, output flags) still apply unchanged
+    (§7 / §10.3 of ARABIC_VARIANT_RESOLUTION_CONTRACT.md).
   * No segment linking; no admission of multi-slot geometries.
 
 Phase 2 Batch-1 / Batch-2 / Closure-check artifacts are NOT modified by
@@ -47,8 +60,14 @@ from typing import Any
 import uuid
 
 from .arabic_articulation_registry import (
+    ArabicArticulationEntry,
+    get_articulation_by_id,
     get_articulations_by_symbol,
     get_primary_articulation,
+)
+from .arabic_variant_resolution_evidence import (
+    ArabicVariantResolutionEvidence,
+    RESERVED_VARIANT_LABELS,
 )
 from .candidate import Candidate, CandidateSet
 from .enums import EvidenceRank
@@ -144,6 +163,73 @@ def _has_no_forbidden_final_flags(geom: Any) -> bool:
     return not (flags & _FORBIDDEN_FINAL_FLAGS)
 
 
+def _try_apply_variant_resolution(
+    evidence: ArabicVariantResolutionEvidence | None,
+    symbol: str,
+    geometry_candidate_id: str,
+) -> ArabicArticulationEntry | None:
+    """Try to resolve variant ambiguity using the supplied evidence.
+
+    Per ``ARABIC_VARIANT_RESOLUTION_CONTRACT.md`` §7 / §10.3:
+
+      * Absent evidence ⇒ ``None`` (caller keeps deferring).
+      * Mismatched symbol ⇒ ``None`` (foreign; DEFER, not BLOCK).
+      * Mismatched geometry id ⇒ ``None`` (foreign; DEFER, not BLOCK).
+      * Unreserved variant label ⇒ ``None`` (malformed; DEFER).
+      * Entry id not found in registry ⇒ ``None`` (malformed; DEFER).
+      * Resolved entry's variant disagrees with the evidence's
+        ``selected_variant`` ⇒ ``None`` (inconsistent; DEFER).
+
+    A successful match returns the registry entry whose semantics
+    the evidence selected. The caller plugs that entry into the
+    same wasf/fariq emission path used by the single-primary case,
+    so the rule's existing claim grammar handles ACCEPT/BLOCK
+    decisions without amendment.
+    """
+    if evidence is None:
+        return None
+    if evidence.symbol != symbol:
+        return None
+    if evidence.geometry_candidate_id != geometry_candidate_id:
+        return None
+    if evidence.selected_variant not in RESERVED_VARIANT_LABELS:
+        return None
+    entry = get_articulation_by_id(evidence.selected_entry_id)
+    if entry is None:
+        return None
+    if entry.symbol != symbol:
+        return None
+    if entry.variant != evidence.selected_variant:
+        return None
+    return entry
+
+
+def _effective_primary(
+    symbol: str | None,
+    variant_resolution_evidence: ArabicVariantResolutionEvidence | None,
+    geometry_candidate_id: str,
+) -> ArabicArticulationEntry | None:
+    """Return the registry entry the readiness layer should treat as
+    the slot's primary articulation, threading optional variant
+    resolution evidence through.
+
+    Falls back to ``get_primary_articulation(symbol)`` when the
+    registry already resolves uniquely. When the registry returns
+    ``None`` (multi-variant symbol), tries the optional evidence.
+    Returns ``None`` if the evidence is absent or invalid — the
+    caller then emits the ``variant_ambiguity`` defer claim per
+    contract §7.
+    """
+    if symbol is None:
+        return None
+    primary = get_primary_articulation(symbol)
+    if primary is not None:
+        return primary
+    return _try_apply_variant_resolution(
+        variant_resolution_evidence, symbol, geometry_candidate_id,
+    )
+
+
 # ---------------------------------------------------------------------------
 # The adapter
 # ---------------------------------------------------------------------------
@@ -172,6 +258,7 @@ class MinimalIndependentUnitReadinessLayerAdapter:
         geometry: Any,
         closure_evidence: Any,
         trace_prefix: str = "",
+        variant_resolution_evidence: ArabicVariantResolutionEvidence | None = None,
     ) -> CandidateSet:
         """Attempt admission of ``geometry`` as a
         ``MinimalUnitReadinessCandidate``.
@@ -188,13 +275,23 @@ class MinimalIndependentUnitReadinessLayerAdapter:
           * ``construction_mode != "seed"``;
           * ``closure_evidence is None``;
           * registry has no entry for the geometry's symbol;
-          * registry says ``can_function_as_minimal_independent_unit
-            == False`` for the symbol.
+          * the registry-resolved primary OR the variant-evidence-
+            resolved entry has ``can_function_as_minimal_independent_unit
+            == False``.
 
         Deferral (DEFERRED) cases:
-          * registry returns multiple variants for the symbol and
-            ``get_primary_articulation`` returns ``None``
-            (variant ambiguity — ``و`` / ``ي``).
+          * registry returns multiple variants for the symbol AND
+            either (a) no ``variant_resolution_evidence`` was
+            supplied, or (b) the supplied evidence is invalid /
+            foreign / mismatched (treated as absent per
+            ARABIC_VARIANT_RESOLUTION_CONTRACT.md §7 — DEFER, never
+            BLOCK).
+
+        ``variant_resolution_evidence`` is optional. When supplied,
+        it removes the ``variant_ambiguity`` defer reason **only**;
+        all other MIU invariants still apply. Presence of variant
+        resolution does not by itself authorise admission
+        (contract §7 / §10.3).
         """
         if not trace_prefix:
             trace_prefix = f"miu_readiness:admit:{uuid.uuid4().hex[:8]}"
@@ -202,7 +299,10 @@ class MinimalIndependentUnitReadinessLayerAdapter:
         asl = self._build_asl(trace_prefix)
         far = self._build_far(geometry, trace_prefix)
         evidence = self._build_evidence(
-            geometry, closure_evidence, trace_prefix,
+            geometry,
+            closure_evidence,
+            trace_prefix,
+            variant_resolution_evidence,
         )
 
         request = QiyasRequest(
@@ -253,6 +353,7 @@ class MinimalIndependentUnitReadinessLayerAdapter:
         geometry: Any,
         closure_evidence: Any,
         trace_prefix: str,
+        variant_resolution_evidence: ArabicVariantResolutionEvidence | None = None,
     ) -> EvidenceSet:
         proves: list[str] = [
             "اصل:established",
@@ -288,9 +389,15 @@ class MinimalIndependentUnitReadinessLayerAdapter:
         else:
             proves.append("فارق:closure_evidence_missing:present")
 
-        # §4.2 — registry metadata witness.
+        # §4.2 — registry metadata witness, threaded through optional
+        # variant resolution evidence per ARABIC_VARIANT_RESOLUTION
+        # CONTRACT.md §10.3.
         symbol = _extract_letter_symbol(geometry)
         symbol_for_trace: str = symbol if symbol is not None else "?"
+        geometry_candidate_id = getattr(geometry, "candidate_id", "")
+        primary = _effective_primary(
+            symbol, variant_resolution_evidence, geometry_candidate_id,
+        )
         if symbol is None:
             proves.append("فارق:registry_metadata_missing_for_symbol:present")
         else:
@@ -299,12 +406,14 @@ class MinimalIndependentUnitReadinessLayerAdapter:
                 proves.append("فارق:registry_metadata_missing_for_symbol:present")
             else:
                 proves.append("وصف:registry_metadata_present:evidenced")
-                primary = get_primary_articulation(symbol)
                 if primary is None:
                     # Variant ambiguity — DEFER per §4.2 / §7 / §13.3.
-                    # Emit a `defer:` claim so the kernel records a
-                    # deferred residual; do NOT silently choose a
-                    # variant.
+                    # Either the registry has multiple variants and
+                    # no variant resolution evidence was supplied,
+                    # or the supplied evidence was invalid /
+                    # mismatched (per §7 of
+                    # ARABIC_VARIANT_RESOLUTION_CONTRACT.md, invalid
+                    # is treated as absent — DEFER, not BLOCK).
                     proves.append("defer:variant_ambiguity:present")
                 else:
                     proves.append(
@@ -355,15 +464,8 @@ class MinimalIndependentUnitReadinessLayerAdapter:
             and mode == "seed"
             and _is_slot_geometry_candidate_shaped(geometry)
             and bool(get_articulations_by_symbol(symbol))
-            and get_primary_articulation(symbol) is not None
-            and (
-                get_primary_articulation(symbol)
-                is not None
-                and get_primary_articulation(symbol)
-                .can_function_as_minimal_independent_unit
-            )
-            if symbol is not None
-            else False
+            and primary is not None
+            and primary.can_function_as_minimal_independent_unit
         )
         ready_marker = f"{_READY_TRACE_PREFIX}{'true' if ready else 'false'}"
         symbol_marker = f"{_SYMBOL_TRACE_PREFIX}{symbol_for_trace}"
@@ -373,6 +475,24 @@ class MinimalIndependentUnitReadinessLayerAdapter:
             if closure_present
             else "trace:miu_readiness:closure_evidence_id:absent"
         )
+        # Variant-resolution audit trace: records whether evidence was
+        # supplied and whether it was applied (used to resolve the
+        # primary). Per CLAUDE.md §4 invariant 3 this audit string is
+        # on trace_ids — never on identity_ids — and adds trace without
+        # consuming identity.
+        if variant_resolution_evidence is None:
+            variant_audit = "trace:miu_readiness:variant_resolution:absent"
+        else:
+            variant_applied = (
+                primary is not None
+                and get_primary_articulation(symbol_for_trace) is None
+                and variant_resolution_evidence.symbol == symbol_for_trace
+            )
+            variant_audit = (
+                f"trace:miu_readiness:variant_resolution:"
+                f"{'applied' if variant_applied else 'rejected'}:"
+                f"{variant_resolution_evidence.evidence_id}"
+            )
 
         return EvidenceSet(
             items=(
@@ -388,6 +508,7 @@ class MinimalIndependentUnitReadinessLayerAdapter:
                         ready_marker,
                         symbol_marker,
                         closure_audit,
+                        variant_audit,
                     ),
                 ),
             )
