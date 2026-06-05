@@ -426,6 +426,7 @@ class HarakaRoleSpectrumLayerAdapter:
         haraka_function = _extract_haraka_function(slot_candidate)
         if haraka_function is None:
             # Defer if no haraka function found
+            from .residual import ResidualSeverity, ResidualEffect
             return HarakaRoleSpectrum(
                 source_identity=slot_candidate.identity_ids,
                 haraka_identity=_extract_haraka_identity(slot_candidate),
@@ -436,9 +437,12 @@ class HarakaRoleSpectrumLayerAdapter:
                 rank_ceiling=EvidenceRank.ANALOGICAL,
                 residuals=(
                     Residual(
-                        residual_id=f"residual:missing_haraka_function:{uuid.uuid4().hex[:8]}",
                         residual_type="defer:missing_haraka_function:present",
-                        source_layer="HarakaRoleSpectrumQiyas",
+                        severity=ResidualSeverity.BLOCKER,
+                        effect=ResidualEffect.DEFER,
+                        message="No haraka function found in SlotCandidate",
+                        source_rule_id="haraka_role_spectrum.gamma_haraka",
+                        layer="HarakaRoleSpectrumQiyas",
                         trace_ids=(f"{trace_prefix}:missing_haraka_function",),
                     ),
                 ),
