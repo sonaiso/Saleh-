@@ -346,7 +346,7 @@ TAA_EMPHATIC_COORDINATE_RULE = _make_letter_coordinate_rule(
 
 # U+0638 ظ DHAA_EMPHATIC
 DHAA_EMPHATIC_COORDINATE_RULE = _make_letter_coordinate_rule(
-    letter_name="dhaa_emphatic",
+    letter_name="dhaa",
     codepoint=0x0638,
     sound_identity="VOICED_EMPHATIC_INTERDENTAL_FRICATIVE",
     makhraj="INTERDENTAL",
