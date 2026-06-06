@@ -94,7 +94,7 @@ ABJAD_LETTER_NAMES = {
     0x062D: "haa",
     0x062E: "khaa",
     0x062F: "dal",
-    0x0630: "dhal",
+    0x0630: "thaal",
     0x0631: "raa",
     0x0632: "zay",
     0x0633: "seen",

@@ -167,7 +167,7 @@ DAL_IDENTITY_RULE = _make_letter_identity_rule(
 )
 
 DHAL_IDENTITY_RULE = _make_letter_identity_rule(
-    "dhal", 0x0630, "ذال",
+    "thaal", 0x0630, "ذال",
 )
 
 RAA_IDENTITY_RULE = _make_letter_identity_rule(
