@@ -1,5 +1,5 @@
 # qiyas_core canonical rules (PR #1)
-# All pre-constitutional rules moved to experimental/ per Path A isolation
+# Dual-Path Architecture: Path A (atomic layers) + Path B (SlotGeometry)
 # TypedCodePoint rules: 5 canonical rules for type-specific classification (PR #24)
 # Algebraic Foundation rules: letter identity, haraka function, position, slot (Gap #3-6)
 
@@ -44,7 +44,12 @@ from .minimal_unit_readiness_rules import (
     MINIMAL_UNIT_READINESS_ADMIT_RULE,
     MINIMAL_UNIT_READINESS_RULES,
 )
-# slot_geometry_rules moved to experimental/ per RESET_CONSTITUTION.md §7
+from .slot_geometry_rules import (
+    SLOT_GEOMETRY_EXTEND_RULE,
+    SLOT_GEOMETRY_RULES,
+    SLOT_GEOMETRY_SEED_RULE,
+    get_slot_geometry_rule_for_construction_mode,
+)
 from .slot_rules import SLOT_COMPOSITION_RULE
 
 __all__ = [
@@ -83,7 +88,11 @@ __all__ = [
     "get_position_rule",
     # Slot
     "SLOT_COMPOSITION_RULE",
-    # SlotGeometry moved to experimental/ per RESET_CONSTITUTION.md §7
+    # SlotGeometry (Path B - canonical geometric approach)
+    "SLOT_GEOMETRY_SEED_RULE",
+    "SLOT_GEOMETRY_EXTEND_RULE",
+    "SLOT_GEOMETRY_RULES",
+    "get_slot_geometry_rule_for_construction_mode",
     # MinimalIndependentUnitReadiness (Phase-2 follow-up)
     "MINIMAL_UNIT_READINESS_ADMIT_RULE",
     "MINIMAL_UNIT_READINESS_RULES",
