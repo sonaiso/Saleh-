@@ -279,6 +279,8 @@ Safe future PRs (each requires its own explicit trigger; each must pass its own 
 
 3. **Optional**: `test(qiyas_core): add transliteration source-of-truth regression coverage` — a tests-only PR that adds an AST/import audit asserting no module other than `letter_name_registry.py` defines a per-codepoint Latin name string. Prevents future drift.
 
+4. **Future fixture material — out of scope of THIS contract**: the external operators CSV at `/Users/husseinhiyassat/fractal/new_arabic_analyzer/data/operators_catalog_split_vocalized.csv` carries an `Example_Vocalized` column with fully voweled Arabic example sentences (e.g., `مَرَرْتُ بِزَيْدٍ`, `سِرْتُ مِنَ الْبَيْتِ`). These vocalized examples exist as **external source material**, are recorded as descriptive cells per `EXTERNAL_AWAMIL_MABNIYAT_SOURCE_INVENTORY.md` (PR #96) and `EXTERNAL_SOURCE_NORMALIZATION_CONTRACT.md` §11 (PR #97 — `Example_Vocalized → example_vocalized` descriptive), and **MUST NOT** be used as runtime test fixtures, *i'rāb* evidence, operator-role proof, or input to any new runtime layer at this time. A separate **`docs(qiyas_core): define external vocalized example fixture contract`** future PR is required before any fixture-derived tests of any kind may be written against these example sentences. This item is named here only to forward-cite the boundary; **this naming contract does not consume, register, or test any vocalized example**, and the future fixture contract is strictly out of scope of the PR #94 fix cycle (Steps 1–3 above) — its trigger is independent.
+
 What is **NOT** future work and must not be recommended next:
 
 - runtime carriers / producers / registries for any of the above,
@@ -308,7 +310,7 @@ What is **NOT** future work and must not be recommended next:
 
 ---
 
-**Document version:** 1.0
-**Last updated:** 2026-06-06
+**Document version:** 1.1
+**Last updated:** 2026-06-06 (added §12 item 4 — forward-cite of vocalized-example fixture material as out of scope of this contract)
 **Status:** Letter transliteration naming contract (docs-only).
 **Authority:** Subordinate to `SOURCE_OF_TRUTH_REGISTRY.md`, to `letter_name_registry.py` (whose current values it ratifies), and to `CLAUDE.md` §0–§21. Does not amend any of them.
