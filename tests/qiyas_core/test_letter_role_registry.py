@@ -30,8 +30,16 @@ class TestSaalatamuunihaLetters:
     """Test سألتمونيها letter classification."""
 
     def test_saalatamuuniiha_letters_count(self):
-        """Verify 9 letters in سألتمونيها set."""
-        assert len(SAALATAMUUNIIHA_LETTERS) == 9
+        """Verify 10 string keys in سألتمونيها registry membership.
+
+        9 classical Arabic letters, 10 registry string keys due to
+        haa/haa_final split: per canonical letter_name_registry.py (as
+        ratified by PR #98), "haa" represents U+062D ح (pharyngeal) and
+        "haa_final" represents U+0647 ه (glottal). Both are classified
+        as SAALATAMUUNIIHA members in this codebase, so the membership
+        carries 10 string entries for the 9-letter classical set.
+        """
+        assert len(SAALATAMUUNIIHA_LETTERS) == 10
 
     def test_seen_is_saalatamuuniiha(self):
         """Test سين is سألتمونيها letter."""
