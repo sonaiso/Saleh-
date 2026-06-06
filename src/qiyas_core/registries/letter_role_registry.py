@@ -82,6 +82,7 @@ SAALATAMUUNIIHA_LETTERS: frozenset[str] = frozenset({
     "noon",   # ن
     "yaa",    # ي (also weak letter)
     "haa",    # ه
+    "haa_final",  # ه (U+0647 glottal — same SAALATAMUUNIIHA classification as "haa")
 })
 
 
