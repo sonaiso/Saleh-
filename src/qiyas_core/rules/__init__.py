@@ -44,12 +44,7 @@ from .minimal_unit_readiness_rules import (
     MINIMAL_UNIT_READINESS_ADMIT_RULE,
     MINIMAL_UNIT_READINESS_RULES,
 )
-from .slot_geometry_rules import (
-    SLOT_GEOMETRY_EXTEND_RULE,
-    SLOT_GEOMETRY_RULES,
-    SLOT_GEOMETRY_SEED_RULE,
-    get_slot_geometry_rule_for_construction_mode,
-)
+# slot_geometry_rules moved to experimental/ per RESET_CONSTITUTION.md §7
 from .slot_rules import SLOT_COMPOSITION_RULE
 
 __all__ = [
@@ -88,11 +83,7 @@ __all__ = [
     "get_position_rule",
     # Slot
     "SLOT_COMPOSITION_RULE",
-    # SlotGeometry (Phase-2 Batch 1)
-    "SLOT_GEOMETRY_SEED_RULE",
-    "SLOT_GEOMETRY_EXTEND_RULE",
-    "SLOT_GEOMETRY_RULES",
-    "get_slot_geometry_rule_for_construction_mode",
+    # SlotGeometry moved to experimental/ per RESET_CONSTITUTION.md §7
     # MinimalIndependentUnitReadiness (Phase-2 follow-up)
     "MINIMAL_UNIT_READINESS_ADMIT_RULE",
     "MINIMAL_UNIT_READINESS_RULES",

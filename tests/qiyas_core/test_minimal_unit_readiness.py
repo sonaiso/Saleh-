@@ -45,6 +45,12 @@ from qiyas_core.rules.minimal_unit_readiness_rules import (
     MINIMAL_UNIT_READINESS_ADMIT_RULE,
     MINIMAL_UNIT_READINESS_RULES,
 )
+# SlotGeometry moved to experimental/ per RESET_CONSTITUTION.md §7
+# These imports are from experimental code and should be migrated
+import sys
+from pathlib import Path
+experimental_path = Path(__file__).parent.parent.parent / "experimental"
+sys.path.insert(0, str(experimental_path))
 from qiyas_core.slot_geometry_adapter import (
     SlotBindingEvidence,
     SlotGeometryLayerAdapter,
@@ -53,6 +59,7 @@ from qiyas_core.slot_geometry_closure_check import (
     MinimalCompleteClosureEvidence,
     check_slot_geometry_closure,
 )
+sys.path.pop(0)
 
 
 # ---------------------------------------------------------------------------
