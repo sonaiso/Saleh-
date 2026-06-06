@@ -101,12 +101,11 @@ Integrate(SlotGeometry, LCNV) = FORBIDDEN (without explicit approval)
    - Domain boundaries
    - Invalidating difference blocking
 
-4. **Both paths use the same QiyasKernel**
-   - Same evidence validation
-   - Same rank calculation
-   - Same residual handling
-   - Same forbidden outputs
-   - Same constitutional laws
+4. **SlotGeometry uses QiyasKernel; LCNV is an isolated encoder/decoder**
+   - SlotGeometry: evidence validation via QiyasKernel, rank calculation, residual handling
+   - LCNV: isolated `pack`/`unpack` encoder only; does NOT run kernel evidence validation
+   - LCNV cannot "prove" anything; it is compressed state, not epistemological authority
+   - Both governed by the same constitutional laws and forbidden-output constraints
 
 ### What "Parallel Evolution" Does NOT Mean
 
@@ -131,7 +130,7 @@ Integrate(SlotGeometry, LCNV) = FORBIDDEN (without explicit approval)
 |-----------|-------------------|------------------------|-------------|
 | **TypedCodePoint** | ✅ Implemented | ✅ Can encode (MCLO block) | ❌ Forbidden |
 | **SlotCandidate** | ✅ Implemented | ✅ Can encode (MCLO block) | ❌ Forbidden |
-| **SlotGeometry** | ✅ Implemented (seed/extend modes) | ⏸️ **Deferred** | ❌ Forbidden |
+| **SlotGeometry** | ✅ Implemented (seed/extension modes) | ⏸️ **Deferred** | ❌ Forbidden |
 | **Closure Checks** | ✅ Implemented | ⏸️ **Deferred** | ❌ Forbidden |
 | **MIU Detection** | ✅ Implemented | ⏸️ **Deferred** | ❌ Forbidden |
 | **Syllable Geometry** | 📋 **Future** | 📋 **Future** | ❌ Forbidden |
@@ -150,7 +149,7 @@ geometry_state: GateState = CLOSED  # or positive int
 
 # Encoding:
 - slot_count: number of slots in geometry
-- construction_mode: seed vs extend
+- construction_mode: seed vs extension
 - geometry_length: sequence length
 - closure_readiness: boolean state
 
@@ -307,7 +306,7 @@ from qiyas_core.lcnv import LCNV  # ❌
 # (no imports from lcnv.py)
 ```
 
-**Enforcement:** Import guards in both files.
+**Enforcement:** Constitutional tests (e.g., `tests/qiyas_core/test_lcnv_constitution.py::test_no_slot_geometry_imports` and `tests/qiyas_core/test_slot_geometry_adapter.py::test_no_lcnv_imports`).
 
 ### Law 2: No Shared State
 
@@ -420,36 +419,51 @@ docs/qiyas_core/LCNV_GEOMETRY_STATE_ENCODING_CONTRACT.md
 
 @dataclass(frozen=True)
 class GateStateBundle:
-    mclo: GateState = CLOSED
-    lexical_only: GateState = CLOSED
-    meaning_only: GateState = CLOSED
-    binding: GateState = CLOSED
-    mutabaqah: GateState = CLOSED
-    tadammun: GateState = CLOSED
-    iltizam: GateState = CLOSED
-    rank_residual: GateState = CLOSED
+    mclo_state: GateState = CLOSED
+    lexical_state: GateState = CLOSED
+    meaning_state: GateState = CLOSED
+    binding_state: GateState = CLOSED
+    mutabaqah_state: GateState = CLOSED
+    tadammun_state: GateState = CLOSED
+    iltizam_state: GateState = CLOSED
+    rank_ceiling: int | None = None
+    residual_count: int = 0
+    has_blocking_residuals: bool = False
     geometry_state: GateState = CLOSED  # NEW (if approved)
-    semantic_force: str = field(default="FORBIDDEN", init=False)
 
 # STEP 3: Add encoding function
-def pack_from_geometry(geometry: SlotGeometry) -> LCNV:
+def pack_from_candidate(candidate: Candidate) -> LCNV:
     """
-    Encode SlotGeometry state into LCNV.
+    Encode licensed Candidate state into LCNV.
 
     CRITICAL: This encodes STATE, not AUTHORITY.
-    Unpack(Pack(geometry)) ≠ SlotGeometry
-    Unpack(Pack(geometry)) = EncodedStateProjection
+    Accepts any Candidate; validates candidate_type and required trace metadata.
+    Does NOT import or depend on SlotGeometry type at runtime (track isolation).
+
+    Unpack(Pack(candidate)) ≠ SlotGeometry
+    Unpack(Pack(candidate)) = EncodedStateProjection
     """
-    return LCNV(
-        mclo=encode_slots(geometry.slots),
-        geometry_state=encode_geometry_metadata(geometry),  # NEW
-        rank_residual=encode_rank_residual(geometry),
+    # Validate candidate_type and required trace metadata
+    _validate_candidate_for_encoding(candidate)
+    return pack(
+        mclo_value=encode_mclo(candidate),
+        source_layer_id=candidate.source_layer_id,
+        rank_ceiling=candidate.rank_ceiling,
+        residual_count=len(candidate.residuals),
+        has_blocking_residuals=candidate.has_blocking_residuals,
     )
 
-def encode_geometry_metadata(geometry: SlotGeometry) -> int:
-    """Encode geometry metadata (slot count, mode, length)."""
+def _validate_candidate_for_encoding(candidate: Candidate) -> None:
+    """Validate that candidate is eligible for geometry-state encoding."""
+    # Check candidate_type and required trace metadata without importing SlotGeometry
+    if candidate.candidate_type != "slot_geometry":
+        raise LCNVError("Only slot_geometry candidates may be geometry-encoded")
     # Implementation details...
-    return packed_metadata_int
+
+def encode_mclo(candidate: Candidate) -> int:
+    """Encode candidate MCLO block from trace metadata."""
+    # Implementation details...
+    return packed_mclo_int
 
 # STEP 4: Add forbidden operation guard
 @dataclass(frozen=True)
@@ -467,8 +481,8 @@ class EncodedStateProjection:
 # STEP 5: Add constitutional tests
 def test_geometry_encoding_forbidden_operations():
     """Verify geometry encoding does not violate constitutional boundaries."""
-    geometry = SlotGeometry(...)
-    lcnv = pack_from_geometry(geometry)
+    candidate = make_slot_geometry_candidate(...)  # generic Candidate with candidate_type="slot_geometry"
+    lcnv = pack_from_candidate(candidate)
     projection = unpack(lcnv)
 
     # Cannot produce SlotGeometry
@@ -479,9 +493,9 @@ def test_geometry_encoding_forbidden_operations():
     with pytest.raises(ForbiddenOutputError):
         projection.get_candidate_authority()
 
-    # Projection ≠ Geometry
-    assert projection != geometry
-    assert not isinstance(projection, SlotGeometry)
+    # Projection ≠ Candidate
+    assert projection != candidate
+    assert not isinstance(projection, type(candidate))
 ```
 
 ---
