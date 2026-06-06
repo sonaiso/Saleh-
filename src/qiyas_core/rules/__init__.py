@@ -1,5 +1,5 @@
 # qiyas_core canonical rules (PR #1)
-# All pre-constitutional rules moved to experimental/ per Path A isolation
+# Dual-Path Architecture: Path A (atomic layers) + Path B (SlotGeometry)
 # TypedCodePoint rules: 5 canonical rules for type-specific classification (PR #24)
 # Algebraic Foundation rules: letter identity, haraka function, position, slot (Gap #3-6)
 
@@ -88,7 +88,7 @@ __all__ = [
     "get_position_rule",
     # Slot
     "SLOT_COMPOSITION_RULE",
-    # SlotGeometry (Phase-2 Batch 1)
+    # SlotGeometry (Path B - canonical geometric approach)
     "SLOT_GEOMETRY_SEED_RULE",
     "SLOT_GEOMETRY_EXTEND_RULE",
     "SLOT_GEOMETRY_RULES",
