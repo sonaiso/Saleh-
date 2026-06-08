@@ -577,37 +577,139 @@ Each hypothesis MUST declare forbidden outputs including at minimum:
 
 ---
 
+## Layer 4: Licensed Syllable (Constitutional Contract Phase)
+
+### Layer 4: LicensedSyllableCandidate
+
+**Input:** tuple[IntegratedLinguisticCandidate, ...] + BoundaryEvidence + NeighborRelation + SyllableEconomyBridge
+**Output:** LicensedSyllableCandidate
+**Status:** constitutional_contract_only (Phase 1)
+**Source PR:** #TBD (constitutional document established 2026-06-08)
+**Coverage:** None (documentation only)
+
+**Proof Obligation:** Can this sequence of integrated linguistic units form a licensed syllable under phonetic economy law?
+
+**Constitutional Document:** `docs/qiyas_core/LICENSED_SYLLABLE_CONSTITUTION.md`
+
+**Core Principle — Phonetic Economy Law:**
+```
+لا مقطع بلا ترتيب.
+لا ترتيب بلا جوار.
+لا جوار بلا حركة مرخّصة.
+لا ترخيص بلا اقتصاد صوتي.
+
+(No syllable without sequence. No sequence without adjacency.
+No adjacency without licensed haraka. No licensing without phonetic economy.)
+```
+
+**Licensed Syllable Patterns (phonetic only, NOT prosodic/metrical):**
+- CV (carrier + short vowel)
+- CVC (carrier + short vowel + closure)
+- CVV (carrier + long vowel)
+- CVVC (carrier + long vowel + closure)
+
+**Economy Principle:**
+```
+اختر أصغر مقطع مكتمل مرخّص
+ولا توسّع المقطع إلا إذا منعته بقايا أو حدّ أو سكون أو مدّ.
+
+(Choose the smallest complete licensed syllable.
+Do not expand unless blocked by residuals, boundary, sukun, or madd.)
+```
+
+**Evidence Required:**
+- `وصف:has_valid_sequence:evidenced` (sequence admissibility)
+- `وصف:has_left_boundary:evidenced` (left boundary preserved)
+- `وصف:has_right_boundary:evidenced` (right boundary preserved)
+- `وصف:has_adjacency:evidenced` (neighbor relations)
+- `علة:minimal_complete_syllable:verified` (economy law satisfied)
+- `وصف:pattern_is_{CV|CVC|CVV|CVVC}:evidenced` (pattern identified)
+
+**Invalidating Differences:**
+- `فارق:incomplete_syllable:present` (missing carrier or nucleus)
+- `فارق:economy_violation:present` (unnecessary expansion)
+- `فارق:boundary_violation:present` (crosses required boundary)
+- `فارق:neighbor_violation:present` (adjacency violated)
+- `فارق:pattern_invalid:present` (not in licensed pattern set)
+
+**Deferral Conditions:**
+- `defer:incomplete_sequence:present` (more constituents needed)
+- `defer:boundary_unknown:present` (cannot determine boundaries)
+- `defer:economy_ambiguous:present` (multiple valid solutions)
+- `defer:neighbor_pending:present` (neighbor relations pending)
+
+**Forbidden Outputs (CRITICAL — No jumps to these layers):**
+- WaznCandidate (morphological weight, future layer)
+- IrabCandidate (case marking, future layer)
+- ArudCandidate (prosodic meter, future layer)
+- MorphologyCandidate (morphological analysis, future layer)
+- MeaningCandidate
+- HukmCandidate
+- RealityClaim
+- FinalMeaning
+- FinalPattern
+- FinalWeight
+
+**CRITICAL ARCHITECTURAL PROHIBITION:**
+```
+❌ FORBIDDEN:
+IntegratedLinguisticCandidate → Wazn (direct jump)
+IntegratedLinguisticCandidate → I'rab (direct jump)
+IntegratedLinguisticCandidate → Arud (direct jump)
+LicensedSyllableCandidate → MeaningCandidate (direct jump)
+
+✓ REQUIRED:
+IntegratedLinguisticCandidate+ → LicensedSyllableCandidate
+LicensedSyllableCandidate+ → StemMatterTensor (future)
+StemMatterTensor → RootWeightAlgebra (future)
+```
+
+**Mathematical Bridge Role:**
+
+LicensedSyllableCandidate serves as the mathematical bridge between:
+- **Input domain:** Atomic units, integrated positions, alignment evidence
+- **Future domains:** Morphological analysis (Wazn), Syntactic analysis (I'rab), Prosodic analysis (Arud)
+
+**Critical Distinction:**
+```
+✓ CV as phonetic syllable candidate
+✗ CV as metrical unit (Arud judgment)
+✗ CV as morphological pattern element (Wazn judgment)
+✗ CV as meaning carrier (semantic judgment)
+```
+
+**Implementation Phases:**
+- Phase 1 (Current): Constitutional contract document (`LICENSED_SYLLABLE_CONSTITUTION.md`)
+- Phase 2 (Next): Data structures (`LicensedSyllableCandidate`, `SyllableEconomyEvidence` dataclasses)
+- Phase 3 (Future): Adapter and rules implementation
+
+**Note:** This is the REQUIRED next layer after IntegratedLinguisticCandidate (PR #50). Do NOT jump to Wazn/I'rab/Arud before implementing this layer. Syllable is not built from a single element but from a sequence under phonetic economy law.
+
+---
+
 ## Not Implemented Layers (Constitutional Contracts Exist)
 
 **These layers have constitutional gates in LAYER_CONTRACT_CONSTITUTION.md but no canonical implementation.**
-
-### Future Layer: SyllableCandidate
-
-**Status:** not_implemented
-**Constitutional Gate:** §7.3 LexicalAttestationGate (partial), future SyllableGate
-**Input:** SlotCandidate* (sequence of slots)
-**Output:** SyllableCandidate
-**Coverage:** None
-
-**Note:** Requires constitutional planning before implementation. Old experimental syllable readiness is NOT canonical.
 
 ### Future Layer: StemMatterTensor
 
 **Status:** not_implemented
 **Constitutional Gate:** §7.4 LexicalPathGate
-**Input:** SyllableCandidate* or RootCandidate
-**Output:** StemCandidate
+**Input:** LicensedSyllableCandidate* (sequence of syllables)
+**Output:** StemMatterTensor
 **Coverage:** None
+
+**Note:** Requires LicensedSyllableCandidate to be implemented first. Do NOT build before syllable layer exists.
 
 ### Future Layer: RootWeightAlgebra
 
 **Status:** not_implemented
 **Constitutional Gate:** §7.4 LexicalPathGate
-**Input:** RawLexCandidate or AttestedRoot
-**Output:** RootCandidate, FormCandidate
+**Input:** StemMatterTensor
+**Output:** RootCandidate, FormCandidate, WaznCandidate
 **Coverage:** None
 
-**Note:** Do NOT build Root/Weight before SyllableCandidate and StemMatterTensor.
+**Note:** Do NOT build Root/Weight before LicensedSyllableCandidate and StemMatterTensor exist. Weight operates on licensed matter, not raw letters.
 
 ### Future Layer: WordForm
 
