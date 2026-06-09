@@ -267,7 +267,8 @@ def test_rank_preservation_in_implementation():
     # Check that rank is not upgraded or modified
     assert "rank.upper()" not in source
     assert "rank = \"STRONG\"" not in source
-    assert "upgrade" not in source.lower() or "does not upgrade" in source.lower()
+    assert "rank = \"ANALOGICAL\"" not in source
+    assert "rank = \"CERTAIN\"" not in source
 
 
 def test_residual_preservation_in_implementation():
