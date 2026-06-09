@@ -364,16 +364,16 @@ SlotCandidate = LetterIdentityCarrier ⊗ HarakaFunctionCarrier ⊗ PositionCarr
 
 ---
 
-## Layer X: Coordinate Enrichment (Partial)
+## Layer X: Coordinate Enrichment (Consonantal Core Complete)
 
 ### Layer X: ArabicLetterCoordinateCarrier
 
 **Input:** LetterIdentityCarrier
 **Output:** ArabicLetterCoordinateCarrier
-**Status:** partial canonical slice
-**Source PR:** #27
-**Coverage:** BAA, TAA, SEEN, KAF only (minimal validation slice)
-**Missing:** Full alphabet, GlyphClassificationGate, complete SifatVector
+**Status:** canonical (full consonantal coverage)
+**Source PR:** #27 (initial), expanded to full alphabet
+**Coverage:** 26 core consonantal Arabic letters (ء ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه)
+**Missing:** Weak letters (و ي ا) — deliberately gated by GlyphClassificationGate pending RoleDisambiguationGate (future layer); Hamza-seat glyphs (أ إ ؤ ئ) similarly gated
 
 **Proof Obligation:** What are the coordinates of this letter within representation systems?
 
@@ -388,27 +388,34 @@ SlotCandidate = LetterIdentityCarrier ⊗ HarakaFunctionCarrier ⊗ PositionCarr
      - semantic_force: "FORBIDDEN" ⚠️ (CRITICAL)
      - evidence_source: "abjad_convention"
 
-3. **Phonetic Physics Coordinates:**
-   - phonetic_proxy: str (e.g., "/b/" IPA)
+3. **Phonetic Physics Coordinates (SifatGeometry — 5 axes):**
+   - phonetic_proxy: str (e.g., "/b/" IPA) via `src/qiyas_core/phonetics/profiles.py`
    - makhraj_coordinate: MakhrajGeometry
      - spatial_source: str (e.g., "BILABIAL")
      - articulation_point: str (e.g., "LIPS_CLOSURE")
    - sifat_profile: SifatGeometry
-     - voicing: str (e.g., "VOICED")
-     - manner: str (e.g., "STOP")
-     - nasal: bool
-     - fricative: bool
-     - emphasis: str (e.g., "NON_EMPHATIC")
+     - voicing: str (VOICED / VOICELESS)
+     - manner: str (STOP / FRICATIVE / NASAL / LATERAL / TRILL / APPROXIMANT / AFFRICATE)
+     - airflow: str (PULMONIC — all Arabic consonants)
+     - duration: str (SHORT / LONG)
+     - emphasis: str (EMPHATIC / NON_EMPHATIC)
 
 4. **Invalidating Differences (FariqSet):**
    - fariq_set: tuple[str, ...] (e.g., for BAA: "baa_vs_meem_nasality", "baa_vs_faa_frication")
+
+5. **GlyphClassificationGate:**
+   - Implemented in `src/qiyas_core/registries/glyph_classification_registry.py`
+   - Classifies glyphs before coordinate assignment: CORE_ARABIC_LETTER / STANDALONE_HAMZA / HAMZA_SEAT_GLYPH / WEAK_LETTER_GLYPH / TATWEEL_GLYPH / COMPLEX_GLYPH
+   - Weak letters (و ي ا) produce DEFERRED residual (role ambiguity, not coordinate error)
+   - Hamza-seat glyphs (أ إ ؤ ئ) produce DEFERRED residual (decomposition required)
 
 **Evidence Required:**
 - `وصف:has_phonetic_proxy:/b/:evidenced`
 - `وصف:has_makhraj:bilabial:evidenced`
 - `وصف:has_voicing:voiced:evidenced`
 - `وصف:has_manner:stop:evidenced`
-- `وصف:has_nasal:false:evidenced`
+- `وصف:has_duration:short:evidenced`
+- `وصف:has_emphasis:non_emphatic:evidenced`
 - `وصف:has_abjad_value:2:evidenced` (if applicable)
 - `فارق:{difference}:absent` (for each invalidating difference)
 
@@ -433,25 +440,28 @@ Hukm(ب) = 2  ✗ (semantic derivation)
 Root(ب) from numeric  ✗ (semantic derivation)
 ```
 
-**Note:** This layer is a PARTIAL canonical slice. Full implementation requires:
-1. Complete alphabet coverage (currently only 4 letters)
-2. GlyphClassificationGate (not implemented)
-3. Complete SifatVector for all letters
-4. Constitutional validation of phonetic coordinate system
+**Note:** 26 consonantal letters are fully implemented with GlyphClassificationGate, SifatGeometry (5 axes), and complete FariqSet. Weak letters (و ي ا) are constitutionally deferred — they have multiple potential roles (consonant/long-vowel/glide) that require a future RoleDisambiguationGate; this is correct architectural behaviour, not a gap.
+
+**Implementation files:**
+- `src/qiyas_core/letter_coordinate_adapter.py` — adapter logic
+- `src/qiyas_core/rules/letter_coordinate_rules.py` — 26-letter rule map
+- `src/qiyas_core/phonetics/profiles.py` — full LETTER_PHONETIC_PROFILES (all 26 letters)
+- `src/qiyas_core/registries/glyph_classification_registry.py` — GlyphClassificationGate
+- `tests/qiyas_core/test_full_alphabet_coordinates.py` — 45 tests covering all 26 letters
 
 **Architectural Decision:** This layer is OPTIONAL for slot formation if slots do not require phonetic coordinates. If SlotCandidate requires phonetic information, it must consume ArabicLetterCoordinateCarrier, not bare LetterIdentityCarrier.
 
 ---
 
-## Layer Γ: Haraka Role Spectrum (Constitutional Contract Only)
+## Layer Γ: Haraka Role Spectrum (Canonical — Spectrum-Opening Phase Complete)
 
 ### Layer Γ: HarakaRoleSpectrum
 
 **Input:** SlotCandidate × Option[SlotGeometryCandidate]
 **Output:** HarakaRoleSpectrum
-**Status:** constitutional_contract_only (Phase 1)
-**Source PR:** #TBD
-**Coverage:** None (documentation only)
+**Status:** canonical (Phase 2+3 complete — spectrum-opening function implemented)
+**Source PR:** #89
+**Coverage:** Full spectrum-opening (Γ function): phonological, pattern, case_marker, syllabic, prosodic hypotheses for all harakāt; rank_ceiling=ANALOGICAL; Λ selectors are future layers
 
 **Proof Obligation:** What are the POTENTIAL roles of this haraka in different linguistic domains?
 
@@ -567,9 +577,9 @@ Each hypothesis MUST declare forbidden outputs including at minimum:
 ```
 
 **Implementation Phases:**
-- Phase 1 (Current): Constitutional contract document only (`HARAKA_ROLE_SPECTRUM_CONTRACT.md`)
-- Phase 2: Data structures (`HarakaRoleHypothesis`, `HarakaRoleSpectrum` dataclasses)
-- Phase 3: Adapter and rules implementation
+- Phase 1 (Complete): Constitutional contract document (`HARAKA_ROLE_SPECTRUM_CONTRACT.md`)
+- Phase 2 (Complete): Data structures (`HarakaRoleHypothesis`, `HarakaRoleSpectrum` dataclasses) in `src/qiyas_core/haraka_role_spectrum.py`
+- Phase 3 (Complete): Adapter and rules implementation in `src/qiyas_core/haraka_role_spectrum_adapter.py` (516 lines) + `src/qiyas_core/rules/haraka_role_spectrum_rules.py` (92 lines) + `tests/qiyas_core/test_haraka_role_spectrum_adapter.py` (575 lines)
 
 **Constitutional Document:** `docs/qiyas_core/HARAKA_ROLE_SPECTRUM_CONTRACT.md`
 
@@ -807,6 +817,6 @@ LicensedSyllableCandidate serves as the mathematical bridge between:
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2026-06-01
+**Document Version:** 1.1
+**Last Updated:** 2026-06-09
 **Status:** Authoritative registry
