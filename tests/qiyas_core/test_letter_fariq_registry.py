@@ -100,9 +100,9 @@ class TestGetFariqPairs:
         letter_names = {p.letter2_name for p in pairs if p.letter1_codepoint == 0x0628}
         letter_names.update({p.letter1_name for p in pairs if p.letter2_codepoint == 0x0628})
 
-        assert "taa" in letter_names or "baa" in letter_names
-        assert "meem" in letter_names or "baa" in letter_names
-        assert "faa" in letter_names or "baa" in letter_names
+        assert "taa" in letter_names
+        assert "meem" in letter_names
+        assert "faa" in letter_names
 
     def test_get_fariq_pairs_taa(self):
         """Test getting fariq pairs for TAA."""
@@ -143,7 +143,8 @@ class TestHasInvalidatingDifference:
         pair2 = has_invalidating_difference(0x062A, 0x0628)
 
         # Should find same difference in either direction
-        assert (pair1 is not None) or (pair2 is not None)
+        assert pair1 is not None, "Forward lookup BAA→TAA must find invalidating difference"
+        assert pair2 is not None, "Reverse lookup TAA→BAA must find invalidating difference"
 
     def test_has_difference_unknown_pair(self):
         """Test unknown pair returns None."""
