@@ -111,23 +111,23 @@ HAMZA_IDENTITY_RULE = _make_letter_identity_rule(
 )
 
 ALEF_MADDA_IDENTITY_RULE = _make_letter_identity_rule(
-    "alef_madda", 0x0622, "ألف مدة",
+    "alef_madda", 0x0622, "ألف ممدودة",
 )
 
 ALEF_HAMZA_ABOVE_IDENTITY_RULE = _make_letter_identity_rule(
-    "alef_hamza_above", 0x0623, "ألف همزة فوق",
+    "alef_hamza_above", 0x0623, "ألف بهمزة فوق",
 )
 
 WAW_HAMZA_IDENTITY_RULE = _make_letter_identity_rule(
-    "waw_hamza", 0x0624, "واو همزة",
+    "waw_hamza", 0x0624, "واو بهمزة",
 )
 
 ALEF_HAMZA_BELOW_IDENTITY_RULE = _make_letter_identity_rule(
-    "alef_hamza_below", 0x0625, "ألف همزة تحت",
+    "alef_hamza_below", 0x0625, "ألف بهمزة تحت",
 )
 
 YEH_HAMZA_IDENTITY_RULE = _make_letter_identity_rule(
-    "yeh_hamza", 0x0626, "ياء همزة",
+    "yeh_hamza", 0x0626, "ياء بهمزة",
 )
 
 ALEF_IDENTITY_RULE = _make_letter_identity_rule(
