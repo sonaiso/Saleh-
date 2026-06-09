@@ -170,8 +170,9 @@ def test_hamza_seat_defers_at_glyph_gate(
 
     # Layer 1: LetterIdentityCarrier
     identity_result = letter_identity_adapter.process_letter_codepoint(typed_candidate)
-    if not identity_result.accepted:
-        pytest.skip("Hamza seat has no LetterIdentity - glyph gate not reached")
+    assert identity_result.accepted, (
+        "Hamza seat must prove LetterIdentity (Arabic names in rules must match registry)"
+    )
 
     identity_candidate = identity_result.accepted[0]
 
@@ -260,8 +261,9 @@ def test_complex_glyph_defers_at_glyph_gate(
 
     # Layer 1: LetterIdentityCarrier
     identity_result = letter_identity_adapter.process_letter_codepoint(typed_candidate)
-    if not identity_result.accepted:
-        pytest.skip("Complex glyph has no LetterIdentity - glyph gate not reached")
+    assert identity_result.accepted, (
+        "Complex glyph must prove LetterIdentity (Arabic names in rules must match registry)"
+    )
 
     identity_candidate = identity_result.accepted[0]
 
