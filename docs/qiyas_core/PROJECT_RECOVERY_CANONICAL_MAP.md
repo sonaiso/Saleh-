@@ -349,7 +349,7 @@ implementation enters the queue before REC-5 closes.** The mandated order is:
 | # | PR | Scope | Non-goals |
 | --- | --- | --- | --- |
 | REC-0 | This map | Adds `docs/qiyas_core/PROJECT_RECOVERY_CANONICAL_MAP.md` only | No code, no rename, no registry change |
-| REC-1 | Responsibility Matrix doc | Promote §2 into a standalone constitutional doc cross-linked from `CANONICAL_ARCHITECTURE_CONTROL_FRAME.md` and `LAYER_REGISTRY.md` | No code changes |
+| REC-1 | Responsibility Matrix doc + enforcement tests | Promote §2 into `REPOSITORY_RESPONSIBILITY_MATRIX.md`, cross-linked from `CANONICAL_ARCHITECTURE_CONTROL_FRAME.md` and `LAYER_REGISTRY.md`; convert the boundaries into tests (`tests/qiyas_core/test_repository_responsibility_matrix.py`, `REC1-*`) — maintainer ruling 2026-06-10: "ليس كوثيقة كلامية فقط. يجب أن يحوّل الحدود إلى اختبارات" | No runtime implementation, no registry change, no rename, no Binary- edits; the freeze is not lifted |
 | REC-2 | Canonical Layer Registry alignment | Apply §4.1 prefixes (`BF0`/`SCG-P0`/`AR-P0`) to phase strings in `master_registry_seed.py` and `LAYER_REGISTRY.md`; add origin-traceability notes (§3) per layer | No new layers, no status advancement |
 | REC-3 | Naming Correction Plan + rename | `HarakaFunctionCarrier` → `HarakaMarkIdentityCarrier` across the §6.1 occurrence table, with a TERMINOLOGY_MAP conversion table (per `TERMINOLOGY_MAP.md` policy); keep Arabic claim prefixes verbatim | No semantic change to gates/ranks; no new function claims |
 | REC-4 | Binary- boundary enforcement | Recorded requirement only (this repo): quarantine/relocate the 15 overlap modules out of `src/binary_core/`; performed **in Binary- by the maintainer** — cross-write from Saleh- is FORBIDDEN (bridge §4) | Saleh- makes no edits to Binary- |
@@ -358,6 +358,17 @@ implementation enters the queue before REC-5 closes.** The mandated order is:
 
 A PR not in this queue, or out of this order, is rejected while the freeze
 holds.
+
+**Queue status (recorded by REC-1, 2026-06-10, maintainer ruling):**
+
+```text
+REC-0 : DONE — merged as PR #122 (governance map only; not enforcement).
+REC-1 : the only admissible next PR — matrix doc + REC1-* enforcement tests.
+REC-2 : BLOCKED until REC-1 merges.
+REC-3 : BLOCKED until REC-2 merges.
+REC-4 : BLOCKED until REC-3 merges (maintainer-only, inside Binary-).
+YAML / Runtime / Metrics / Lambert W / P1 : BLOCKED.
+```
 
 ---
 
