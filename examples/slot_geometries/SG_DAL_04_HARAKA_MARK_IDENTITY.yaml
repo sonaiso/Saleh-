@@ -1,0 +1,155 @@
+schema_version: "1.0"
+
+slot_geometry:
+  id: "SG_DAL_04_HARAKA_MARK_IDENTITY"
+  name: "HarakaMarkIdentityGeometry"
+  phase: "DAL_ALONE_ATOMIC"
+  status: "SPECIFIED"
+
+  origin:
+    layer_id: "P0_TYPED_CODEPOINT"
+    output_type: "TypedCodePoint"
+    trace_required: true
+    identity_required: true
+    closure_required: "MINIMALLY_CLOSED"
+
+  branch:
+    output_type: "HarakaMarkIdentityCarrier"
+    branch_reason: "إثبات هوية علامة الحركة كأثر دالي لا كوظيفة إعرابية"
+    rank_ceiling: "Candidate"
+
+  qiyas:
+    shared_cause: "قابلية TypedCodePoint ذي النوع mark لأن يحمل هوية حركة عربية"
+    effective_attribute: "كون الرمز علامة حركة محفوظة الأثر والموضع"
+    branching_reason: "تمييز الحركة كدال سطحي/صوتي قبل أي وظيفة"
+    conditions:
+      - codepoint_type_is_mark
+      - arabic_mark_confirmed
+      - mark_trace_preserved
+      - position_preserved
+    blockers:
+      - non_haraka_mark
+      - missing_carrier_context
+      - corrupted_mark_trace
+    invalidating_differences:
+      - mark_claims_case_function
+      - mark_claims_idgham_function
+      - mark_lacks_arabic_domain
+
+  target_boundary:
+    closes:
+      - haraka_mark_identity_carrier
+    opens:
+      - letter_haraka_binding_candidate
+    does_not_close:
+      - haraka_function
+      - nasb
+      - raf
+      - jarr
+      - jazm
+      - idgham
+      - syllable
+      - irab_case
+      - meaning
+      - hukm
+
+  minimum_completion:
+    required:
+      - origin_exists
+      - branch_declared
+      - shared_cause_present
+      - effective_attribute_present
+      - mark_identity_present
+      - position_preserved
+      - trace_preserved
+      - identity_inherited
+      - forbidden_outputs_declared
+      - residuals_visible
+      - target_boundary_respected
+
+  identity_inheritance:
+    preserves:
+      - typed_codepoint_identity
+      - mark_codepoint
+      - mark_position
+      - mark_trace
+    allowed_changes:
+      - prove_haraka_mark_identity
+    forbidden_changes:
+      - prove_haraka_function
+      - assign_case
+      - assign_nasb
+      - assign_raf
+      - assign_jarr
+      - assign_jazm
+      - assign_idgham
+      - assign_meaning
+
+  forbidden_outputs:
+    absolute:
+      - HukmCandidate
+      - RealityClaim
+      - FinalMeaning
+    layer_specific:
+      - HarakaFunctionCarrier
+      - IrabCaseCandidate
+      - SyllableCandidate
+      - MeaningCandidate
+
+  residual_policy:
+    residuals_allowed: true
+    residuals_must_be_visible: true
+    blocking_residuals:
+      - non_haraka_mark
+      - corrupted_mark_trace
+    non_blocking_residuals:
+      - missing_carrier_context
+
+  trace:
+    source_trace: true
+    operation_trace: true
+    evidence_trace: false
+    residual_trace: true
+
+  rank:
+    initial: "Candidate"
+    ceiling: "Candidate"
+    upgrade_requires_gate: true
+    allowed_upgrade_gates:
+      - LetterHarakaBindingGate
+
+  gamma:
+    target: "haraka_mark_identity_carrier"
+    allowed_states:
+      - OPEN
+      - PERFORATED_CLOSED
+      - MINIMALLY_CLOSED
+      - BLOCKED
+      - FORBIDDEN_LEAP
+      - INVALID
+    minimally_closed_requires:
+      - minimum_completion_passed
+      - no_forbidden_output
+      - identity_inheritance_passed
+      - trace_contract_passed
+
+  registry:
+    layer_id: "P1_HARAKA_MARK_IDENTITY_CARRIER"
+    allowed_previous_layers:
+      - "P0_TYPED_CODEPOINT"
+    allowed_next_layers:
+      - "P2_LETTER_HARAKA_BINDING"
+    forbidden_direct_layers:
+      - "P1_HARAKA_FUNCTION_CARRIER"
+      - "P3_SYLLABLE"
+      - "P11_IRAB_GEOMETRY"
+      - "P12_IFADAH_SPEECH_FORCE"
+
+  tests:
+    required_test_ids:
+      - "YAML-DAL04-LOAD-01"
+      - "YAML-DAL04-VALIDATE-01"
+      - "YAML-DAL04-BOUNDARY-01"
+      - "YAML-DAL04-FORBIDDEN-01"
+      - "YAML-DAL04-IDENTITY-01"
+      - "YAML-DAL04-NO-FUNCTION-01"

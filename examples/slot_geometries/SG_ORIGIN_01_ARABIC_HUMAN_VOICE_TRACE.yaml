@@ -1,0 +1,149 @@
+schema_version: "1.0"
+
+slot_geometry:
+  id: "SG_ORIGIN_01_ARABIC_HUMAN_VOICE_TRACE"
+  name: "ArabicHumanVoiceTraceGeometry"
+  phase: "ORIGIN"
+  status: "SPECIFIED"
+
+  origin:
+    layer_id: "HUMAN_VOICE_EVENT"
+    output_type: "HumanVoiceTrace"
+    trace_required: true
+    identity_required: true
+    closure_required: "MINIMALLY_CLOSED"
+
+  branch:
+    output_type: "ArabicVoiceTraceCandidate"
+    branch_reason: "تمييز أثر صوت بشري قابل للانضباط داخل مجال الصوت العربي"
+    rank_ceiling: "Candidate"
+
+  qiyas:
+    shared_cause: "قابلية الصوت البشري لأن يحمل أثرًا نطقيًا عربيًا"
+    effective_attribute: "انتماء الأثر الصوتي إلى مجال مخارج وصفات عربية قابلة للتمييز"
+    branching_reason: "فتح أصل الدال وحده من صوت محفوظ الأثر"
+    conditions:
+      - human_voice_detected
+      - acoustic_trace_preserved
+      - arabic_phonetic_domain_candidate
+    blockers:
+      - non_human_sound
+      - corrupted_trace
+      - no_arabic_phonetic_domain
+    invalidating_differences:
+      - sound_does_not_support_arabic_distinction
+
+  target_boundary:
+    closes:
+      - arabic_voice_trace_candidate
+    opens:
+      - makhraj_candidate
+      - sifah_candidate
+    does_not_close:
+      - letter_identity
+      - haraka_identity
+      - syllable
+      - root
+      - wazn
+      - meaning
+      - hukm
+
+  minimum_completion:
+    required:
+      - origin_exists
+      - branch_declared
+      - shared_cause_present
+      - effective_attribute_present
+      - branching_reason_declared
+      - conditions_verified
+      - blockers_audited
+      - invalidating_differences_checked
+      - identity_inherited
+      - trace_preserved
+      - residuals_visible
+      - forbidden_outputs_declared
+      - target_boundary_respected
+
+  identity_inheritance:
+    preserves:
+      - voice_trace_id
+      - temporal_position
+      - acoustic_event_identity
+    allowed_changes:
+      - classify_as_arabic_voice_trace_candidate
+    forbidden_changes:
+      - assign_letter
+      - assign_haraka
+      - assign_root
+      - assign_meaning
+      - assign_hukm
+
+  forbidden_outputs:
+    absolute:
+      - HukmCandidate
+      - RealityClaim
+      - FinalMeaning
+    layer_specific:
+      - LetterIdentityCarrier
+      - HarakaMarkIdentityCarrier
+      - SyllableCandidate
+      - RootCandidate
+      - WaznCandidate
+
+  residual_policy:
+    residuals_allowed: true
+    residuals_must_be_visible: true
+    blocking_residuals:
+      - corrupted_trace
+      - no_arabic_phonetic_domain
+    non_blocking_residuals:
+      - minor_acoustic_ambiguity
+
+  trace:
+    source_trace: true
+    operation_trace: true
+    evidence_trace: false
+    residual_trace: true
+
+  rank:
+    initial: "Candidate"
+    ceiling: "Candidate"
+    upgrade_requires_gate: true
+    allowed_upgrade_gates:
+      - ArabicDomainBridgeGate
+
+  gamma:
+    target: "arabic_voice_trace_candidate"
+    allowed_states:
+      - OPEN
+      - PERFORATED_CLOSED
+      - MINIMALLY_CLOSED
+      - BLOCKED
+      - FORBIDDEN_LEAP
+      - INVALID
+    minimally_closed_requires:
+      - minimum_completion_passed
+      - no_forbidden_output
+      - identity_inheritance_passed
+      - trace_contract_passed
+
+  registry:
+    layer_id: "ORIGIN_ARABIC_HUMAN_VOICE_TRACE"
+    allowed_previous_layers:
+      - "HUMAN_VOICE_EVENT"
+    allowed_next_layers:
+      - "P0_TYPED_CODEPOINT"
+    forbidden_direct_layers:
+      - "P1_LETTER_IDENTITY_CARRIER"
+      - "P1_HARAKA_MARK_IDENTITY_CARRIER"
+      - "P3_SYLLABLE"
+      - "P11_IRAB_GEOMETRY"
+      - "P12_IFADAH_SPEECH_FORCE"
+
+  tests:
+    required_test_ids:
+      - "YAML-ORIGIN01-LOAD-01"
+      - "YAML-ORIGIN01-VALIDATE-01"
+      - "YAML-ORIGIN01-BOUNDARY-01"
+      - "YAML-ORIGIN01-FORBIDDEN-01"
+      - "YAML-ORIGIN01-IDENTITY-01"

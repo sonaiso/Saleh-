@@ -1,0 +1,155 @@
+schema_version: "1.0"
+
+slot_geometry:
+  id: "SG_MANTUQ_00_MANTUQ_CANDIDATE"
+  name: "MantuqSlotGeometry"
+  phase: "MANTUQ"
+  status: "SPECIFIED"
+
+  origin:
+    layer_id: "IFADAH_CLOSURE"
+    output_type: "IfadahCandidate"
+    trace_required: true
+    identity_required: true
+    closure_required: "MINIMALLY_CLOSED"
+
+  branch:
+    output_type: "MantuqCandidate"
+    branch_reason: "إغلاق ما دل عليه اللفظ في محل النطق"
+    rank_ceiling: "LicensedCandidate"
+
+  qiyas:
+    shared_cause: "اتصال الإفادة بالدال اللفظي في محل النطق"
+    effective_attribute: "كون الدلالة واقعة داخل الملفوظ لا خارجه"
+    branching_reason: "إغلاق الدلالة المنطوقة دون تجاوز إلى مفهوم أو حكم"
+    conditions:
+      - arabic_human_voice_trace_preserved
+      - arabic_verbal_system_preserved
+      - dal_trace_preserved
+      - verbal_signified_preserved
+      - wadh_scope_declared
+      - ifadah_candidate_exists
+      - no_conceptual_branch_claimed
+    blockers:
+      - missing_lafz_trace
+      - missing_wadh_scope
+      - unresolved_ifadah
+      - contextual_blocker
+      - claim_exceeds_mantuq_boundary
+    invalidating_differences:
+      - claimed_denotation_not_in_place_of_speech
+      - claimed_denotation_requires_unspoken_restriction
+      - claimed_denotation_requires_mafhum_not_mantuq
+
+  target_boundary:
+    closes:
+      - mantuq_candidate
+    opens:
+      - mafhum_origin_candidate
+    does_not_close:
+      - mafhum_candidate
+      - final_hukm
+      - reality_application
+      - speaker_intent_certificate
+      - certainty
+
+  minimum_completion:
+    required:
+      - source_voice_trace
+      - dal_trace
+      - verbal_signified_trace
+      - wadh_scope
+      - ifadah_candidate
+      - mantuq_boundary
+      - identity_inheritance
+      - forbidden_outputs
+      - residuals_visible
+      - target_boundary_respected
+
+  identity_inheritance:
+    preserves:
+      - human_voice_trace_id
+      - arabic_verbal_system_id
+      - lafz_trace
+      - order_trace
+      - relation_trace
+      - ifadah_trace
+    allowed_changes:
+      - close_spoken_denotation_within_mantuq_boundary
+    forbidden_changes:
+      - infer_mafhum_without_new_qiyas
+      - assert_hukm
+      - apply_to_reality
+      - erase_residuals
+
+  forbidden_outputs:
+    absolute:
+      - HukmCandidate
+      - RealityClaim
+      - FinalMeaning
+    layer_specific:
+      - MafhumCandidate
+      - FatwaCandidate
+      - CertaintyCertificate
+      - SpeakerIntentCertificate
+      - UnlicensedIltizam
+
+  residual_policy:
+    residuals_allowed: true
+    residuals_must_be_visible: true
+    blocking_residuals:
+      - unresolved_ifadah
+      - missing_wadh_scope
+      - ambiguous_mantuq_boundary
+    non_blocking_residuals:
+      - minor_contextual_ambiguity
+
+  trace:
+    source_trace: true
+    operation_trace: true
+    evidence_trace: true
+    residual_trace: true
+
+  rank:
+    initial: "Candidate"
+    ceiling: "LicensedCandidate"
+    upgrade_requires_gate: true
+    allowed_upgrade_gates:
+      - IfadahEvidenceGate
+      - WadhScopeGate
+
+  gamma:
+    target: "mantuq_candidate"
+    allowed_states:
+      - OPEN
+      - PERFORATED_CLOSED
+      - MINIMALLY_CLOSED
+      - BLOCKED
+      - FORBIDDEN_LEAP
+      - INVALID
+    minimally_closed_requires:
+      - minimum_completion_passed
+      - no_forbidden_output
+      - no_blocking_residual
+      - identity_inheritance_passed
+      - trace_contract_passed
+
+  registry:
+    layer_id: "MANTUQ_CANDIDATE"
+    allowed_previous_layers:
+      - "IFADAH_CLOSURE"
+    allowed_next_layers:
+      - "MAFHUM_ORIGIN"
+    forbidden_direct_layers:
+      - "HUKM_CANDIDATE"
+      - "FATWA_CANDIDATE"
+      - "REALITY_APPLICATION"
+
+  tests:
+    required_test_ids:
+      - "YAML-MANTUQ00-LOAD-01"
+      - "YAML-MANTUQ00-VALIDATE-01"
+      - "YAML-MANTUQ00-BOUNDARY-01"
+      - "YAML-MANTUQ00-FORBIDDEN-01"
+      - "YAML-MANTUQ00-IDENTITY-01"
+      - "YAML-MANTUQ00-NO-HUKM-01"

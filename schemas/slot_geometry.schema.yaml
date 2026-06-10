@@ -1,0 +1,159 @@
+# slot_geometry.schema.yaml — القالب الأعلى لكل طبقة SlotGeometry
+#
+# القانون:
+#   لا SlotGeometry بلا YAML.
+#   لا YAML بلا Origin وBranch.
+#   لا Origin/Branch بلا Qiyas.
+#   لا Qiyas بلا Boundary.
+#   لا Boundary بلا MinimumCompletion.
+#   لا MinimumCompletion بلا IdentityInheritance وTrace وResiduals وRank وGamma.
+#
+# كل ملف YAML لطبقة يجب أن يتحقق من هذا القالب.
+# المُحقِّق (validator.py) يرفع SchemaViolation إذا كان الملف ناقصًا.
+#
+# schema_version: إلزامي — "1.0"
+# slot_geometry.id: معرّف فريد (مثل SG_DAL_04_HARAKA_MARK_IDENTITY)
+# slot_geometry.name: اسم الطبقة الكانونيكي
+# slot_geometry.phase: المرحلة (مثل DAL_ALONE_ATOMIC)
+# slot_geometry.status: PLANNED | SPECIFIED | IMPLEMENTED | AUDITED | CLOSED
+
+schema_version: "1.0"
+
+slot_geometry:
+  id: ""
+  name: ""
+  phase: ""
+  status: "PLANNED"  # PLANNED | SPECIFIED | IMPLEMENTED | AUDITED | CLOSED
+
+  # ─── Origin ──────────────────────────────────────────────────────────────────
+  # لا طبقة بلا أصل.
+  # الأصل هو طبقة سابقة مسجلة أو مصدر أول (مثل HUMAN_VOICE_EVENT).
+  origin:
+    layer_id: ""           # معرّف الطبقة الأصل — إلزامي
+    output_type: ""        # نوع مخرج الأصل الذي تستقبله هذه الطبقة — إلزامي
+    trace_required: true   # هل يُشترط وجود أثر في الأصل؟
+    identity_required: true  # هل يُشترط وجود هوية في الأصل؟
+    closure_required: "MINIMALLY_CLOSED"  # الحد الأدنى المطلوب من الأصل
+
+  # ─── Branch ──────────────────────────────────────────────────────────────────
+  # لا فرع بلا سبب تفريع مصرح.
+  # الفرع يُعلن نوع المخرج وسبب إنشائه.
+  branch:
+    output_type: ""       # نوع المخرج الذي تنتجه هذه الطبقة — إلزامي
+    branch_reason: ""     # سبب التفريع — إلزامي
+    rank_ceiling: "Candidate"  # الرتبة القصوى المسموح بها
+    # Prior | Candidate | LicensedCandidate | StrongCandidate | Certificate | Judgment
+
+  # ─── Qiyas ───────────────────────────────────────────────────────────────────
+  # لا فرع بلا مقايسة.
+  # المقايسة تُبرر الانتقال من الأصل إلى الفرع.
+  qiyas:
+    shared_cause: ""        # العلة الجامعة — إلزامي
+    effective_attribute: "" # الوصف المؤثر — إلزامي
+    branching_reason: ""    # سبب التفريع بصياغة القياس — إلزامي
+    conditions: []          # شروط تحقق الانتقال
+    blockers: []            # موانع تمنع الانتقال
+    invalidating_differences: []  # فروق قادحة تبطل القياس
+
+  # ─── Target Boundary ─────────────────────────────────────────────────────────
+  # لا Qiyas بلا Boundary.
+  # الحد يُعرّف ما تُغلقه هذه الطبقة وما لا تُغلقه.
+  target_boundary:
+    closes: []        # ما تُغلقه هذه الطبقة (مسموح إنتاجه) — إلزامي: على الأقل عنصر واحد
+    opens: []         # ما تفتحه للطبقة التالية (لا تُغلقه)
+    does_not_close: []  # ما تُصرّح صراحةً بعدم إغلاقه (FORBIDDEN_LEAP عند الإنتاج)
+
+  # ─── Minimum Completion ──────────────────────────────────────────────────────
+  # لا Boundary بلا MinimumCompletion.
+  # قائمة البنود الإلزامية لإثبات اكتمال الفرع.
+  minimum_completion:
+    required:
+      - origin_exists
+      - branch_declared
+      - shared_cause_present
+      - effective_attribute_present
+      - branching_reason_declared
+      - conditions_verified
+      - blockers_audited
+      - invalidating_differences_checked
+      - identity_inherited
+      - trace_preserved
+      - residuals_visible
+      - forbidden_outputs_declared
+      - target_boundary_respected
+
+  # ─── Identity Inheritance ────────────────────────────────────────────────────
+  # لا MinimumCompletion بلا IdentityInheritance.
+  # الهوية تُورَث وتُحفَظ، ولا تُستبدل.
+  identity_inheritance:
+    preserves: []         # هويات تُحفَظ من الأصل — إلزامي: على الأقل عنصر واحد
+    allowed_changes: []   # تغييرات مسموح بها
+    forbidden_changes: [] # تغييرات محظورة صراحةً
+
+  # ─── Forbidden Outputs ───────────────────────────────────────────────────────
+  # كل طبقة يجب أن تُصرّح بممنوعاتها.
+  # المحظورات المطلقة إلزامية في كل طبقة.
+  forbidden_outputs:
+    absolute:           # محظورة في كل طبقة بلا استثناء
+      - HukmCandidate
+      - RealityClaim
+      - FinalMeaning
+    layer_specific: []  # محظورات خاصة بهذه الطبقة
+
+  # ─── Residual Policy ─────────────────────────────────────────────────────────
+  # لا MinimumCompletion بلا Residuals.
+  # البقايا يجب أن تكون مرئية، ولا تُحذف.
+  residual_policy:
+    residuals_allowed: true
+    residuals_must_be_visible: true
+    blocking_residuals: []      # بقايا تحجب الاكتمال
+    non_blocking_residuals: []  # بقايا لا تحجب لكن تُسجَّل
+
+  # ─── Trace ───────────────────────────────────────────────────────────────────
+  # لا هوية بلا أثر. الأثر ≠ الهوية.
+  trace:
+    source_trace: true      # أثر المصدر
+    operation_trace: true   # أثر العملية
+    evidence_trace: false   # أثر الأدلة (اختياري حسب الطبقة)
+    residual_trace: true    # أثر البقايا
+
+  # ─── Rank ────────────────────────────────────────────────────────────────────
+  # لا MinimumCompletion بلا Rank.
+  # الرتبة تعبّر عن قوة الإثبات، لا عن اليقين.
+  rank:
+    initial: "Candidate"
+    ceiling: "Candidate"
+    upgrade_requires_gate: true
+    allowed_upgrade_gates: []  # البوابات المسموح بها للترقي
+
+  # ─── Gamma ───────────────────────────────────────────────────────────────────
+  # لا MinimumCompletion بلا Gamma.
+  # Gamma تفحص اكتمال الفرع داخل الحد المستهدف.
+  gamma:
+    target: ""  # الحد المستهدف المراد فحصه — إلزامي
+    allowed_states:
+      - OPEN
+      - PERFORATED_CLOSED
+      - MINIMALLY_CLOSED
+      - BLOCKED
+      - FORBIDDEN_LEAP
+      - INVALID
+    minimally_closed_requires:
+      - minimum_completion_passed
+      - no_forbidden_output
+      - no_blocking_residual
+      - identity_inheritance_passed
+      - trace_contract_passed
+
+  # ─── Registry ────────────────────────────────────────────────────────────────
+  # كل YAML يجب أن يُعلن موضعه في سجل الطبقات.
+  registry:
+    layer_id: ""              # معرّف في MasterLayerRegistry — إلزامي
+    allowed_previous_layers: []   # طبقات سابقة مسموح بها
+    allowed_next_layers: []       # طبقات تالية مسموح بها
+    forbidden_direct_layers: []   # طبقات يُحظر الانتقال المباشر إليها
+
+  # ─── Tests ───────────────────────────────────────────────────────────────────
+  # كل طبقة يجب أن تحدد معرّفات الاختبارات الإلزامية.
+  tests:
+    required_test_ids: []
