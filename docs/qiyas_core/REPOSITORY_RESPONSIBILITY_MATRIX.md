@@ -87,8 +87,9 @@ maintainer instruction after REC-1 … REC-4 are merged.
 ```text
 REC-0   : DONE — merged as PR #122 (governance map only).
 REC-1   : this document + the REC1-* enforcement tests.
-REC-2   : BLOCKED until REC-1 merges.
-REC-3   : BLOCKED until REC-2 merges.
+REC-2   : EXECUTED in this PR — SCG- phase prefixes + §3 origin notes
+          (REC2-* enforcement tests).
+REC-3   : the only admissible next PR after REC-2 merges.
 REC-4   : BLOCKED until REC-3 merges.
 YAML / Runtime / Metrics / Lambert W / P1 : BLOCKED.
 ```
@@ -108,6 +109,6 @@ This document does not lift the freeze.
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Authority:** Constitutional governance document (REC-1)
 **Last Updated:** 2026-06-10

@@ -311,6 +311,12 @@ references, no status advancement.
 (BF0 = L00…L04). Resolved by §4.1 prefixes (`BF0` / `SCG-P0` / `AR-P0`) via
 REC-2. Declared now: **Binary-P0 ≠ Arabic-SCG-P0**.
 
+**Status (2026-06-10):** EXECUTED by REC-2 — `master_registry_seed.py` phase
+strings now carry the canonical `SCG-Pn` values of the §4.2 table;
+`LAYER_REGISTRY.md` records the conversion table and per-layer §3 origin
+notes; enforced by `tests/qiyas_core/test_canonical_phase_prefixes.py`
+(`REC2-*`).
+
 ### 6.3 Misbounded Arabic layers inside `Binary-`
 
 The 15 modules listed in §5 (`gamma_haraka.py` … `arud_candidate.py`) are
@@ -359,13 +365,15 @@ implementation enters the queue before REC-5 closes.** The mandated order is:
 A PR not in this queue, or out of this order, is rejected while the freeze
 holds.
 
-**Queue status (recorded by REC-1, 2026-06-10, maintainer ruling):**
+**Queue status (updated by REC-2, 2026-06-10):**
 
 ```text
 REC-0 : DONE — merged as PR #122 (governance map only; not enforcement).
-REC-1 : the only admissible next PR — matrix doc + REC1-* enforcement tests.
-REC-2 : BLOCKED until REC-1 merges.
-REC-3 : BLOCKED until REC-2 merges.
+REC-1 : EXECUTED in this PR — matrix doc + REC1-* enforcement tests.
+REC-2 : EXECUTED in this PR — SCG- phase prefixes (§4.1/§4.2) + §3 origin
+        notes in master_registry_seed.py and LAYER_REGISTRY.md
+        (REC2-* enforcement tests).
+REC-3 : the only admissible next PR after REC-2 merges.
 REC-4 : BLOCKED until REC-3 merges (maintainer-only, inside Binary-).
 YAML / Runtime / Metrics / Lambert W / P1 : BLOCKED.
 ```
