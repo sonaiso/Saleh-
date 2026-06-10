@@ -25,7 +25,7 @@ from qiyas_core.slot_geometry_core.master_registry_seed import (
     LAYER_ID_P0_TYPED_CODEPOINT,
     LAYER_ID_P0_UNICODE_CANDIDATE,
     LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
-    LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+    LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
     LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
     LAYER_ID_P1_POSITION_CARRIER,
     LAYER_ID_P1_SLOT_CANDIDATE,
@@ -61,7 +61,7 @@ class TestSeedPhases:
         LAYER_ID_P0_TYPED_CODEPOINT,
         LAYER_ID_P0_GLYPH_CLASSIFICATION,
         LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
-        LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+        LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
         LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
         LAYER_ID_P1_POSITION_CARRIER,
         LAYER_ID_P1_SLOT_CANDIDATE,
@@ -243,7 +243,7 @@ class TestSeedOrder:
         """SEED-ORDER-03: أصول طبقات P1 مسجلة في P0."""
         p1_ids = [
             LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
-            LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+            LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
             LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
         ]
         for layer_id in p1_ids:
@@ -377,8 +377,8 @@ class TestSeedForbidden:
     def test_SEED_FORBIDDEN_07_p1_haraka_function_does_not_produce_slot_candidate(
         self, seed_registry
     ):
-        """SEED-FORBIDDEN-07: HarakaFunctionCarrier لا تنتج SlotCandidate."""
-        spec = seed_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+        """SEED-FORBIDDEN-07: HarakaMarkIdentityCarrier لا تنتج SlotCandidate."""
+        spec = seed_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         assert "SlotCandidate" in spec.forbidden_outputs
 
     def test_SEED_FORBIDDEN_08_conditioned_sequence_does_not_produce_letter_identity(
@@ -522,7 +522,7 @@ class TestSeedInvariants:
     ):
         """SEED-INVARIANT-06: الإثباتات الذرية P1 لا تتداخل — كل طبقة تمنع إثبات الأخرى."""
         letter_spec = seed_registry.get(LAYER_ID_P1_LETTER_IDENTITY_CARRIER)
-        haraka_spec = seed_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+        haraka_spec = seed_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         # الحرف لا يُثبت وظيفة الحركة
         assert "assign_haraka_function" in letter_spec.forbidden_changes
         # الحركة لا تُثبت هوية الحرف

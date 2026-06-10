@@ -67,6 +67,9 @@ class MasterLayerRegistry:
         يرفع RegistryViolation إذا:
             - to_layer_id في forbidden_direct_next للـ from
             - to_layer_id غير موجود في allowed_next_layer_ids (إذا محددة)
+            - to_spec.origin.layer_id != from_layer_id (خرق lineage)
+              إلا إذا أعلنت الطبقة allowed_previous_layer_ids صراحةً
+              (عقد multi-origin مصرح)
         """
         from_spec = self.get(from_layer_id)
         to_spec = self.get(to_layer_id)
@@ -89,7 +92,7 @@ class MasterLayerRegistry:
                 f"Allowed next: {from_spec.allowed_next_layer_ids}."
             )
 
-        # فحص allowed_previous في to (إذا محددة فهي ملزمة)
+        # فحص allowed_previous في to (إذا محددة فهي ملزمة — عقد multi-origin)
         if (
             to_spec.allowed_previous_layer_ids
             and from_layer_id not in to_spec.allowed_previous_layer_ids
@@ -97,6 +100,21 @@ class MasterLayerRegistry:
             raise RegistryViolation(
                 f"Layer '{to_layer_id}' does not accept '{from_layer_id}' as a previous layer. "
                 f"Allowed previous: {to_spec.allowed_previous_layer_ids}."
+            )
+
+        # فحص lineage: to.origin.layer_id يجب أن يساوي from_layer_id
+        # القانون: لا انتقال بلا أصل وفرع مصرح — to_spec.origin.layer_id == from_layer_id
+        # استثناء: إذا أعلنت الطبقة allowed_previous_layer_ids (عقد multi-origin مصرح)
+        if (
+            not to_spec.allowed_previous_layer_ids
+            and to_spec.origin.layer_id != "ROOT"
+            and to_spec.origin.layer_id != from_layer_id
+        ):
+            raise RegistryViolation(
+                f"Lineage violation: layer '{to_layer_id}' declares origin "
+                f"'{to_spec.origin.layer_id}' but transition is attempted from "
+                f"'{from_layer_id}'. "
+                "لا انتقال بلا أصل وفرع مصرح — to_spec.origin.layer_id يجب أن يساوي from_layer_id."
             )
 
     def update_status(self, layer_id: str, new_status: LayerStatus) -> None:

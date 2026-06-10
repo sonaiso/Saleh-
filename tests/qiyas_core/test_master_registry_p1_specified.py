@@ -4,7 +4,7 @@ test_master_registry_p1_specified.py — الاختبارات الدستورية
 PR-CORE-3: تعريف مواصفات P1 فقط — لا runtime، لا تنفيذ.
 
 الانتقال: PLANNED → SPECIFIED فقط.
-الطبقات المُحدَّدة: P1_LETTER_IDENTITY_CARRIER، P1_HARAKA_FUNCTION_CARRIER،
+الطبقات المُحدَّدة: P1_LETTER_IDENTITY_CARRIER، P1_HARAKA_MARK_IDENTITY_CARRIER،
                     P1_CONDITIONED_TYPED_SEQUENCE، P1_POSITION_CARRIER، P1_SLOT_CANDIDATE
 الطبقات المتبقية: P2-P12 تبقى PLANNED
 
@@ -14,9 +14,9 @@ PR-CORE-3: تعريف مواصفات P1 فقط — لا runtime، لا تنفي�
     CORE3-P0-*         — P0 تبقى IMPLEMENTED (لم تتراجع)
     CORE3-P2PLUS-*     — P2-P12 تبقى PLANNED
     CORE3-TRANSITION-* — الانتقال صحيح (PLANNED→SPECIFIED فقط، لا PLANNED→IMPLEMENTED)
-    CORE3-INVARIANT-*  — الثوابts الدستورية محفوظة بعد التقدم
+    CORE3-INVARIANT-*  — الثوابت الدستورية محفوظة بعد التقدم
     CORE3-NONGOAL-*    — التحقق من حدود PR (لا runtime، لا P2+، لا معنى نهائي)
-    CORE3-PARALLEL-*   — البنية الموازية لـ P1 محفوظة (LetterIdentity و HarakaFunction مستقلتان)
+    CORE3-PARALLEL-*   — البنية الموازية لـ P1 محفوظة (LetterIdentity و HarakaMarkIdentity مستقلتان)
 """
 import pytest
 
@@ -33,7 +33,7 @@ from qiyas_core.slot_geometry_core.master_registry_seed import (
     LAYER_ID_P0_TYPED_CODEPOINT,
     LAYER_ID_P0_UNICODE_CANDIDATE,
     LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
-    LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+    LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
     LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
     LAYER_ID_P1_POSITION_CARRIER,
     LAYER_ID_P1_SLOT_CANDIDATE,
@@ -83,9 +83,9 @@ class TestP1Status:
         spec = p1_registry.get(LAYER_ID_P1_LETTER_IDENTITY_CARRIER)
         assert spec.status == LayerStatus.SPECIFIED
 
-    def test_CORE3_STATUS_02_p1_haraka_function_carrier_is_specified(self, p1_registry):
-        """CORE3-STATUS-02: P1_HARAKA_FUNCTION_CARRIER وصلت إلى SPECIFIED."""
-        spec = p1_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+    def test_CORE3_STATUS_02_p1_haraka_mark_identity_carrier_is_specified(self, p1_registry):
+        """CORE3-STATUS-02: P1_HARAKA_MARK_IDENTITY_CARRIER وصلت إلى SPECIFIED."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         assert spec.status == LayerStatus.SPECIFIED
 
     def test_CORE3_STATUS_03_p1_conditioned_typed_sequence_is_specified(self, p1_registry):
@@ -321,22 +321,24 @@ class TestInvariantsPreserved:
         assert "SlotGeometry" in spec.forbidden_outputs
         assert "HarakaFunctionCarrier" in spec.forbidden_outputs
 
-    def test_CORE3_INVARIANT_02_p1_haraka_function_forbidden_outputs_preserved(
+    def test_CORE3_INVARIANT_02_p1_haraka_mark_identity_forbidden_outputs_preserved(
         self, p1_registry
     ):
-        """CORE3-INVARIANT-02: forbidden_outputs لـ HarakaFunctionCarrier محفوظة."""
-        spec = p1_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+        """CORE3-INVARIANT-02: forbidden_outputs لـ HarakaMarkIdentityCarrier محفوظة."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         assert "HukmCandidate" in spec.forbidden_outputs
         assert "RealityClaim" in spec.forbidden_outputs
         assert "FinalMeaning" in spec.forbidden_outputs
         assert "SlotCandidate" in spec.forbidden_outputs
         assert "SlotGeometry" in spec.forbidden_outputs
         assert "LetterIdentityCarrier" in spec.forbidden_outputs
+        # لا يجوز إنتاج وظيفة نحوية — هذا حد هوية السطح فقط
+        assert "HarakaFunctionCarrier" in spec.forbidden_outputs
 
     def test_CORE3_INVARIANT_03_p1_conditioned_typed_sequence_forbidden_outputs(
         self, p1_registry
     ):
-        """CORE3-INVARIANT-03: ConditionedTypedSequence لا تنتج LetterIdentity أو HarakaFunction."""
+        """CORE3-INVARIANT-03: ConditionedTypedSequence لا تنتج LetterIdentity أو HarakaMarkIdentity."""
         spec = p1_registry.get(LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE)
         assert "LetterIdentityCarrier" in spec.forbidden_outputs
         assert "HarakaFunctionCarrier" in spec.forbidden_outputs
@@ -373,30 +375,31 @@ class TestInvariantsPreserved:
         assert "letter_class" in spec.minimum_required_fields
         assert "letter_name" in spec.minimum_required_fields
 
-    def test_CORE3_INVARIANT_07_p1_haraka_minimum_required_fields(self, p1_registry):
-        """CORE3-INVARIANT-07: minimum_required_fields لـ HarakaFunctionCarrier محفوظة."""
-        spec = p1_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+    def test_CORE3_INVARIANT_07_p1_haraka_mark_identity_minimum_required_fields(self, p1_registry):
+        """CORE3-INVARIANT-07: minimum_required_fields لـ HarakaMarkIdentityCarrier محفوظة — بلا functional_role."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         assert "unicode_identity" in spec.minimum_required_fields
         assert "arabic_mark_identity" in spec.minimum_required_fields
         assert "haraka_class" in spec.minimum_required_fields
-        assert "functional_role" in spec.minimum_required_fields
+        # functional_role ممنوع — هذا حد هوية السطح لا الوظيفة النحوية
+        assert "functional_role" not in spec.minimum_required_fields
 
     def test_CORE3_INVARIANT_08_slot_candidate_minimum_required_fields(self, p1_registry):
         """CORE3-INVARIANT-08: minimum_required_fields لـ SlotCandidate محفوظة — أربعة مكونات."""
         spec = p1_registry.get(LAYER_ID_P1_SLOT_CANDIDATE)
         assert "letter_identity_ref" in spec.minimum_required_fields
-        assert "haraka_function_ref" in spec.minimum_required_fields
+        assert "haraka_mark_identity_ref" in spec.minimum_required_fields
         assert "position_ref" in spec.minimum_required_fields
         assert "alignment_evidence_ref" in spec.minimum_required_fields
 
     def test_CORE3_INVARIANT_09_p1_origins_unchanged(self, p1_registry):
         """CORE3-INVARIANT-09: أصول P1 لم تتغير بعد التقدم."""
-        # LetterIdentityCarrier و HarakaFunctionCarrier أصلهما TypedCodePoint
+        # LetterIdentityCarrier و HarakaMarkIdentityCarrier أصلهما TypedCodePoint
         lic = p1_registry.get(LAYER_ID_P1_LETTER_IDENTITY_CARRIER)
-        hfc = p1_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+        hmic = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         cts = p1_registry.get(LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE)
         assert lic.origin.layer_id == LAYER_ID_P0_TYPED_CODEPOINT
-        assert hfc.origin.layer_id == LAYER_ID_P0_TYPED_CODEPOINT
+        assert hmic.origin.layer_id == LAYER_ID_P0_TYPED_CODEPOINT
         assert cts.origin.layer_id == LAYER_ID_P0_TYPED_CODEPOINT
 
     def test_CORE3_INVARIANT_10_p1_phases_unchanged(self, p1_registry):
@@ -461,7 +464,7 @@ class TestNonGoals:
         """CORE3-NONGOAL-07: مخرجات P1 هي مرشحات (Carrier/Candidate/Sequence) لا أحكام."""
         candidate_output_types = {
             "LetterIdentityCarrier",
-            "HarakaFunctionCarrier",
+            "HarakaMarkIdentityCarrier",
             "ConditionedTypedSequence",
             "PositionCarrier",
             "SlotCandidate",
@@ -479,7 +482,7 @@ class TestNonGoals:
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TestParallelArchitecture:
-    """CORE3-PARALLEL — LetterIdentityCarrier وHarakaFunctionCarrier مستقلتان متوازيتان."""
+    """CORE3-PARALLEL — LetterIdentityCarrier وHarakaMarkIdentityCarrier مستقلتان متوازيتان."""
 
     def test_CORE3_PARALLEL_01_letter_identity_independent_of_conditioned_sequence(
         self, p1_registry
@@ -489,26 +492,26 @@ class TestParallelArchitecture:
         assert spec.origin.layer_id == LAYER_ID_P0_TYPED_CODEPOINT
         assert spec.origin.layer_id != LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE
 
-    def test_CORE3_PARALLEL_02_haraka_function_independent_of_conditioned_sequence(
+    def test_CORE3_PARALLEL_02_haraka_mark_identity_independent_of_conditioned_sequence(
         self, p1_registry
     ):
-        """CORE3-PARALLEL-02: HarakaFunctionCarrier أصلها TypedCodePoint — لا تعتمد على ConditionedTypedSequence."""
-        spec = p1_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+        """CORE3-PARALLEL-02: HarakaMarkIdentityCarrier أصلها TypedCodePoint — لا تعتمد على ConditionedTypedSequence."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         assert spec.origin.layer_id == LAYER_ID_P0_TYPED_CODEPOINT
         assert spec.origin.layer_id != LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE
 
-    def test_CORE3_PARALLEL_03_letter_identity_does_not_require_haraka_function(
+    def test_CORE3_PARALLEL_03_letter_identity_does_not_require_haraka_mark_identity(
         self, p1_registry
     ):
         """CORE3-PARALLEL-03: LetterIdentityCarrier تحظر إنتاج HarakaFunctionCarrier — مستقلتان."""
         spec = p1_registry.get(LAYER_ID_P1_LETTER_IDENTITY_CARRIER)
         assert "HarakaFunctionCarrier" in spec.forbidden_outputs
 
-    def test_CORE3_PARALLEL_04_haraka_function_does_not_require_letter_identity(
+    def test_CORE3_PARALLEL_04_haraka_mark_identity_does_not_require_letter_identity(
         self, p1_registry
     ):
-        """CORE3-PARALLEL-04: HarakaFunctionCarrier تحظر إنتاج LetterIdentityCarrier — مستقلتان."""
-        spec = p1_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+        """CORE3-PARALLEL-04: HarakaMarkIdentityCarrier تحظر إنتاج LetterIdentityCarrier — مستقلتان."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         assert "LetterIdentityCarrier" in spec.forbidden_outputs
 
     def test_CORE3_PARALLEL_05_slot_candidate_requires_four_ingredients(self, p1_registry):
@@ -517,7 +520,7 @@ class TestParallelArchitecture:
         # الشروط الأربعة يجب أن تكون موثقة في conditions
         conditions = set(spec.conditions)
         assert "letter_identity_carrier_present" in conditions
-        assert "haraka_function_carrier_present" in conditions
+        assert "haraka_mark_identity_carrier_present" in conditions
         assert "position_carrier_present" in conditions
         assert "alignment_evidence_present" in conditions
 
@@ -528,7 +531,7 @@ class TestParallelArchitecture:
         spec = p1_registry.get(LAYER_ID_P1_SLOT_CANDIDATE)
         allowed = set(spec.allowed_previous_layer_ids)
         assert LAYER_ID_P1_LETTER_IDENTITY_CARRIER in allowed
-        assert LAYER_ID_P1_HARAKA_FUNCTION_CARRIER in allowed
+        assert LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER in allowed
         assert LAYER_ID_P1_POSITION_CARRIER in allowed
         assert LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE in allowed
 
@@ -544,7 +547,134 @@ class TestParallelArchitecture:
         spec = p1_registry.get(LAYER_ID_P1_LETTER_IDENTITY_CARRIER)
         assert "SlotCandidate" in spec.forbidden_outputs
 
-    def test_CORE3_PARALLEL_09_haraka_function_forbids_slot_candidate(self, p1_registry):
-        """CORE3-PARALLEL-09: HarakaFunctionCarrier وحدها لا تُنتج SlotCandidate."""
-        spec = p1_registry.get(LAYER_ID_P1_HARAKA_FUNCTION_CARRIER)
+    def test_CORE3_PARALLEL_09_haraka_mark_identity_forbids_slot_candidate(self, p1_registry):
+        """CORE3-PARALLEL-09: HarakaMarkIdentityCarrier وحدها لا تُنتج SlotCandidate."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
         assert "SlotCandidate" in spec.forbidden_outputs
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CORE3-BOUNDARY — حدود هوية علامة الحركة السطحية
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestHarakaMarkIdentityBoundary:
+    """CORE3-BOUNDARY — HarakaMarkIdentityCarrier حد هوية السطح فقط — لا وظيفة نحوية."""
+
+    def test_CORE3_BOUNDARY_01_haraka_mark_identity_closes_mark_identity_carriers(
+        self, p1_registry
+    ):
+        """CORE3-BOUNDARY-01: HarakaMarkIdentityCarrier تُغلق haraka_mark_identity_carriers."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
+        assert "haraka_mark_identity_carriers" in spec.target_boundary_closes
+
+    def test_CORE3_BOUNDARY_02_haraka_mark_identity_does_not_close_haraka_function_carriers(
+        self, p1_registry
+    ):
+        """CORE3-BOUNDARY-02: HarakaMarkIdentityCarrier لا تُغلق haraka_function_carriers — حد السطح لا الوظيفة."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
+        assert "haraka_function_carriers" not in spec.target_boundary_closes
+
+    def test_CORE3_BOUNDARY_03_haraka_mark_identity_forbids_haraka_function_carrier_output(
+        self, p1_registry
+    ):
+        """CORE3-BOUNDARY-03: HarakaMarkIdentityCarrier لا تُنتج HarakaFunctionCarrier — وظيفة نحوية تحتاج gate لاحق."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
+        assert "HarakaFunctionCarrier" in spec.forbidden_outputs
+
+    def test_CORE3_BOUNDARY_04_haraka_mark_identity_forbids_assign_haraka_function(
+        self, p1_registry
+    ):
+        """CORE3-BOUNDARY-04: HarakaMarkIdentityCarrier تحظر assign_haraka_function — لا وظيفة في هذه المرحلة."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
+        assert "assign_haraka_function" in spec.forbidden_changes
+
+    def test_CORE3_BOUNDARY_05_haraka_mark_identity_allowed_change_is_prove_mark_identity(
+        self, p1_registry
+    ):
+        """CORE3-BOUNDARY-05: HarakaMarkIdentityCarrier تُجيز prove_haraka_mark_identity فقط."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
+        assert "prove_haraka_mark_identity" in spec.allowed_changes
+
+    def test_CORE3_BOUNDARY_06_p0_typed_codepoint_opens_mark_identity_not_function_carriers(
+        self, p1_registry
+    ):
+        """CORE3-BOUNDARY-06: P0_TYPED_CODEPOINT يفتح haraka_mark_identity_carriers لا haraka_function_carriers."""
+        spec = p1_registry.get(LAYER_ID_P0_TYPED_CODEPOINT)
+        assert "haraka_mark_identity_carriers" in spec.target_boundary_opens
+        assert "haraka_function_carriers" not in spec.target_boundary_opens
+
+    def test_CORE3_BOUNDARY_07_haraka_mark_identity_output_type_is_mark_carrier(
+        self, p1_registry
+    ):
+        """CORE3-BOUNDARY-07: مخرج HarakaMarkIdentityCarrier هو HarakaMarkIdentityCarrier لا HarakaFunctionCarrier."""
+        spec = p1_registry.get(LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER)
+        assert spec.branch.output_type == "HarakaMarkIdentityCarrier"
+        assert spec.branch.output_type != "HarakaFunctionCarrier"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CORE3-LINEAGE — إنفاذ lineage في assert_transition_allowed
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestLineageEnforcement:
+    """CORE3-LINEAGE — assert_transition_allowed يُنفِّذ قانون الأصل والفرع."""
+
+    def test_CORE3_LINEAGE_01_valid_transition_along_origin_allowed(self):
+        """CORE3-LINEAGE-01: الانتقال على طول origin line مسموح."""
+        registry = build_master_registry_seed()
+        # P0_UNICODE_CANDIDATE → P0_TYPED_CODEPOINT: أصل TypedCodePoint هو UnicodeCandiate
+        registry.assert_transition_allowed(
+            LAYER_ID_P0_UNICODE_CANDIDATE,
+            LAYER_ID_P0_TYPED_CODEPOINT,
+        )
+
+    def test_CORE3_LINEAGE_02_transition_violating_origin_raises(self):
+        """CORE3-LINEAGE-02: الانتقال الذي يخالف origin يرفع RegistryViolation."""
+        from qiyas_core.slot_geometry_core import RegistryViolation
+        registry = build_master_registry_seed()
+        # P0_UNICODE_CANDIDATE → P1_LETTER_IDENTITY_CARRIER: أصل P1 هو TypedCodePoint لا UnicodeCandiate
+        with pytest.raises(RegistryViolation):
+            registry.assert_transition_allowed(
+                LAYER_ID_P0_UNICODE_CANDIDATE,
+                LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
+            )
+
+    def test_CORE3_LINEAGE_03_transition_violating_origin_for_haraka_mark_identity_raises(self):
+        """CORE3-LINEAGE-03: الانتقال من UnicodeCandiate مباشرة إلى HarakaMarkIdentityCarrier يرفع استثناء."""
+        from qiyas_core.slot_geometry_core import RegistryViolation
+        registry = build_master_registry_seed()
+        # P0_UNICODE_CANDIDATE → P1_HARAKA_MARK_IDENTITY_CARRIER: أصل P1 هو TypedCodePoint
+        with pytest.raises(RegistryViolation):
+            registry.assert_transition_allowed(
+                LAYER_ID_P0_UNICODE_CANDIDATE,
+                LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
+            )
+
+    def test_CORE3_LINEAGE_04_typed_codepoint_to_haraka_mark_identity_allowed(self):
+        """CORE3-LINEAGE-04: الانتقال من TypedCodePoint إلى HarakaMarkIdentityCarrier مسموح."""
+        registry = build_master_registry_seed()
+        # P0_TYPED_CODEPOINT → P1_HARAKA_MARK_IDENTITY_CARRIER: أصل P1 هو TypedCodePoint — صحيح
+        registry.assert_transition_allowed(
+            LAYER_ID_P0_TYPED_CODEPOINT,
+            LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
+        )
+
+    def test_CORE3_LINEAGE_05_typed_codepoint_to_letter_identity_allowed(self):
+        """CORE3-LINEAGE-05: الانتقال من TypedCodePoint إلى LetterIdentityCarrier مسموح."""
+        registry = build_master_registry_seed()
+        registry.assert_transition_allowed(
+            LAYER_ID_P0_TYPED_CODEPOINT,
+            LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
+        )
+
+    def test_CORE3_LINEAGE_06_slot_candidate_multi_origin_allows_any_p1_source(self):
+        """CORE3-LINEAGE-06: SlotCandidate يُعلن allowed_previous_layer_ids — عقد multi-origin مصرح."""
+        registry = build_master_registry_seed()
+        # SlotCandidate يملك allowed_previous_layer_ids صريح — يُسمح بالانتقال من أي مصدر P1 مُعلَن
+        for from_layer_id in (
+            LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
+            LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
+            LAYER_ID_P1_POSITION_CARRIER,
+            LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
+        ):
+            registry.assert_transition_allowed(from_layer_id, LAYER_ID_P1_SLOT_CANDIDATE)

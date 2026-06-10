@@ -48,7 +48,7 @@ LAYER_ID_P0_GLYPH_CLASSIFICATION = "P0_GLYPH_CLASSIFICATION"
 
 # P1 — Dal Alone Atomic
 LAYER_ID_P1_LETTER_IDENTITY_CARRIER = "P1_LETTER_IDENTITY_CARRIER"
-LAYER_ID_P1_HARAKA_FUNCTION_CARRIER = "P1_HARAKA_FUNCTION_CARRIER"
+LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER = "P1_HARAKA_MARK_IDENTITY_CARRIER"
 LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE = "P1_CONDITIONED_TYPED_SEQUENCE"
 LAYER_ID_P1_POSITION_CARRIER = "P1_POSITION_CARRIER"
 LAYER_ID_P1_SLOT_CANDIDATE = "P1_SLOT_CANDIDATE"
@@ -160,7 +160,7 @@ _P0_TYPED_CODEPOINT = LayerSpec(
     target_boundary_closes=("typed_codepoints",),
     target_boundary_opens=(
         "letter_identity_carriers",
-        "haraka_function_carriers",
+        "haraka_mark_identity_carriers",
         "conditioned_sequences",
     ),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
@@ -278,48 +278,50 @@ _P1_LETTER_IDENTITY_CARRIER = LayerSpec(
     status=LayerStatus.PLANNED,
 )
 
-_P1_HARAKA_FUNCTION_CARRIER = LayerSpec(
-    id=LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
-    name="HarakaFunctionCarrierLayer",
+_P1_HARAKA_MARK_IDENTITY_CARRIER = LayerSpec(
+    id=LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
+    name="HarakaMarkIdentityCarrierLayer",
     phase="P1_DAL_ALONE_ATOMIC",
     origin=OriginSpec(
         layer_id=LAYER_ID_P0_TYPED_CODEPOINT,
         output_type="TypedCodePoint",
     ),
     branch=BranchSpec(
-        output_type="HarakaFunctionCarrier",
+        output_type="HarakaMarkIdentityCarrier",
         branch_reason=(
-            "إثبات وظيفة الحركة ذريًا: unicode + mark_identity + haraka_class "
-            "+ functional_role + غياب الفارق القادح"
+            "إثبات هوية علامة الحركة ذريًا: unicode + mark_identity + haraka_class "
+            "+ غياب الفارق القادح — لا وظيفة نحوية، لا إعراب، لا رفع ولا نصب ولا جر"
         ),
     ),
     shared_cause=(
-        "قابلية الـ TypedCodePoint ذي النوع haraka لحمل وظيفة فتح أو ضم أو كسر"
+        "قابلية الـ TypedCodePoint ذي النوع haraka لحمل هوية علامة الحركة السطحية "
+        "(فتحة أو ضمة أو كسرة أو سكون أو شدة) بصرف النظر عن وظيفتها النحوية"
     ),
     conditions=("codepoint_type_is_haraka", "arabic_mark_confirmed"),
     blockers=("non_haraka_codepoint", "invalidating_difference_present"),
-    invalidating_differences=("haraka_class_conflict", "functional_role_conflict"),
-    target_boundary_closes=("haraka_function_carriers",),
+    invalidating_differences=("haraka_class_conflict",),
+    target_boundary_closes=("haraka_mark_identity_carriers",),
     target_boundary_opens=("slot_candidates",),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
         "SlotCandidate",
         "SlotGeometry",
         "LetterIdentityCarrier",
         "ConditionedTypedSequence",
+        "HarakaFunctionCarrier",
     ),
     minimum_required_fields=(
         "unicode_identity",
         "arabic_mark_identity",
         "haraka_class",
-        "functional_role",
     ),
     preserves_ids=("typed_codepoint_identity",),
-    allowed_changes=("prove_haraka_function",),
+    allowed_changes=("prove_haraka_mark_identity",),
     forbidden_changes=(
         "assign_letter_identity",
         "assign_root",
         "assign_meaning",
         "assign_case",
+        "assign_haraka_function",
     ),
     status=LayerStatus.PLANNED,
 )
@@ -428,17 +430,17 @@ _P1_SLOT_CANDIDATE = LayerSpec(
     branch=BranchSpec(
         output_type="SlotCandidate",
         branch_reason=(
-            "دمج LetterIdentityCarrier + HarakaFunctionCarrier + PositionCarrier "
+            "دمج LetterIdentityCarrier + HarakaMarkIdentityCarrier + PositionCarrier "
             "+ AlignmentEvidence في مرشح خانة مرخّص"
         ),
     ),
     shared_cause=(
-        "اجتماع الهوية الحرفية والوظيفة الحركية والموضع والدليل التهيئي لتكوين "
+        "اجتماع الهوية الحرفية وهوية علامة الحركة والموضع والدليل التهيئي لتكوين "
         "إمكان الخانة"
     ),
     conditions=(
         "letter_identity_carrier_present",
-        "haraka_function_carrier_present",
+        "haraka_mark_identity_carrier_present",
         "position_carrier_present",
         "alignment_evidence_present",
     ),
@@ -452,7 +454,7 @@ _P1_SLOT_CANDIDATE = LayerSpec(
     ),
     minimum_required_fields=(
         "letter_identity_ref",
-        "haraka_function_ref",
+        "haraka_mark_identity_ref",
         "position_ref",
         "alignment_evidence_ref",
         "slot_rank",
@@ -460,7 +462,7 @@ _P1_SLOT_CANDIDATE = LayerSpec(
     ),
     preserves_ids=(
         "letter_identity_carrier_identity",
-        "haraka_function_carrier_identity",
+        "haraka_mark_identity_carrier_identity",
     ),
     allowed_changes=("compose_slot_from_ingredients",),
     forbidden_changes=(
@@ -471,7 +473,7 @@ _P1_SLOT_CANDIDATE = LayerSpec(
     ),
     allowed_previous_layer_ids=(
         LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
-        LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+        LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
         LAYER_ID_P1_POSITION_CARRIER,
         LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
     ),
@@ -1116,7 +1118,7 @@ def build_master_registry_seed() -> MasterLayerRegistry:
 
     # P1 — Dal Alone Atomic
     registry.register(_P1_LETTER_IDENTITY_CARRIER)
-    registry.register(_P1_HARAKA_FUNCTION_CARRIER)
+    registry.register(_P1_HARAKA_MARK_IDENTITY_CARRIER)
     registry.register(_P1_CONDITIONED_TYPED_SEQUENCE)
     registry.register(_P1_POSITION_CARRIER)
     registry.register(_P1_SLOT_CANDIDATE)
@@ -1228,7 +1230,7 @@ def build_p0_implemented_registry() -> MasterLayerRegistry:
 # معرفات طبقات P1
 _P1_LAYER_IDS: tuple[str, ...] = (
     LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
-    LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+    LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
     LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
     LAYER_ID_P1_POSITION_CARRIER,
     LAYER_ID_P1_SLOT_CANDIDATE,
