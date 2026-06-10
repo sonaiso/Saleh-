@@ -1158,6 +1158,70 @@ def build_master_registry_seed() -> MasterLayerRegistry:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# P0 Implementation Registration — PR-CORE-2
+# ─────────────────────────────────────────────────────────────────────────────
+
+# الطبقات الكانونيكية لـ P0 مُنفَّذة بالفعل في:
+#   src/qiyas_core/unicode_adapter.py          → UnicodeCandidate
+#   src/qiyas_core/typed_codepoint_adapter.py  → TypedCodePoint
+#   src/qiyas_core/registries/glyph_classification_registry.py → GlyphClassification
+#   src/qiyas_core/letter_coordinate_adapter.py  (GlyphClassificationGate)
+#
+# هذه الدالة تُسجّل تلك الحالة رسميًا في السجل:
+#   PLANNED → SPECIFIED → IMPLEMENTED
+#
+# القانون:
+#   لا يجوز تجاوز SPECIFIED مباشرةً إلى IMPLEMENTED.
+#   كل انتقال يمر عبر update_status مع التحقق من التسلسل المنطقي.
+
+_P0_LAYER_IDS: tuple[str, ...] = (
+    LAYER_ID_P0_UNICODE_CANDIDATE,
+    LAYER_ID_P0_TYPED_CODEPOINT,
+    LAYER_ID_P0_GLYPH_CLASSIFICATION,
+)
+
+# توثيق الملفات المصدرية لكل طبقة P0
+_P0_IMPLEMENTATION_SOURCES: dict[str, str] = {
+    LAYER_ID_P0_UNICODE_CANDIDATE: "src/qiyas_core/unicode_adapter.py",
+    LAYER_ID_P0_TYPED_CODEPOINT: "src/qiyas_core/typed_codepoint_adapter.py",
+    LAYER_ID_P0_GLYPH_CLASSIFICATION: (
+        "src/qiyas_core/registries/glyph_classification_registry.py"
+    ),
+}
+
+
+def build_p0_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم طبقات P0 إلى حالة IMPLEMENTED.
+
+    PR-CORE-2: تسجيل حالة التنفيذ الفعلي لطبقات P0 الكانونيكية.
+
+    الانتقال: PLANNED → SPECIFIED → IMPLEMENTED
+    مُنفَّذ في ملفات مصدرية كانونيكية موجودة بالفعل.
+
+    الطبقات المُنفَّذة:
+        P0_UNICODE_CANDIDATE     → src/qiyas_core/unicode_adapter.py
+        P0_TYPED_CODEPOINT       → src/qiyas_core/typed_codepoint_adapter.py
+        P0_GLYPH_CLASSIFICATION  → src/qiyas_core/registries/glyph_classification_registry.py
+
+    الطبقات غير المُنفَّذة (تبقى PLANNED):
+        P1-P12 — لم تُنفَّذ بعد، تبقى PLANNED.
+
+    Returns:
+        MasterLayerRegistry مع P0 بحالة IMPLEMENTED وبقية الطبقات PLANNED.
+    """
+    registry = build_master_registry_seed()
+
+    for layer_id in _P0_LAYER_IDS:
+        # PLANNED → SPECIFIED
+        registry.update_status(layer_id, LayerStatus.SPECIFIED)
+        # SPECIFIED → IMPLEMENTED
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+
+    return registry
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # القانون الختامي
 # ─────────────────────────────────────────────────────────────────────────────
 # غير مسموح بتنفيذ أي طبقة خارج هذا السجل.
