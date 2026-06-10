@@ -1107,7 +1107,7 @@ def build_master_registry_seed() -> MasterLayerRegistry:
     الترتيب إلزامي: كل طبقة يجب تسجيل أصلها أولًا.
 
     Returns:
-        MasterLayerRegistry مع 15 طبقة مخططة.
+        MasterLayerRegistry مع 19 طبقة مخططة.
     """
     registry = MasterLayerRegistry()
 
@@ -1248,7 +1248,7 @@ def build_p1_specified_registry() -> MasterLayerRegistry:
 
     الطبقات المُحدَّدة (SPECIFIED):
         P1_LETTER_IDENTITY_CARRIER     — إثبات هوية الحرف ذريًا
-        P1_HARAKA_FUNCTION_CARRIER     — إثبات وظيفة الحركة ذريًا
+        P1_HARAKA_MARK_IDENTITY_CARRIER — إثبات هوية علامة الحركة ذريًا
         P1_CONDITIONED_TYPED_SEQUENCE  — إثبات تهيئة التسلسل
         P1_POSITION_CARRIER            — إثبات الموضع في التسلسل
         P1_SLOT_CANDIDATE              — دمج المكونات الأربعة في مرشح خانة
