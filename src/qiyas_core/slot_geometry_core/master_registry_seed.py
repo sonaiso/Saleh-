@@ -1222,6 +1222,63 @@ def build_p0_implemented_registry() -> MasterLayerRegistry:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# P1 Specification Registration — PR-CORE-3
+# ─────────────────────────────────────────────────────────────────────────────
+
+# معرفات طبقات P1
+_P1_LAYER_IDS: tuple[str, ...] = (
+    LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
+    LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+    LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
+    LAYER_ID_P1_POSITION_CARRIER,
+    LAYER_ID_P1_SLOT_CANDIDATE,
+)
+
+
+def build_p1_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم طبقات P1 إلى حالة SPECIFIED.
+
+    PR-CORE-3: تعريف مواصفات P1 فقط — لا runtime، لا تنفيذ.
+
+    الانتقال: PLANNED → SPECIFIED فقط.
+    SPECIFIED تعني: المواصفة موثقة وقابلة للاختبار، لكن Runtime لم يُكتب بعد.
+
+    الطبقات المُحدَّدة (SPECIFIED):
+        P1_LETTER_IDENTITY_CARRIER     — إثبات هوية الحرف ذريًا
+        P1_HARAKA_FUNCTION_CARRIER     — إثبات وظيفة الحركة ذريًا
+        P1_CONDITIONED_TYPED_SEQUENCE  — إثبات تهيئة التسلسل
+        P1_POSITION_CARRIER            — إثبات الموضع في التسلسل
+        P1_SLOT_CANDIDATE              — دمج المكونات الأربعة في مرشح خانة
+
+    الطبقات غير المُحدَّدة (تبقى PLANNED):
+        P2-P12 — لم تُحدَّد بعد، تبقى PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ LetterIdentityCarrier runtime.
+        هذه الدالة لا تُنفِّذ HarakaFunctionCarrier runtime.
+        هذه الدالة لا تُنفِّذ ConditionedTypedSequence runtime.
+        هذه الدالة لا تُنفِّذ PositionCarrier runtime.
+        هذه الدالة لا تُنفِّذ SlotCandidate runtime.
+        هذه الدالة لا تُنفِّذ SlotGeometry.
+        هذه الدالة لا تُقدِّم P2-P12.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+        هذه الدالة لا تنتج معنى نهائيًا أو حكمًا.
+
+    Returns:
+        MasterLayerRegistry مع P0 بحالة IMPLEMENTED وP1 بحالة SPECIFIED
+        وبقية الطبقات P2-P12 بحالة PLANNED.
+    """
+    registry = build_p0_implemented_registry()
+
+    for layer_id in _P1_LAYER_IDS:
+        # PLANNED → SPECIFIED (تحديد المواصفة فقط — لا تنفيذ)
+        registry.update_status(layer_id, LayerStatus.SPECIFIED)
+
+    return registry
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # القانون الختامي
 # ─────────────────────────────────────────────────────────────────────────────
 # غير مسموح بتنفيذ أي طبقة خارج هذا السجل.
