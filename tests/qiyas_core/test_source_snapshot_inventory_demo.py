@@ -54,7 +54,7 @@ def test_demo_script_exists() -> None:
 
 
 def test_title_present(demo_output: str) -> None:
-    assert "Saleh/Qiyas Source Snapshot Inventory Demo" in demo_output
+    assert "Saleh/Qiyas Progress Demo" in demo_output
 
 
 def test_all_three_snapshot_ids_present(demo_output: str) -> None:
@@ -121,20 +121,33 @@ def test_no_positive_runtime_admission_language(demo_output: str, forbidden_phra
     )
 
 
-def test_no_grammar_or_meaning_claims(demo_output: str) -> None:
-    forbidden_claims = (
-        "WordCandidate",
-        "LafzCandidate",
-        "DalalahCandidate",
-        "FinalMeaning",
-        "HukmCandidate",
-        "RealityClaim",
-        "AmilEffectEvidence",
-        "I'rabEffectEvidence",
-    )
-    for claim in forbidden_claims:
-        assert claim not in demo_output, (
-            f"forbidden higher-layer-artefact name {claim!r} appeared in demo output"
+FORBIDDEN_HIGHER_LAYER_NAMES = (
+    "WordCandidate",
+    "LafzCandidate",
+    "DalalahCandidate",
+    "FinalMeaning",
+    "HukmCandidate",
+    "RealityClaim",
+    "AmilEffectEvidence",
+    "I'rabEffectEvidence",
+)
+NEGATION_SECTION_HEADER = "explicitly does NOT"
+
+
+def test_forbidden_higher_layer_names_only_within_negation_section(demo_output: str) -> None:
+    """Higher-layer-artefact names may appear in the demo only after the
+    explicit negation header. The demo lists them as things it does NOT
+    introduce; positive occurrences (claiming the demo introduces them)
+    are forbidden."""
+    negation_index = demo_output.find(NEGATION_SECTION_HEADER)
+    for name in FORBIDDEN_HIGHER_LAYER_NAMES:
+        first_index = demo_output.find(name)
+        if first_index < 0:
+            continue
+        assert negation_index >= 0 and first_index > negation_index, (
+            f"forbidden higher-layer-artefact name {name!r} appears outside the "
+            f"explicit negation section. Each occurrence must follow the "
+            f"{NEGATION_SECTION_HEADER!r} header."
         )
 
 
@@ -222,3 +235,132 @@ def test_no_dangling_inventory_path(disk_snapshot_files: list[Path]) -> None:
         "demo INVENTORY declares snapshot path(s) that do not exist on disk:\n"
         + "\n".join(f"  - {p.relative_to(REPO_ROOT)}" for p in dangling)
     )
+
+
+@pytest.mark.parametrize(
+    "marker",
+    [
+        "potential-only",
+        "identity-preserving",
+        "proof/trace oriented",
+        "NOT semantic interpretation",
+    ],
+)
+def test_progress_demo_intro_marker_present(demo_output: str, marker: str) -> None:
+    assert marker in demo_output, f"intro marker {marker!r} missing from demo output"
+
+
+def test_miu_sample_input_present(demo_output: str) -> None:
+    assert "بِ ضَ وَ يَ ضَرَبَ" in demo_output
+
+
+@pytest.mark.parametrize(
+    "token,miu_status,resolver_status,explanation_keyword",
+    [
+        ("بِ", "ACCEPTED", "ACCEPTED", "single-variant registry-eligible"),
+        ("ضَ", "BLOCKED", "BLOCKED", "blocking_fariq_present"),
+        ("وَ", "DEFERRED", "ACCEPTED", "non_madd"),
+        ("يَ", "DEFERRED", "BLOCKED", "registry says not eligible"),
+        ("ضَرَبَ", "BLOCKED", "BLOCKED", "length > 1"),
+    ],
+    ids=["bi", "da", "wa", "ya", "daraba"],
+)
+def test_miu_token_outcome_row_present(
+    demo_output: str,
+    token: str,
+    miu_status: str,
+    resolver_status: str,
+    explanation_keyword: str,
+) -> None:
+    matching_line = None
+    for line in demo_output.splitlines():
+        if (
+            token in line
+            and f"MIU={miu_status}" in line
+            and f"Resolver={resolver_status}" in line
+            and explanation_keyword in line
+        ):
+            matching_line = line
+            break
+    assert matching_line is not None, (
+        f"no single line contains token={token!r}, MIU={miu_status!r}, "
+        f"Resolver={resolver_status!r}, and explanation keyword {explanation_keyword!r}"
+    )
+
+
+def test_section_1_miu_trace_header_present(demo_output: str) -> None:
+    assert "## 1. MIU / VariantResolver Trace" in demo_output
+
+
+def test_section_2_identity_discipline_header_present(demo_output: str) -> None:
+    assert "## 2. Identity Discipline" in demo_output
+
+
+def test_section_3_frozen_snapshot_inventory_header_present(demo_output: str) -> None:
+    assert "## 3. Frozen Snapshot Inventory" in demo_output
+
+
+def test_section_4_executable_guard_header_present(demo_output: str) -> None:
+    assert "## 4. Executable Guard Status" in demo_output
+
+
+def test_section_5_verification_baseline_header_present(demo_output: str) -> None:
+    assert "## 5. Current Verification Baseline" in demo_output
+
+
+def test_section_6_constitutional_boundary_header_present(demo_output: str) -> None:
+    assert "## 6. Constitutional Boundary" in demo_output
+
+
+@pytest.mark.parametrize(
+    "marker",
+    [
+        "tests/qiyas_core/test_source_snapshot_inventory_demo.py",
+        "36 focused tests",
+        "verifies demo inventory against docs/qiyas_core/snapshots/",
+        "snapshot exists on disk but is missing from",
+        "demo inventory points to a missing snapshot",
+        "row count drifts",
+        "deferred item drifts",
+        "not_runtime marker disappears",
+    ],
+)
+def test_executable_guard_section_content(demo_output: str, marker: str) -> None:
+    assert marker in demo_output, f"guard-section marker {marker!r} missing"
+
+
+def test_focused_snapshot_test_count_marker(demo_output: str) -> None:
+    assert "36 focused tests" in demo_output
+    assert "36 passed" in demo_output
+
+
+def test_focused_miu_baseline_marker(demo_output: str) -> None:
+    assert "focused MIU integration: 17 passed" in demo_output
+
+
+def test_full_suite_baseline_marker(demo_output: str) -> None:
+    assert "1365 passed / 2 skipped" in demo_output
+
+
+@pytest.mark.parametrize(
+    "marker",
+    [
+        "admit any row into runtime",
+        "create or modify any registry",
+        "perform any source correction",
+        "import external source data",
+        "access new_arabic_analyzer/",
+        "grammar",
+        "i'rab",
+        "meaning",
+        "hukm",
+        "dalalah",
+        "reality",
+    ],
+)
+def test_constitutional_boundary_section_content(demo_output: str, marker: str) -> None:
+    assert marker in demo_output, f"boundary-section marker {marker!r} missing"
+
+
+def test_end_marker_present(demo_output: str) -> None:
+    assert "End of Saleh/Qiyas Progress Demo." in demo_output
