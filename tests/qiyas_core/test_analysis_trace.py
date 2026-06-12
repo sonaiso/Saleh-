@@ -580,3 +580,220 @@ def test_token_dataclass_has_all_boundary_fields() -> None:
     assert hasattr(sample, "has_leading_boundary")
     assert hasattr(sample, "has_trailing_boundary")
     assert hasattr(sample, "token_position")
+
+
+# --- Aggregate counts tests -----------------------------------------------
+
+
+REPEATED_SAMPLE_INPUT = "بِ بِ وَ وَ"
+
+
+@pytest.fixture(scope="module")
+def repeated_trace() -> QiyasAnalysisTrace:
+    return analyze_potential_trace(REPEATED_SAMPLE_INPUT)
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    [
+        "total_token_count",
+        "without_resolver_counts",
+        "with_resolver_counts",
+        "resolver_used_count",
+        "unique_surface_count",
+        "repeated_surface_count",
+    ],
+)
+def test_aggregate_field_exists_on_trace(
+    trace: QiyasAnalysisTrace, field_name: str
+) -> None:
+    assert hasattr(trace, field_name), f"aggregate field {field_name!r} missing"
+
+
+def test_total_token_count_for_sample(trace: QiyasAnalysisTrace) -> None:
+    assert trace.total_token_count == 5
+
+
+def test_without_resolver_counts_for_sample(trace: QiyasAnalysisTrace) -> None:
+    expected = {"ACCEPTED": 1, "BLOCKED": 2, "DEFERRED": 2}
+    for bucket, count in expected.items():
+        assert trace.without_resolver_counts.get(bucket) == count, (
+            f"without_resolver_counts[{bucket!r}] expected {count}, "
+            f"got {trace.without_resolver_counts.get(bucket)}"
+        )
+
+
+def test_with_resolver_counts_for_sample(trace: QiyasAnalysisTrace) -> None:
+    expected = {"ACCEPTED": 2, "BLOCKED": 3, "DEFERRED": 0}
+    for bucket, count in expected.items():
+        assert trace.with_resolver_counts.get(bucket) == count, (
+            f"with_resolver_counts[{bucket!r}] expected {count}, "
+            f"got {trace.with_resolver_counts.get(bucket)}"
+        )
+
+
+def test_resolver_used_count_for_sample(trace: QiyasAnalysisTrace) -> None:
+    assert trace.resolver_used_count == 2
+
+
+def test_unique_surface_count_for_sample(trace: QiyasAnalysisTrace) -> None:
+    assert trace.unique_surface_count == 5
+
+
+def test_repeated_surface_count_for_sample(trace: QiyasAnalysisTrace) -> None:
+    assert trace.repeated_surface_count == 0
+
+
+def test_repeated_sample_total_token_count(repeated_trace: QiyasAnalysisTrace) -> None:
+    assert repeated_trace.total_token_count == 4
+
+
+def test_repeated_sample_unique_surface_count(
+    repeated_trace: QiyasAnalysisTrace,
+) -> None:
+    assert repeated_trace.unique_surface_count == 2
+
+
+def test_repeated_sample_repeated_surface_count(
+    repeated_trace: QiyasAnalysisTrace,
+) -> None:
+    assert repeated_trace.repeated_surface_count == 2
+
+
+def test_repeated_sample_sums_match_total(
+    repeated_trace: QiyasAnalysisTrace,
+) -> None:
+    # unique + repeated == total
+    assert (
+        repeated_trace.unique_surface_count
+        + repeated_trace.repeated_surface_count
+        == repeated_trace.total_token_count
+    )
+
+
+def test_empty_input_aggregate_fields_are_zero_and_empty() -> None:
+    empty_trace = analyze_potential_trace("")
+    assert empty_trace.total_token_count == 0
+    assert empty_trace.unique_surface_count == 0
+    assert empty_trace.repeated_surface_count == 0
+    assert empty_trace.resolver_used_count == 0
+    # All canonical buckets present with 0 counts.
+    assert empty_trace.without_resolver_counts == {
+        "ACCEPTED": 0,
+        "BLOCKED": 0,
+        "DEFERRED": 0,
+    }
+    assert empty_trace.with_resolver_counts == {
+        "ACCEPTED": 0,
+        "BLOCKED": 0,
+        "DEFERRED": 0,
+    }
+
+
+def test_render_includes_aggregate_summary_section(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    assert "aggregate_summary:" in rendered
+
+
+@pytest.mark.parametrize(
+    "marker",
+    [
+        "total_token_count=5",
+        "without_resolver_counts=ACCEPTED:1 BLOCKED:2 DEFERRED:2",
+        "with_resolver_counts=ACCEPTED:2 BLOCKED:3 DEFERRED:0",
+        "resolver_used_count=2",
+        "unique_surface_count=5",
+        "repeated_surface_count=0",
+    ],
+)
+def test_render_aggregate_marker_present(
+    trace: QiyasAnalysisTrace, marker: str
+) -> None:
+    rendered = render_analysis_trace(trace)
+    assert marker in rendered, f"aggregate marker {marker!r} missing"
+
+
+def test_cli_output_contains_aggregate_summary(
+    cli_run: subprocess.CompletedProcess[str],
+) -> None:
+    assert "aggregate_summary:" in cli_run.stdout
+    assert "total_token_count=5" in cli_run.stdout
+    assert "without_resolver_counts=" in cli_run.stdout
+    assert "with_resolver_counts=" in cli_run.stdout
+    assert "resolver_used_count=2" in cli_run.stdout
+    assert "unique_surface_count=5" in cli_run.stdout
+    assert "repeated_surface_count=0" in cli_run.stdout
+
+
+@pytest.mark.parametrize(
+    "surface,expected_without,expected_with",
+    [
+        ("بِ", "ACCEPTED", "ACCEPTED"),
+        ("ضَ", "BLOCKED", "BLOCKED"),
+        ("وَ", "DEFERRED", "ACCEPTED"),
+        ("يَ", "DEFERRED", "BLOCKED"),
+        ("ضَرَبَ", "BLOCKED", "BLOCKED"),
+    ],
+    ids=["bi", "da", "wa", "ya", "daraba"],
+)
+def test_aggregate_metadata_does_not_change_miu_statuses(
+    trace_by_surface: dict[str, TokenAnalysisTrace],
+    surface: str,
+    expected_without: str,
+    expected_with: str,
+) -> None:
+    nfc = unicodedata.normalize("NFC", surface)
+    t = trace_by_surface[nfc]
+    assert t.without_resolver_status == expected_without
+    assert t.with_resolver_status == expected_with
+
+
+def test_top_level_labels_still_present_after_aggregate_extension(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    assert "mode=potential_only" in rendered
+    assert "identity_carrier=surface_form_vocalized" in rendered
+    assert "diagnostic_key=surface_form_unvocalized_key" in rendered
+
+
+@pytest.mark.parametrize(
+    "forbidden",
+    [
+        "final meaning",
+        "hukm assigned",
+        "dalalah assigned",
+        "reality claim assigned",
+        "i'rab assigned",
+    ],
+)
+def test_aggregate_output_contains_no_semantic_claim(
+    trace: QiyasAnalysisTrace, forbidden: str
+) -> None:
+    rendered = render_analysis_trace(trace).lower()
+    assert forbidden.lower() not in rendered
+
+
+def test_aggregate_extension_introduces_no_forbidden_higher_layer_names(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    """The aggregate section must not introduce any of the 8 forbidden
+    higher-layer-artefact names — even though the PR #128 negation guard
+    already covers them, this is a tight check against the rendered string."""
+    rendered = render_analysis_trace(trace)
+    forbidden_names = (
+        "WordCandidate",
+        "LafzCandidate",
+        "DalalahCandidate",
+        "FinalMeaning",
+        "HukmCandidate",
+        "RealityClaim",
+        "AmilEffectEvidence",
+        "I'rabEffectEvidence",
+    )
+    for name in forbidden_names:
+        assert name not in rendered, (
+            f"forbidden higher-layer-artefact name {name!r} appeared in rendered output"
+        )

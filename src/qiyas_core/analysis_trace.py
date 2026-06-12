@@ -33,7 +33,7 @@ import sys
 import unicodedata
 import uuid
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Iterable, Mapping
 
 from qiyas_core.arabic_variant_resolution_evidence import (
     ArabicVariantResolutionEvidence,
@@ -75,6 +75,8 @@ TOKEN_POSITION_INITIAL = "initial"
 TOKEN_POSITION_FINAL = "final"
 TOKEN_POSITION_MEDIAL = "medial"
 
+CANONICAL_BUCKETS: tuple[str, ...] = ("ACCEPTED", "BLOCKED", "DEFERRED")
+
 
 @dataclass(frozen=True)
 class TokenAnalysisTrace:
@@ -104,6 +106,12 @@ class QiyasAnalysisTrace:
     identity_carrier: str = IDENTITY_CARRIER_LABEL
     diagnostic_key: str = DIAGNOSTIC_KEY_LABEL
     runtime_status: str = RUNTIME_STATUS_LABEL
+    total_token_count: int = 0
+    without_resolver_counts: Mapping[str, int] = field(default_factory=dict)
+    with_resolver_counts: Mapping[str, int] = field(default_factory=dict)
+    resolver_used_count: int = 0
+    unique_surface_count: int = 0
+    repeated_surface_count: int = 0
 
 
 def _is_arabic_letter(ch: str) -> bool:
@@ -365,6 +373,35 @@ def _tokenize_with_offsets(text: str) -> list[tuple[int, int, str]]:
     return [(m.start(), m.end(), m.group()) for m in re.finditer(r"\S+", text)]
 
 
+def _compute_aggregates(
+    tokens: tuple[TokenAnalysisTrace, ...],
+) -> dict[str, object]:
+    without_counts: dict[str, int] = {b: 0 for b in CANONICAL_BUCKETS}
+    with_counts: dict[str, int] = {b: 0 for b in CANONICAL_BUCKETS}
+    resolver_used_count = 0
+    surfaces: list[str] = []
+    for t in tokens:
+        without_counts[t.without_resolver_status] = (
+            without_counts.get(t.without_resolver_status, 0) + 1
+        )
+        with_counts[t.with_resolver_status] = (
+            with_counts.get(t.with_resolver_status, 0) + 1
+        )
+        if t.resolver_used:
+            resolver_used_count += 1
+        surfaces.append(t.surface_form_vocalized)
+    total = len(tokens)
+    unique = len(set(surfaces))
+    return {
+        "total_token_count": total,
+        "without_resolver_counts": without_counts,
+        "with_resolver_counts": with_counts,
+        "resolver_used_count": resolver_used_count,
+        "unique_surface_count": unique,
+        "repeated_surface_count": total - unique,
+    }
+
+
 def _token_position(index: int, total: int) -> str:
     if total == 1:
         return TOKEN_POSITION_SINGLE
@@ -400,7 +437,18 @@ def analyze_potential_trace(text: str) -> QiyasAnalysisTrace:
                 token_position=_token_position(idx, total),
             )
         )
-    return QiyasAnalysisTrace(input_text=nfc_text, tokens=tuple(token_traces))
+    tokens_tuple = tuple(token_traces)
+    aggregates = _compute_aggregates(tokens_tuple)
+    return QiyasAnalysisTrace(
+        input_text=nfc_text,
+        tokens=tokens_tuple,
+        total_token_count=aggregates["total_token_count"],
+        without_resolver_counts=aggregates["without_resolver_counts"],
+        with_resolver_counts=aggregates["with_resolver_counts"],
+        resolver_used_count=aggregates["resolver_used_count"],
+        unique_surface_count=aggregates["unique_surface_count"],
+        repeated_surface_count=aggregates["repeated_surface_count"],
+    )
 
 
 def _format_residuals(residuals: Iterable[str]) -> str:
@@ -432,6 +480,20 @@ def render_analysis_trace(trace: QiyasAnalysisTrace) -> str:
             f"trailing={token_trace.has_trailing_boundary}"
         )
         lines.append("")
+    lines.append("aggregate_summary:")
+    lines.append(f"  total_token_count={trace.total_token_count}")
+    without_str = " ".join(
+        f"{b}:{trace.without_resolver_counts.get(b, 0)}" for b in CANONICAL_BUCKETS
+    )
+    lines.append(f"  without_resolver_counts={without_str}")
+    with_str = " ".join(
+        f"{b}:{trace.with_resolver_counts.get(b, 0)}" for b in CANONICAL_BUCKETS
+    )
+    lines.append(f"  with_resolver_counts={with_str}")
+    lines.append(f"  resolver_used_count={trace.resolver_used_count}")
+    lines.append(f"  unique_surface_count={trace.unique_surface_count}")
+    lines.append(f"  repeated_surface_count={trace.repeated_surface_count}")
+    lines.append("")
     lines.append("End of Saleh/Qiyas Potential Analysis Trace.")
     return "\n".join(lines)
 
