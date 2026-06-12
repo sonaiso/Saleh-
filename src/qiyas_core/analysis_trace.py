@@ -28,6 +28,7 @@ Constitutional discipline:
 
 from __future__ import annotations
 
+import re
 import sys
 import unicodedata
 import uuid
@@ -69,6 +70,12 @@ class _LetterHarakaPair:
     haraka_cp_hex: str | None
 
 
+TOKEN_POSITION_SINGLE = "single"
+TOKEN_POSITION_INITIAL = "initial"
+TOKEN_POSITION_FINAL = "final"
+TOKEN_POSITION_MEDIAL = "medial"
+
+
 @dataclass(frozen=True)
 class TokenAnalysisTrace:
     token_index: int
@@ -80,6 +87,13 @@ class TokenAnalysisTrace:
     resolver_used: bool
     residuals: tuple[str, ...]
     explanation: str
+    start_index: int
+    end_index: int
+    preceding_text: str
+    following_text: str
+    has_leading_boundary: bool
+    has_trailing_boundary: bool
+    token_position: str
 
 
 @dataclass(frozen=True)
@@ -261,7 +275,18 @@ def _explain(
     return f"without_resolver={without_status} / with_resolver={with_status}"
 
 
-def _analyze_token(token: str, *, token_index: int) -> TokenAnalysisTrace:
+def _analyze_token(
+    token: str,
+    *,
+    token_index: int,
+    start_index: int,
+    end_index: int,
+    preceding_text: str,
+    following_text: str,
+    has_leading_boundary: bool,
+    has_trailing_boundary: bool,
+    token_position: str,
+) -> TokenAnalysisTrace:
     nfc_token = unicodedata.normalize("NFC", token)
     pairs = _parse_letter_haraka_pairs(nfc_token)
     if not pairs:
@@ -275,6 +300,13 @@ def _analyze_token(token: str, *, token_index: int) -> TokenAnalysisTrace:
             resolver_used=False,
             residuals=("no_arabic_letter_in_token",),
             explanation="no Arabic letter found in token",
+            start_index=start_index,
+            end_index=end_index,
+            preceding_text=preceding_text,
+            following_text=following_text,
+            has_leading_boundary=has_leading_boundary,
+            has_trailing_boundary=has_trailing_boundary,
+            token_position=token_position,
         )
 
     trace_label = f"tok{token_index:02d}_{uuid.uuid4().hex[:6]}"
@@ -319,15 +351,56 @@ def _analyze_token(token: str, *, token_index: int) -> TokenAnalysisTrace:
             with_status=with_status,
             resolver_used=resolver_used,
         ),
+        start_index=start_index,
+        end_index=end_index,
+        preceding_text=preceding_text,
+        following_text=following_text,
+        has_leading_boundary=has_leading_boundary,
+        has_trailing_boundary=has_trailing_boundary,
+        token_position=token_position,
     )
 
 
+def _tokenize_with_offsets(text: str) -> list[tuple[int, int, str]]:
+    return [(m.start(), m.end(), m.group()) for m in re.finditer(r"\S+", text)]
+
+
+def _token_position(index: int, total: int) -> str:
+    if total == 1:
+        return TOKEN_POSITION_SINGLE
+    if index == 0:
+        return TOKEN_POSITION_INITIAL
+    if index == total - 1:
+        return TOKEN_POSITION_FINAL
+    return TOKEN_POSITION_MEDIAL
+
+
 def analyze_potential_trace(text: str) -> QiyasAnalysisTrace:
-    raw_tokens = text.split()
+    nfc_text = unicodedata.normalize("NFC", text)
+    spans = _tokenize_with_offsets(nfc_text)
+    total = len(spans)
     token_traces: list[TokenAnalysisTrace] = []
-    for idx, raw in enumerate(raw_tokens):
-        token_traces.append(_analyze_token(raw, token_index=idx))
-    return QiyasAnalysisTrace(input_text=text, tokens=tuple(token_traces))
+    for idx, (start, end, surface) in enumerate(spans):
+        prev_end = spans[idx - 1][1] if idx > 0 else 0
+        next_start = spans[idx + 1][0] if idx + 1 < total else len(nfc_text)
+        preceding_text = nfc_text[prev_end:start] if idx > 0 else nfc_text[:start]
+        following_text = nfc_text[end:next_start] if idx + 1 < total else nfc_text[end:]
+        has_leading_boundary = (idx == 0) or bool(preceding_text)
+        has_trailing_boundary = (idx == total - 1) or bool(following_text)
+        token_traces.append(
+            _analyze_token(
+                surface,
+                token_index=idx,
+                start_index=start,
+                end_index=end,
+                preceding_text=preceding_text,
+                following_text=following_text,
+                has_leading_boundary=has_leading_boundary,
+                has_trailing_boundary=has_trailing_boundary,
+                token_position=_token_position(idx, total),
+            )
+        )
+    return QiyasAnalysisTrace(input_text=nfc_text, tokens=tuple(token_traces))
 
 
 def _format_residuals(residuals: Iterable[str]) -> str:
@@ -351,6 +424,13 @@ def render_analysis_trace(trace: QiyasAnalysisTrace) -> str:
         lines.append(f"  resolver_used={'true' if token_trace.resolver_used else 'false'}")
         lines.append(f"  residuals={_format_residuals(token_trace.residuals)}")
         lines.append(f"  explanation={token_trace.explanation}")
+        lines.append(
+            f"  boundary=start:{token_trace.start_index} "
+            f"end:{token_trace.end_index} "
+            f"position={token_trace.token_position} "
+            f"leading={token_trace.has_leading_boundary} "
+            f"trailing={token_trace.has_trailing_boundary}"
+        )
         lines.append("")
     lines.append("End of Saleh/Qiyas Potential Analysis Trace.")
     return "\n".join(lines)

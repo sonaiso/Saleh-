@@ -333,3 +333,250 @@ def test_cli_with_no_args_returns_nonzero_and_usage(
     )
     assert result.returncode != 0
     assert "usage:" in result.stderr.lower()
+
+
+# --- Boundary metadata tests ----------------------------------------------
+
+
+SAMPLE_EXPECTED_OFFSETS = (
+    ("بِ", 0, 2),
+    ("ضَ", 3, 5),
+    ("وَ", 6, 8),
+    ("يَ", 9, 11),
+    ("ضَرَبَ", 12, 18),
+)
+
+
+@pytest.mark.parametrize(
+    "expected_index,expected_surface,expected_start,expected_end",
+    [
+        (i, surface, start, end)
+        for i, (surface, start, end) in enumerate(SAMPLE_EXPECTED_OFFSETS)
+    ],
+    ids=["bi", "da", "wa", "ya", "daraba"],
+)
+def test_boundary_start_end_indices_for_sample(
+    trace: QiyasAnalysisTrace,
+    expected_index: int,
+    expected_surface: str,
+    expected_start: int,
+    expected_end: int,
+) -> None:
+    t = trace.tokens[expected_index]
+    assert t.start_index == expected_start, (
+        f"{expected_surface}: start_index expected {expected_start}, got {t.start_index}"
+    )
+    assert t.end_index == expected_end, (
+        f"{expected_surface}: end_index expected {expected_end}, got {t.end_index}"
+    )
+
+
+def test_surface_equals_input_slice(trace: QiyasAnalysisTrace) -> None:
+    for t in trace.tokens:
+        assert t.surface_form_vocalized == trace.input_text[t.start_index:t.end_index], (
+            f"token {t.token_index}: surface_form_vocalized {t.surface_form_vocalized!r} "
+            f"does not match input_text[{t.start_index}:{t.end_index}]="
+            f"{trace.input_text[t.start_index:t.end_index]!r}"
+        )
+
+
+def test_preceding_text_for_sample(trace: QiyasAnalysisTrace) -> None:
+    expected = ["", " ", " ", " ", " "]
+    for i, t in enumerate(trace.tokens):
+        assert t.preceding_text == expected[i], (
+            f"token {i}: preceding_text expected {expected[i]!r}, got {t.preceding_text!r}"
+        )
+
+
+def test_following_text_for_sample(trace: QiyasAnalysisTrace) -> None:
+    expected = [" ", " ", " ", " ", ""]
+    for i, t in enumerate(trace.tokens):
+        assert t.following_text == expected[i], (
+            f"token {i}: following_text expected {expected[i]!r}, got {t.following_text!r}"
+        )
+
+
+@pytest.mark.parametrize(
+    "expected_index,expected_position",
+    [
+        (0, "initial"),
+        (1, "medial"),
+        (2, "medial"),
+        (3, "medial"),
+        (4, "final"),
+    ],
+    ids=["bi", "da", "wa", "ya", "daraba"],
+)
+def test_token_position_for_sample(
+    trace: QiyasAnalysisTrace, expected_index: int, expected_position: str
+) -> None:
+    assert trace.tokens[expected_index].token_position == expected_position
+
+
+def test_all_tokens_have_leading_and_trailing_boundary_in_sample(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    # The whitespace-separated sample input gives every token at least one
+    # boundary on each side (input-edge for first/last; whitespace for middle).
+    for t in trace.tokens:
+        assert t.has_leading_boundary is True
+        assert t.has_trailing_boundary is True
+
+
+def test_single_token_input_yields_position_single() -> None:
+    single_trace = analyze_potential_trace("بِ")
+    assert len(single_trace.tokens) == 1
+    only = single_trace.tokens[0]
+    assert only.token_position == "single"
+    assert only.start_index == 0
+    assert only.end_index == 2
+    assert only.preceding_text == ""
+    assert only.following_text == ""
+    # Single token still has both boundaries (input edges).
+    assert only.has_leading_boundary is True
+    assert only.has_trailing_boundary is True
+
+
+def test_repeated_token_surface_preserves_distinct_offsets() -> None:
+    repeated_trace = analyze_potential_trace("بِ بِ بِ")
+    assert len(repeated_trace.tokens) == 3
+    # All three surfaces are identical but offsets must differ.
+    surfaces = [t.surface_form_vocalized for t in repeated_trace.tokens]
+    assert surfaces == ["بِ", "بِ", "بِ"]
+    starts = [t.start_index for t in repeated_trace.tokens]
+    assert starts == [0, 3, 6]
+    ends = [t.end_index for t in repeated_trace.tokens]
+    assert ends == [2, 5, 8]
+    # Positions: initial, medial, final
+    assert [t.token_position for t in repeated_trace.tokens] == [
+        "initial",
+        "medial",
+        "final",
+    ]
+
+
+def test_multiple_spaces_preserved_in_preceding_following_text() -> None:
+    # Two spaces between tokens; the boundary metadata must preserve them.
+    spaced_trace = analyze_potential_trace("بِ  ضَ")
+    assert len(spaced_trace.tokens) == 2
+    first, second = spaced_trace.tokens
+    assert second.preceding_text == "  "
+    assert first.following_text == "  "
+
+
+def test_leading_whitespace_in_input_recorded_in_first_preceding_text() -> None:
+    leading_ws_trace = analyze_potential_trace("  بِ ضَ")
+    assert len(leading_ws_trace.tokens) == 2
+    first = leading_ws_trace.tokens[0]
+    assert first.preceding_text == "  "
+    assert first.start_index == 2
+    assert first.has_leading_boundary is True
+
+
+def test_trailing_whitespace_in_input_recorded_in_last_following_text() -> None:
+    trailing_ws_trace = analyze_potential_trace("بِ ضَ  ")
+    assert len(trailing_ws_trace.tokens) == 2
+    last = trailing_ws_trace.tokens[-1]
+    assert last.following_text == "  "
+    assert last.has_trailing_boundary is True
+
+
+def test_empty_input_yields_no_tokens() -> None:
+    empty_trace = analyze_potential_trace("")
+    assert empty_trace.input_text == ""
+    assert empty_trace.tokens == ()
+
+
+def test_whitespace_only_input_yields_no_tokens() -> None:
+    ws_trace = analyze_potential_trace("   ")
+    assert ws_trace.tokens == ()
+
+
+def test_render_includes_boundary_lines_for_every_token(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    # Every token must have a corresponding boundary= line.
+    boundary_lines = [
+        line for line in rendered.splitlines() if line.strip().startswith("boundary=")
+    ]
+    assert len(boundary_lines) == len(trace.tokens)
+
+
+@pytest.mark.parametrize(
+    "expected_index,expected_surface,expected_start,expected_end,expected_position",
+    [
+        (0, "بِ", 0, 2, "initial"),
+        (1, "ضَ", 3, 5, "medial"),
+        (2, "وَ", 6, 8, "medial"),
+        (3, "يَ", 9, 11, "medial"),
+        (4, "ضَرَبَ", 12, 18, "final"),
+    ],
+    ids=["bi", "da", "wa", "ya", "daraba"],
+)
+def test_render_boundary_line_format(
+    trace: QiyasAnalysisTrace,
+    expected_index: int,
+    expected_surface: str,
+    expected_start: int,
+    expected_end: int,
+    expected_position: str,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    expected_line = (
+        f"  boundary=start:{expected_start} "
+        f"end:{expected_end} "
+        f"position={expected_position} "
+        f"leading=True "
+        f"trailing=True"
+    )
+    assert expected_line in rendered, (
+        f"{expected_surface}: boundary line {expected_line!r} not found in rendered output"
+    )
+
+
+def test_cli_output_contains_boundary_lines(
+    cli_run: subprocess.CompletedProcess[str],
+) -> None:
+    assert "boundary=" in cli_run.stdout
+    boundary_lines = [
+        line
+        for line in cli_run.stdout.splitlines()
+        if line.strip().startswith("boundary=")
+    ]
+    assert len(boundary_lines) == 5
+
+
+@pytest.mark.parametrize(
+    "surface,expected_without,expected_with",
+    [
+        ("بِ", "ACCEPTED", "ACCEPTED"),
+        ("ضَ", "BLOCKED", "BLOCKED"),
+        ("وَ", "DEFERRED", "ACCEPTED"),
+        ("يَ", "DEFERRED", "BLOCKED"),
+        ("ضَرَبَ", "BLOCKED", "BLOCKED"),
+    ],
+    ids=["bi", "da", "wa", "ya", "daraba"],
+)
+def test_boundary_metadata_does_not_change_miu_statuses(
+    trace_by_surface: dict[str, TokenAnalysisTrace],
+    surface: str,
+    expected_without: str,
+    expected_with: str,
+) -> None:
+    nfc = unicodedata.normalize("NFC", surface)
+    t = trace_by_surface[nfc]
+    assert t.without_resolver_status == expected_without
+    assert t.with_resolver_status == expected_with
+
+
+def test_token_dataclass_has_all_boundary_fields() -> None:
+    # Module-level sanity: the dataclass exposes all 7 new boundary fields.
+    sample = analyze_potential_trace("بِ").tokens[0]
+    assert hasattr(sample, "start_index")
+    assert hasattr(sample, "end_index")
+    assert hasattr(sample, "preceding_text")
+    assert hasattr(sample, "following_text")
+    assert hasattr(sample, "has_leading_boundary")
+    assert hasattr(sample, "has_trailing_boundary")
+    assert hasattr(sample, "token_position")
