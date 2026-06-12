@@ -797,3 +797,262 @@ def test_aggregate_extension_introduces_no_forbidden_higher_layer_names(
         assert name not in rendered, (
             f"forbidden higher-layer-artefact name {name!r} appeared in rendered output"
         )
+
+
+# --- Codepoint identity guard tests ----------------------------------------
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    [
+        "surface_codepoints",
+        "surface_codepoint_names",
+        "surface_nfc_equal",
+        "surface_slice_equal",
+    ],
+)
+def test_every_token_has_codepoint_identity_field(
+    trace: QiyasAnalysisTrace, field_name: str
+) -> None:
+    for t in trace.tokens:
+        assert hasattr(t, field_name), f"token {t.token_index} missing {field_name!r}"
+
+
+def test_bi_exact_codepoints(trace_by_surface: dict[str, TokenAnalysisTrace]) -> None:
+    t = trace_by_surface[unicodedata.normalize("NFC", "بِ")]
+    assert t.surface_codepoints == ("U+0628", "U+0650")
+
+
+def test_bi_exact_codepoint_names(
+    trace_by_surface: dict[str, TokenAnalysisTrace],
+) -> None:
+    t = trace_by_surface[unicodedata.normalize("NFC", "بِ")]
+    assert t.surface_codepoint_names == ("ARABIC LETTER BEH", "ARABIC KASRA")
+
+
+def test_da_exact_codepoints(trace_by_surface: dict[str, TokenAnalysisTrace]) -> None:
+    t = trace_by_surface[unicodedata.normalize("NFC", "ضَ")]
+    assert t.surface_codepoints == ("U+0636", "U+064E")
+
+
+def test_da_exact_codepoint_names(
+    trace_by_surface: dict[str, TokenAnalysisTrace],
+) -> None:
+    t = trace_by_surface[unicodedata.normalize("NFC", "ضَ")]
+    assert t.surface_codepoint_names == ("ARABIC LETTER DAD", "ARABIC FATHA")
+
+
+def test_every_sample_token_has_nfc_equal_true(trace: QiyasAnalysisTrace) -> None:
+    for t in trace.tokens:
+        assert t.surface_nfc_equal is True, (
+            f"token {t.surface_form_vocalized!r} is not NFC-equal"
+        )
+
+
+def test_every_sample_token_has_slice_equal_true(trace: QiyasAnalysisTrace) -> None:
+    for t in trace.tokens:
+        assert t.surface_slice_equal is True, (
+            f"token {t.surface_form_vocalized!r} surface_slice_equal=False"
+        )
+
+
+def test_every_token_surface_matches_input_slice(trace: QiyasAnalysisTrace) -> None:
+    for t in trace.tokens:
+        assert t.surface_form_vocalized == trace.input_text[t.start_index:t.end_index]
+
+
+def test_codepoints_match_actual_surface_unicode(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    for t in trace.tokens:
+        expected = tuple(f"U+{ord(ch):04X}" for ch in t.surface_form_vocalized)
+        assert t.surface_codepoints == expected
+
+
+def test_codepoint_names_match_actual_surface_unicode(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    for t in trace.tokens:
+        expected = tuple(
+            unicodedata.name(ch, "UNKNOWN") for ch in t.surface_form_vocalized
+        )
+        assert t.surface_codepoint_names == expected
+
+
+def test_codepoint_count_matches_surface_length(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    for t in trace.tokens:
+        assert len(t.surface_codepoints) == len(t.surface_form_vocalized)
+        assert len(t.surface_codepoint_names) == len(t.surface_form_vocalized)
+
+
+# --- regression: existing aggregate / boundary / MIU behavior unchanged ----
+
+
+def test_codepoint_extension_preserves_aggregate_counts(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    assert trace.total_token_count == 5
+    assert trace.without_resolver_counts.get("ACCEPTED") == 1
+    assert trace.without_resolver_counts.get("BLOCKED") == 2
+    assert trace.without_resolver_counts.get("DEFERRED") == 2
+    assert trace.with_resolver_counts.get("ACCEPTED") == 2
+    assert trace.with_resolver_counts.get("BLOCKED") == 3
+    assert trace.with_resolver_counts.get("DEFERRED") == 0
+    assert trace.resolver_used_count == 2
+    assert trace.unique_surface_count == 5
+    assert trace.repeated_surface_count == 0
+
+
+@pytest.mark.parametrize(
+    "expected_index,expected_surface,expected_start,expected_end,expected_position",
+    [
+        (0, "بِ", 0, 2, "initial"),
+        (1, "ضَ", 3, 5, "medial"),
+        (2, "وَ", 6, 8, "medial"),
+        (3, "يَ", 9, 11, "medial"),
+        (4, "ضَرَبَ", 12, 18, "final"),
+    ],
+    ids=["bi", "da", "wa", "ya", "daraba"],
+)
+def test_codepoint_extension_preserves_boundary_metadata(
+    trace: QiyasAnalysisTrace,
+    expected_index: int,
+    expected_surface: str,
+    expected_start: int,
+    expected_end: int,
+    expected_position: str,
+) -> None:
+    t = trace.tokens[expected_index]
+    assert t.start_index == expected_start
+    assert t.end_index == expected_end
+    assert t.token_position == expected_position
+
+
+@pytest.mark.parametrize(
+    "surface,expected_without,expected_with",
+    [
+        ("بِ", "ACCEPTED", "ACCEPTED"),
+        ("ضَ", "BLOCKED", "BLOCKED"),
+        ("وَ", "DEFERRED", "ACCEPTED"),
+        ("يَ", "DEFERRED", "BLOCKED"),
+        ("ضَرَبَ", "BLOCKED", "BLOCKED"),
+    ],
+    ids=["bi", "da", "wa", "ya", "daraba"],
+)
+def test_codepoint_extension_preserves_miu_statuses(
+    trace_by_surface: dict[str, TokenAnalysisTrace],
+    surface: str,
+    expected_without: str,
+    expected_with: str,
+) -> None:
+    nfc = unicodedata.normalize("NFC", surface)
+    t = trace_by_surface[nfc]
+    assert t.without_resolver_status == expected_without
+    assert t.with_resolver_status == expected_with
+
+
+# --- render / CLI tests ----------------------------------------------------
+
+
+def test_render_includes_identity_codepoints_marker(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    assert "identity_codepoints=" in rendered
+
+
+def test_render_includes_identity_nfc_equal_true(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    assert "identity_nfc_equal=True" in rendered
+
+
+def test_render_includes_identity_slice_equal_true(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    assert "identity_slice_equal=True" in rendered
+
+
+def test_render_includes_identity_codepoint_names_marker(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    assert "identity_codepoint_names=" in rendered
+
+
+def test_cli_output_contains_bi_codepoints(
+    cli_run: subprocess.CompletedProcess[str],
+) -> None:
+    assert "U+0628" in cli_run.stdout
+    assert "U+0650" in cli_run.stdout
+
+
+def test_cli_output_contains_da_codepoints(
+    cli_run: subprocess.CompletedProcess[str],
+) -> None:
+    assert "U+0636" in cli_run.stdout
+    assert "U+064E" in cli_run.stdout
+
+
+def test_cli_output_contains_bi_codepoint_names(
+    cli_run: subprocess.CompletedProcess[str],
+) -> None:
+    assert "ARABIC LETTER BEH" in cli_run.stdout
+    assert "ARABIC KASRA" in cli_run.stdout
+
+
+def test_cli_output_contains_da_codepoint_names(
+    cli_run: subprocess.CompletedProcess[str],
+) -> None:
+    assert "ARABIC LETTER DAD" in cli_run.stdout
+    assert "ARABIC FATHA" in cli_run.stdout
+
+
+def test_top_level_labels_still_present_after_codepoint_extension(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    assert "mode=potential_only" in rendered
+    assert "identity_carrier=surface_form_vocalized" in rendered
+    assert "diagnostic_key=surface_form_unvocalized_key" in rendered
+
+
+@pytest.mark.parametrize(
+    "forbidden",
+    [
+        "final meaning",
+        "hukm assigned",
+        "dalalah assigned",
+        "reality claim assigned",
+        "i'rab assigned",
+    ],
+)
+def test_codepoint_output_contains_no_semantic_claim(
+    trace: QiyasAnalysisTrace, forbidden: str
+) -> None:
+    rendered = render_analysis_trace(trace).lower()
+    assert forbidden.lower() not in rendered
+
+
+def test_codepoint_extension_introduces_no_forbidden_higher_layer_names(
+    trace: QiyasAnalysisTrace,
+) -> None:
+    rendered = render_analysis_trace(trace)
+    forbidden_names = (
+        "WordCandidate",
+        "LafzCandidate",
+        "DalalahCandidate",
+        "FinalMeaning",
+        "HukmCandidate",
+        "RealityClaim",
+        "AmilEffectEvidence",
+        "I'rabEffectEvidence",
+    )
+    for name in forbidden_names:
+        assert name not in rendered, (
+            f"forbidden higher-layer-artefact name {name!r} appeared in rendered output"
+        )
