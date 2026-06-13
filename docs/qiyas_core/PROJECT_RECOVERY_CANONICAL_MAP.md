@@ -45,6 +45,43 @@ While the freeze holds, the following are **forbidden** in both repositories:
 **Freeze release condition:** the freeze lifts only by explicit maintainer
 instruction after REC-1 … REC-4 of §7 are merged.
 
+### 1.1 Narrow Layer 4 authorization (2026-06-13)
+
+Maintainer Hussein Hiyassat explicitly authorized **Layer 4
+`LicensedSyllableCandidate` runtime as a potential-only slice**
+(`src/qiyas_core/licensed_syllable.py`) ahead of the full REC-1 … REC-5
+sequence. This is a single explicit per-layer narrow authorization. It
+does **not** lift the global freeze, does **not** lift any other §1
+forbidden item, and does **not** authorize Layer 5, semantic runtime,
+meaning, hukm, i'rab, dalalah, tafsir, or reality claims.
+
+Narrowly authorized (potential-only):
+
+```text
+Layer 4 LicensedSyllableCandidate runtime
+BoundaryEvidence consumption by Layer 4 (read-only from
+  qiyas_core.analysis_trace; not promoted to a standalone runtime layer)
+SyllableShapeEvidence / PhoneticEconomyEvidence /
+  SyllableInvalidationEvidence (Layer 4 evidence types)
+```
+
+Still blocked (no narrow exception granted):
+
+```text
+Layer 5 and above, semantic runtime,
+WordCandidate / LafzCandidate / DalalahCandidate / HukmCandidate /
+  FinalMeaning / RealityClaim,
+source importer, registry admission outside Layer 4,
+global P1 runtime advancement, YAML implementation, Lambert W, metrics,
+HarakaFunction runtime, LetterIdentity runtime expansion,
+Binary- writes from Saleh-,
+global REC freeze release until REC-1 … REC-4 are merged.
+```
+
+Layer 4 candidates carry `runtime_status="potential_only_not_semantic_runtime"`
+and the analysis bundle records
+`meaning_status=hukm_status=irab_status=reality_status="not_introduced"`.
+
 ---
 
 ## 2. Repository Responsibility Matrix — مصفوفة مسؤولية المستودعات

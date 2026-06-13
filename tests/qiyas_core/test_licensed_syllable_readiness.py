@@ -43,8 +43,8 @@ def test_title_present(readiness_output: str) -> None:
     [
         "layer=Layer 4",
         "target=LicensedSyllableCandidate",
-        "status=readiness_only",
-        "runtime_status=not_implemented",
+        "status=narrow_layer4_authorization_satisfied",
+        "runtime_status=layer4_potential_only_narrow_authorization",
         "freeze_sensitive=true",
     ],
 )
@@ -89,12 +89,12 @@ def test_section_2_resolver_trace_phrase(readiness_output: str) -> None:
     assert "resolver effects visible as trace, not final judgment" in readiness_output
 
 
-def test_section_3_missing_evidence_header(readiness_output: str) -> None:
-    assert "## 3. Required Missing Evidence Before Runtime" in readiness_output
+def test_section_3_readiness_gates_header(readiness_output: str) -> None:
+    assert "## 3. Layer 4 Readiness Gates" in readiness_output
 
 
 @pytest.mark.parametrize(
-    "missing",
+    "gate_name",
     [
         "explicit boundary evidence model",
         "licensed syllable candidate data model",
@@ -106,10 +106,40 @@ def test_section_3_missing_evidence_header(readiness_output: str) -> None:
         "maintainer unfreeze / explicit authorization if freeze remains active",
     ],
 )
-def test_section_3_missing_gates_listed(
-    readiness_output: str, missing: str
+def test_section_3_gate_listed(readiness_output: str, gate_name: str) -> None:
+    assert gate_name in readiness_output, f"gate item {gate_name!r} missing"
+
+
+@pytest.mark.parametrize(
+    "satisfied_gate",
+    [
+        "explicit boundary evidence model: SATISFIED",
+        "licensed syllable candidate data model: SATISFIED",
+        "phonetic economy proof rule: SATISFIED",
+        "allowed syllable-shape contract in code: SATISFIED",
+        "invalidation rule for unsupported shapes: SATISFIED",
+        "tests for CV, CVC, CVV, CVVC, CVVCC only: SATISFIED",
+        "proof that no meaning/hukm/i'rab/reality is introduced: SATISFIED",
+    ],
+)
+def test_section_3_gate_satisfied_marker(
+    readiness_output: str, satisfied_gate: str
 ) -> None:
-    assert missing in readiness_output, f"missing-gate item {missing!r} missing"
+    """Gates 1-7 must show SATISFIED after the narrow Layer 4 authorization."""
+    assert satisfied_gate in readiness_output, (
+        f"satisfied-gate marker missing: {satisfied_gate!r}"
+    )
+
+
+def test_section_3_gate_8_satisfied_narrowly(readiness_output: str) -> None:
+    """Gate 8 (maintainer authorization) is SATISFIED NARROWLY — Layer 4 only,
+    not a global unfreeze."""
+    assert (
+        "maintainer unfreeze / explicit authorization if freeze remains active: "
+        "SATISFIED NARROWLY"
+    ) in readiness_output
+    assert "Layer 4 only, 2026-06-13 maintainer directive" in readiness_output
+    assert "not a global runtime unfreeze" in readiness_output
 
 
 def test_section_4_allowed_syllable_shapes_header(readiness_output: str) -> None:
@@ -133,12 +163,29 @@ def test_section_4_says_no_runtime_syllable_segmentation(
     assert "No runtime syllable segmentation is performed." in readiness_output
 
 
-def test_section_4_says_no_word_classified(readiness_output: str) -> None:
-    assert "No Arabic word is classified as a syllable in this PR." in readiness_output
+def test_section_4_says_no_multi_token_classification(
+    readiness_output: str,
+) -> None:
+    """Layer 4 admits one syllable per whitespace-token; multi-token
+    surfaces are not classified as a single syllable."""
+    assert (
+        "No multi-token surface is classified as a single syllable."
+        in readiness_output
+    )
 
 
-def test_section_4_says_readiness_labels_only(readiness_output: str) -> None:
-    assert "These are readiness labels only." in readiness_output
+def test_section_4_says_no_word_meaning_claimed(readiness_output: str) -> None:
+    """The readiness audit explicitly states no Arabic word MEANING is
+    claimed — Layer 4 stays potential-only."""
+    assert (
+        "No Arabic word meaning is claimed by this readiness audit."
+        in readiness_output
+    )
+
+
+def test_section_4_states_closed_contract(readiness_output: str) -> None:
+    assert "closed contract" in readiness_output
+    assert "These are the only shapes Layer 4 admits." in readiness_output
 
 
 def test_section_5_constitutional_boundary_header(readiness_output: str) -> None:
@@ -148,7 +195,7 @@ def test_section_5_constitutional_boundary_header(readiness_output: str) -> None
 @pytest.mark.parametrize(
     "marker",
     [
-        "admit any row into runtime",
+        "admit any row into runtime outside narrow Layer 4 authorization",
         "create or modify any registry",
         "perform any source correction",
         "import external source data",
@@ -159,7 +206,9 @@ def test_section_5_constitutional_boundary_header(readiness_output: str) -> None
         "hukm",
         "dalalah",
         "reality",
-        "introduce LicensedSyllableCandidate implementation in this PR",
+        "lift the global REC freeze",
+        "authorize Layer 5 or above",
+        "introduce semantic runtime",
     ],
 )
 def test_section_5_boundary_markers_present(
@@ -168,6 +217,14 @@ def test_section_5_boundary_markers_present(
     assert marker in readiness_output, (
         f"constitutional-boundary marker {marker!r} missing"
     )
+
+
+def test_section_5_says_no_layer5_runtime(readiness_output: str) -> None:
+    """The audit must still say: no Layer 5 runtime, no semantic runtime,
+    no global unfreeze."""
+    assert "no Layer 5 runtime is introduced" in readiness_output
+    assert "no semantic runtime is introduced" in readiness_output
+    assert "no global unfreeze is performed" in readiness_output
 
 
 def test_end_marker_present(readiness_output: str) -> None:
@@ -236,22 +293,29 @@ def test_forbidden_higher_layer_names_only_within_negation_section(
         )
 
 
-def test_licensed_syllable_candidate_only_in_target_or_negation(
+def test_licensed_syllable_candidate_target_marker_present(
     readiness_output: str,
 ) -> None:
-    """The string ``LicensedSyllableCandidate`` is allowed in two specific
-    contexts: as the readiness target marker (``target=LicensedSyllableCandidate``)
-    and inside the negation section (``introduce LicensedSyllableCandidate
-    implementation in this PR``). Anywhere else would be a positive admission
-    claim and is forbidden."""
-    output = readiness_output
-    target_marker = "target=LicensedSyllableCandidate"
-    negation_marker = "introduce LicensedSyllableCandidate implementation in this PR"
-    assert target_marker in output
-    assert negation_marker in output
-    # Replace the allowed contexts and confirm no other occurrence remains.
-    stripped = output.replace(target_marker, "").replace(negation_marker, "")
-    assert "LicensedSyllableCandidate" not in stripped, (
-        "LicensedSyllableCandidate appeared outside the allowed contexts "
-        "(target marker and negation section)"
+    """The readiness target field must still name the Layer 4 candidate type."""
+    assert "target=LicensedSyllableCandidate" in readiness_output
+
+
+def test_licensed_syllable_candidate_never_positively_admitted(
+    readiness_output: str,
+) -> None:
+    """LicensedSyllableCandidate must never appear in a positive runtime-
+    admission phrase. Substring mentions are now legitimate (the Layer 4
+    runtime exists), but admission-claim phrases remain forbidden."""
+    forbidden = (
+        "LicensedSyllableCandidate admitted",
+        "LicensedSyllableCandidate is implemented",
+        "LicensedSyllableCandidate runtime: enabled",
+        "LicensedSyllableCandidate runtime=enabled",
+        "LicensedSyllableCandidate runtime: true",
+        "LicensedSyllableCandidate true",
+        "LicensedSyllableCandidate=true",
     )
+    for phrase in forbidden:
+        assert phrase.lower() not in readiness_output.lower(), (
+            f"forbidden positive-admission phrase appeared: {phrase!r}"
+        )
