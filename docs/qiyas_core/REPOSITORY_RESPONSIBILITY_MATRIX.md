@@ -99,6 +99,39 @@ REC-6   : BLOCKED — Runtime resumption, layer-by-layer, only by explicit
 YAML / Runtime / Metrics / Lambert W / P1 : BLOCKED.
 ```
 
+### 4.1 Narrow Layer 4 authorization (2026-06-13)
+
+Maintainer Hussein Hiyassat explicitly authorized **Layer 4
+`LicensedSyllableCandidate` runtime as a potential-only slice**, ahead of
+the full REC-1 … REC-5 sequence (`src/qiyas_core/licensed_syllable.py`).
+This is a single explicit per-layer narrow authorization — it is not a
+global REC freeze release.
+
+```text
+Authorized narrowly:
+  * Layer 4 LicensedSyllableCandidate runtime (potential-only)
+  * BoundaryEvidence consumption by Layer 4 (read-only from
+    qiyas_core.analysis_trace; not promoted to a standalone runtime layer)
+  * SyllableShapeEvidence / PhoneticEconomyEvidence /
+    SyllableInvalidationEvidence (Layer 4 evidence types, potential-only)
+
+Still BLOCKED (no narrow exception granted):
+  * Layer 5 and above
+  * semantic runtime
+  * meaning / hukm / i'rab / dalalah / tafsir / reality claim
+  * WordCandidate / LafzCandidate / DalalahCandidate / HukmCandidate /
+    FinalMeaning / RealityClaim
+  * source importer
+  * registry admission outside Layer 4
+  * YAML / Lambert W / metrics / global P1 runtime advancement
+  * Binary- writes from Saleh-
+  * global REC freeze release until REC-1 … REC-4 merged
+```
+
+Layer 4 candidates carry `runtime_status="potential_only_not_semantic_runtime"`
+and the analysis bundle records
+`meaning_status=hukm_status=irab_status=reality_status="not_introduced"`.
+
 ---
 
 ## 5. Non-Goals — ما لا تفعله هذه الوثيقة

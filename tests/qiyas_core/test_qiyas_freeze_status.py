@@ -267,18 +267,88 @@ def test_unfreeze_layer_by_layer_phrase_present(status_output: str) -> None:
 @pytest.mark.parametrize(
     "blocked_item",
     [
-        "Layer 4 runtime",
-        "LicensedSyllableCandidate runtime",
-        "BoundaryEvidence runtime promotion",
         "syllable registry",
         "syllable segmentation",
         "REC-5 / REC-6 until REC-1…REC-4 are complete",
+        "global REC freeze release",
     ],
 )
 def test_new_blocked_item_present(status_output: str, blocked_item: str) -> None:
     assert blocked_item in status_output, (
         f"new still-blocked item {blocked_item!r} missing"
     )
+
+
+# --- Narrow Layer 4 authorization (2026-06-13 maintainer directive) -------
+
+
+def test_section_4_5_narrowly_authorized_header_present(
+    status_output: str,
+) -> None:
+    """The freeze tool surfaces a new §4.5 section for narrow per-layer
+    authorizations granted ahead of REC unfreeze."""
+    assert "## 4.5 Narrowly Authorized While Frozen" in status_output
+
+
+@pytest.mark.parametrize(
+    "authorized_phrase",
+    [
+        "Layer 4 LicensedSyllableCandidate runtime",
+        "potential-only",
+        "narrow authorization 2026-06-13",
+        "not a global unfreeze",
+        "BoundaryEvidence consumption by Layer 4",
+        "read-only from qiyas_core.analysis_trace",
+        "not promoted to a standalone runtime layer",
+    ],
+)
+def test_narrowly_authorized_phrase_present(
+    status_output: str, authorized_phrase: str
+) -> None:
+    assert authorized_phrase in status_output, (
+        f"narrow-authorization phrase {authorized_phrase!r} missing"
+    )
+
+
+def test_narrow_authorization_does_not_lift_global_freeze(
+    status_output: str,
+) -> None:
+    """The narrow Layer 4 authorization must not flip freeze_status away
+    from ACTIVE. The global REC freeze stays active even after a narrow
+    per-layer authorization."""
+    assert "freeze_status=ACTIVE" in status_output
+    # Narrow auth section must state its own non-lifting nature.
+    assert "do not lift the global freeze" in status_output
+    assert "do not authorize Layer 5 or higher" in status_output
+    assert "do not authorize semantic runtime" in status_output
+
+
+def test_layer4_runtime_removed_from_still_blocked_section(
+    status_output: str,
+) -> None:
+    """Section 4 (Still Blocked) must no longer list 'Layer 4 runtime',
+    'LicensedSyllableCandidate runtime', or 'BoundaryEvidence runtime
+    promotion' — these were moved to §4.5 Narrowly Authorized.
+
+    The check is positional: the phrases may still appear in §4.5, but
+    not in §4 (Still Blocked).
+    """
+    section_4_marker = "## 4. Still Blocked"
+    section_4_5_marker = "## 4.5 Narrowly Authorized While Frozen"
+    s4 = status_output.find(section_4_marker)
+    s4_5 = status_output.find(section_4_5_marker)
+    assert s4 >= 0 and s4_5 > s4
+    section_4_body = status_output[s4:s4_5]
+    for moved_phrase in (
+        "Layer 4 runtime",
+        "LicensedSyllableCandidate runtime",
+        "BoundaryEvidence runtime promotion",
+    ):
+        # The §4 body must NOT list these as still-blocked bullet items.
+        assert f"* {moved_phrase}" not in section_4_body, (
+            f"{moved_phrase!r} must be removed from §4 Still Blocked "
+            "after narrow Layer 4 authorization"
+        )
 
 
 def test_no_runtime_admission_phrase_present(status_output: str) -> None:

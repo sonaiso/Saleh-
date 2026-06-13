@@ -90,13 +90,28 @@ STILL_BLOCKED: tuple[str, ...] = (
     "SNAP-003",
     "Track B / C / D",
     "runtime registry work",
-    "Layer 4 runtime",
-    "LicensedSyllableCandidate runtime",
-    "BoundaryEvidence runtime promotion",
     "syllable registry",
     "syllable segmentation",
     "HarakaFunction runtime / LetterIdentity runtime expansion",
     "REC-5 / REC-6 until REC-1…REC-4 are complete",
+    "global REC freeze release (only narrow per-layer authorizations granted)",
+)
+
+
+# Narrow per-layer authorizations granted by the maintainer ahead of the
+# full REC-1…REC-5 sequence. Each entry must record the layer name and
+# the authorization date. A narrow authorization here is NOT a global
+# REC unfreeze; the global freeze remains active per §1 of the recovery
+# map and §4 of REPOSITORY_RESPONSIBILITY_MATRIX.md.
+NARROWLY_AUTHORIZED: tuple[str, ...] = (
+    "Layer 4 LicensedSyllableCandidate runtime "
+    "(potential-only, narrow authorization 2026-06-13; "
+    "not a global unfreeze)",
+    "BoundaryEvidence consumption by Layer 4 "
+    "(read-only from qiyas_core.analysis_trace; "
+    "not promoted to a standalone runtime layer)",
+    "SyllableShapeEvidence / PhoneticEconomyEvidence / "
+    "SyllableInvalidationEvidence (Layer 4 evidence types, potential-only)",
 )
 
 
@@ -106,7 +121,7 @@ ALLOWED_WHILE_FROZEN: tuple[str, ...] = (
     "terminal-visible demos",
     "source snapshot inventory verification",
     "consistency / readiness checks",
-    "no runtime admission",
+    "no runtime admission outside narrow per-layer authorizations",
 )
 
 
@@ -178,6 +193,25 @@ def _render_section_4_still_blocked(lines: list[str]) -> None:
     lines.append("")
 
 
+def _render_section_4_5_narrowly_authorized(lines: list[str]) -> None:
+    lines.append(SEPARATOR)
+    lines.append("## 4.5 Narrowly Authorized While Frozen")
+    lines.append(SEPARATOR)
+    lines.append("Narrow per-layer authorizations granted by the maintainer ahead of")
+    lines.append("the full REC-1…REC-5 sequence. Each entry is a single explicit")
+    lines.append("authorization for one runtime slice; the global REC freeze remains")
+    lines.append("active and no other runtime layer is unfrozen by these entries.")
+    lines.append("")
+    for entry in NARROWLY_AUTHORIZED:
+        lines.append(f"  * {entry}")
+    lines.append("")
+    lines.append("These narrow authorizations do not lift the global freeze,")
+    lines.append("do not authorize Layer 5 or higher,")
+    lines.append("do not authorize semantic runtime,")
+    lines.append("and do not introduce meaning / hukm / i'rab / dalalah / reality claims.")
+    lines.append("")
+
+
 def _render_section_5_allowed_while_frozen(lines: list[str]) -> None:
     lines.append(SEPARATOR)
     lines.append("## 5. Allowed While Frozen")
@@ -223,6 +257,7 @@ def render_freeze_status() -> str:
     _render_section_2_rec_queue(lines)
     _render_section_3_saleh_scope_boundary(lines)
     _render_section_4_still_blocked(lines)
+    _render_section_4_5_narrowly_authorized(lines)
     _render_section_5_allowed_while_frozen(lines)
     _render_section_6_unblock_condition(lines)
     _render_section_7_constitutional_boundary(lines)

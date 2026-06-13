@@ -3,15 +3,19 @@
 Run:
     PYTHONPATH=src:. python3 tools/qiyas_licensed_syllable_readiness.py
 
-Reports whether the repo is ready to implement Layer 4 (LicensedSyllableCandidate)
-under docs/qiyas_core/LICENSED_SYLLABLE_CONSTITUTION.md, using the merged
-``qiyas_core.analysis_trace`` as lower-layer evidence.
+Reports whether the repo has satisfied the Layer 4 readiness gates
+defined under docs/qiyas_core/LICENSED_SYLLABLE_CONSTITUTION.md.
 
-This is a readiness/audit artifact, NOT runtime. It performs no syllable
-segmentation, defines no LicensedSyllableCandidate class, calls no registry,
-imports no external source, modifies no file. It calls
-``analyze_potential_trace(...)`` only to prove lower-layer evidence is wired,
-never to derive a syllable.
+Under the narrow Layer 4 authorization (2026-06-13), gates 1-7 are
+satisfied by `src/qiyas_core/licensed_syllable.py` and
+`tests/qiyas_core/test_licensed_syllable.py`; gate 8 records the narrow
+nature of the authorization itself — Layer 4 only, not a global REC
+freeze release, not Layer 5, not semantic runtime, not meaning / hukm /
+i'rab / dalalah / reality claims.
+
+This remains a read-only audit. It calls `analyze_potential_trace(...)`
+only to prove lower-layer evidence is still wired; it does not derive
+syllable candidates here.
 """
 
 from __future__ import annotations
@@ -32,21 +36,61 @@ SEPARATOR = "=" * 60
 READINESS_LABELS = {
     "layer": "Layer 4",
     "target": "LicensedSyllableCandidate",
-    "status": "readiness_only",
-    "runtime_status": "not_implemented",
+    "status": "narrow_layer4_authorization_satisfied",
+    "runtime_status": "layer4_potential_only_narrow_authorization",
     "freeze_sensitive": "true",
 }
 
 
-MISSING_EVIDENCE: tuple[str, ...] = (
-    "explicit boundary evidence model",
-    "licensed syllable candidate data model",
-    "phonetic economy proof rule",
-    "allowed syllable-shape contract in code",
-    "invalidation rule for unsupported shapes",
-    "tests for CV, CVC, CVV, CVVC, CVVCC only",
-    "proof that no meaning/hukm/i'rab/reality is introduced",
-    "maintainer unfreeze / explicit authorization if freeze remains active",
+# Each gate is (gate_name, status_label, evidence_note). The first seven
+# gates are satisfied by the Layer 4 runtime + tests. Gate 8 records the
+# narrow nature of the authorization.
+LAYER4_READINESS_GATES: tuple[tuple[str, str, str], ...] = (
+    (
+        "explicit boundary evidence model",
+        "SATISFIED",
+        "BoundaryEvidence frozen dataclass in src/qiyas_core/licensed_syllable.py",
+    ),
+    (
+        "licensed syllable candidate data model",
+        "SATISFIED",
+        "LicensedSyllableCandidate frozen dataclass; runtime_status="
+        "potential_only_not_semantic_runtime",
+    ),
+    (
+        "phonetic economy proof rule",
+        "SATISFIED",
+        "PhoneticEconomyEvidence; economy_satisfied iff shape allowed + "
+        "boundary preserved + identity preserved + minimal complete + no "
+        "unnecessary expansion",
+    ),
+    (
+        "allowed syllable-shape contract in code",
+        "SATISFIED",
+        "AllowedSyllableShape enum: CV, CVC, CVV, CVVC, CVVCC (closed contract)",
+    ),
+    (
+        "invalidation rule for unsupported shapes",
+        "SATISFIED",
+        "SyllableInvalidationEvidence; candidate_emitted=False; deterministic reason",
+    ),
+    (
+        "tests for CV, CVC, CVV, CVVC, CVVCC only",
+        "SATISFIED",
+        "tests/qiyas_core/test_licensed_syllable.py groups 5 (CV) + 6 (CVC/CVV/CVVC/CVVCC)",
+    ),
+    (
+        "proof that no meaning/hukm/i'rab/reality is introduced",
+        "SATISFIED",
+        "test groups 11 (negative constitutional guard) + 12 (no Layer 5+ classes); "
+        "analysis bundle records meaning_status=hukm_status=irab_status=reality_status=not_introduced",
+    ),
+    (
+        "maintainer unfreeze / explicit authorization if freeze remains active",
+        "SATISFIED NARROWLY",
+        "Layer 4 only, 2026-06-13 maintainer directive; not a global runtime unfreeze; "
+        "REC-2..REC-4 still pending; global REC freeze remains active",
+    ),
 )
 
 
@@ -69,9 +113,11 @@ def _render_section_1_title_and_state(lines: list[str]) -> None:
     lines.append(f"  runtime_status={READINESS_LABELS['runtime_status']}")
     lines.append(f"  freeze_sensitive={READINESS_LABELS['freeze_sensitive']}")
     lines.append("")
-    lines.append("This is a read-only readiness audit. It does not implement")
-    lines.append("Layer 4, does not segment syllables, does not call any runtime")
-    lines.append("beyond the existing potential-only MIU analysis trace.")
+    lines.append("This is a read-only readiness audit. Layer 4 is now implemented")
+    lines.append("under a narrow per-layer authorization (2026-06-13). The audit")
+    lines.append("does not segment syllables here, does not call any runtime")
+    lines.append("beyond the existing potential-only MIU analysis trace, and does")
+    lines.append("not lift the global REC freeze.")
     lines.append("")
 
 
@@ -84,11 +130,12 @@ def _render_section_2_lower_layer_evidence(lines: list[str]) -> None:
     lines.append(SEPARATOR)
     lines.append("## 2. Lower-Layer Evidence Available")
     lines.append(SEPARATOR)
-    lines.append("The repo now provides a potential-only MIU analysis trace via")
+    lines.append("The repo provides a potential-only MIU analysis trace via")
     lines.append("  qiyas_core.analysis_trace")
-    lines.append("from PR #128. The audit calls analyze_potential_trace(...) to")
-    lines.append("prove the trace is wired and producing evidence; it does NOT")
-    lines.append("consume the trace as a syllable input.")
+    lines.append("from PR #128 (extended by PRs #130/#131/#132). The Layer 4")
+    lines.append("runtime at src/qiyas_core/licensed_syllable.py now consumes")
+    lines.append("this trace; this audit calls analyze_potential_trace(...)")
+    lines.append("only to prove the trace is still wired.")
     lines.append("")
     lines.append(f"  identity_carrier={IDENTITY_CARRIER_LABEL}")
     lines.append(f"  diagnostic_key={DIAGNOSTIC_KEY_LABEL}")
@@ -103,20 +150,22 @@ def _render_section_2_lower_layer_evidence(lines: list[str]) -> None:
     for bucket in ("ACCEPTED", "DEFERRED", "BLOCKED"):
         lines.append(f"    {bucket}: {bucket_counts.get(bucket, 0)}")
     lines.append("")
-    lines.append("  (these are potential-only trace observations; the audit does")
-    lines.append("   not promote them into Layer 4 admission decisions)")
+    lines.append("  (these are potential-only trace observations; Layer 4 reads")
+    lines.append("   them as evidence, never as a final judgment, hukm, or meaning)")
     lines.append("")
 
 
-def _render_section_3_missing_evidence(lines: list[str]) -> None:
+def _render_section_3_readiness_gates(lines: list[str]) -> None:
     lines.append(SEPARATOR)
-    lines.append("## 3. Required Missing Evidence Before Runtime")
+    lines.append("## 3. Layer 4 Readiness Gates")
     lines.append(SEPARATOR)
-    lines.append("The following gates are NOT yet satisfied. Each is a separate")
-    lines.append("explicit cycle. None is opened by this audit.")
+    lines.append("Each gate below was an unfilled requirement under")
+    lines.append("LICENSED_SYLLABLE_CONSTITUTION.md before the narrow Layer 4")
+    lines.append("authorization (2026-06-13). Status is now reported per gate:")
     lines.append("")
-    for item in MISSING_EVIDENCE:
-        lines.append(f"  * {item}")
+    for gate_name, status, evidence in LAYER4_READINESS_GATES:
+        lines.append(f"  * {gate_name}: {status}")
+        lines.append(f"      evidence: {evidence}")
     lines.append("")
 
 
@@ -124,15 +173,17 @@ def _render_section_4_allowed_syllable_shapes(lines: list[str]) -> None:
     lines.append(SEPARATOR)
     lines.append("## 4. Allowed Syllable Shapes")
     lines.append(SEPARATOR)
-    lines.append("Future Layer 4 admission would be restricted to these shapes:")
+    lines.append("Layer 4 admission is restricted to these shapes (closed contract):")
     lines.append("")
     for shape in ALLOWED_SYLLABLE_SHAPES:
         lines.append(f"  * {shape}")
     lines.append("")
     lines.append("Discipline:")
-    lines.append("  * These are readiness labels only.")
+    lines.append("  * These are the only shapes Layer 4 admits.")
     lines.append("  * No runtime syllable segmentation is performed.")
-    lines.append("  * No Arabic word is classified as a syllable in this PR.")
+    lines.append("    (a multi-syllable surface like CVCVCV is invalidated, not split)")
+    lines.append("  * No multi-token surface is classified as a single syllable.")
+    lines.append("  * No Arabic word meaning is claimed by this readiness audit.")
     lines.append("")
 
 
@@ -141,7 +192,7 @@ def _render_section_5_constitutional_boundary(lines: list[str]) -> None:
     lines.append("## 5. Constitutional Boundary")
     lines.append(SEPARATOR)
     lines.append("This audit explicitly does NOT:")
-    lines.append("  * admit any row into runtime")
+    lines.append("  * admit any row into runtime outside narrow Layer 4 authorization")
     lines.append("  * create or modify any registry")
     lines.append("  * perform any source correction")
     lines.append("  * import external source data")
@@ -149,7 +200,13 @@ def _render_section_5_constitutional_boundary(lines: list[str]) -> None:
     lines.append("  * make any grammar / i'rab / meaning / hukm / dalalah / reality claim")
     lines.append("  * introduce WordCandidate / LafzCandidate / DalalahCandidate types")
     lines.append("  * introduce FinalMeaning / HukmCandidate / RealityClaim types")
-    lines.append("  * introduce LicensedSyllableCandidate implementation in this PR")
+    lines.append("  * lift the global REC freeze (freeze remains active per §1)")
+    lines.append("  * authorize Layer 5 or above")
+    lines.append("  * introduce semantic runtime")
+    lines.append("")
+    lines.append("Layer 4 is narrowly authorized as a potential-only runtime slice;")
+    lines.append("no Layer 5 runtime is introduced, no semantic runtime is introduced,")
+    lines.append("no global unfreeze is performed.")
     lines.append("")
     lines.append("End of Licensed Syllable Readiness audit.")
 
@@ -158,7 +215,7 @@ def render_readiness_report() -> str:
     lines: list[str] = []
     _render_section_1_title_and_state(lines)
     _render_section_2_lower_layer_evidence(lines)
-    _render_section_3_missing_evidence(lines)
+    _render_section_3_readiness_gates(lines)
     _render_section_4_allowed_syllable_shapes(lines)
     _render_section_5_constitutional_boundary(lines)
     return "\n".join(lines)
