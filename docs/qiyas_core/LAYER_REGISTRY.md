@@ -782,6 +782,74 @@ LicensedSyllableCandidate serves as the mathematical bridge between:
 
 ---
 
+## Canonical Phase Prefixes & Origin Traceability (REC-2)
+
+**Authority:** `PROJECT_RECOVERY_CANONICAL_MAP.md` §3 / §4.1 / §4.2 — executed
+by REC-2 of the corrective queue (§7). Scope: phase-string prefixes and
+per-layer origin notes only. No new layers, no status advancement, no rename
+of `HarakaFunctionCarrier` (that is deferred to REC-3).
+
+### Phase-prefix disambiguation (§4.1, binding)
+
+```text
+BF0    = Binary Foundation              (Binary- repository: L00…L04)
+SCG-P0 = SlotGeometry Core phase 0      (Saleh- repository: Unicode/TypedCodePoint/Glyph)
+AR-P0  = Arabic Voice/Verbal Origin     (future Arabic package/repo)
+
+Declared: Binary-P0 ≠ Arabic-SCG-P0.
+```
+
+### Canonical phase strings (§4.2)
+
+The `LayerSpec.phase` strings in
+`src/qiyas_core/slot_geometry_core/master_registry_seed.py` carry the
+canonical `SCG-` prefix. Conversion table (former → canonical):
+
+| Former phase string | Canonical phase string (REC-2) |
+| --- | --- |
+| `P0_BINARY_FOUNDATION` | `SCG-P0` (renamed away from "BINARY_FOUNDATION" wording — §6.2 collision with BF0) |
+| `P1_DAL_ALONE_ATOMIC` | `SCG-P1` |
+| `P2_REGISTRY_PROJECTION` | `SCG-P2` |
+| `P3_ROOT_STEM_CLOSURE` | `SCG-P3` |
+| `P4_JAMID_MUSHTAQ` | `SCG-P4` |
+| `P5_MUFRAD_WORD_CONTRACTS` | `SCG-P5` |
+| `P6_VERBAL_SIGNIFIED_ALONE` | `SCG-P6` |
+| `P7_COMPOSITION_READINESS` | `SCG-P7` |
+| `P8_AMIL_MAMUL` | `SCG-P8` |
+| `P9_SENTENCE_GEOMETRY` | `SCG-P9` |
+| `P10_RELATION_GEOMETRY` | `SCG-P10` |
+| `P11_IRAB_GEOMETRY` | `SCG-P11` |
+| `P12_IFADAH_SPEECH_FORCE` | `SCG-P12` |
+
+Layer IDs (`LAYER_ID_*` constants) are unchanged: they identify layers, not
+phases, and renaming them is outside REC-2 scope.
+
+Enforced by `tests/qiyas_core/test_canonical_layer_registry_rec2.py` (`REC2-*`).
+
+### Origin traceability (§3, registry-binding)
+
+**Tracing rule (قانون الإسناد):**
+
+```text
+كل طبقة بلا أصل من هذه الأصول الثلاثة = خارج المشروع أو تجريبية.
+No layer without one of the three origins.
+```
+
+The three Foundational Origins:
+
+| Origin | Served by | Notes |
+| --- | --- | --- |
+| الأصل الأول — صوت بشري عربي محفوظ الأثر (preserved sound trace) | `Binary-` (BF0) carries the written/encoded trace; future `AR-P0` carries the sound origin itself | not seeded in Saleh- |
+| الأصل الثاني — نظام لفظي عربي يحفظ انتقالات الصوت (verbal system preserving transitions) | `Saleh-` algebraic spine (SCG phases) | **all 19 seeded layers** |
+| الأصل الثالث — مدلول وضعي (conventional signified) | future Arabic package/repo only | not seeded in Saleh- |
+
+All 19 layers registered in `build_master_registry_seed()` belong to `SCG-`
+phases and trace to **الأصل الثاني**. The machine-checkable assignment is
+`master_registry_seed.LAYER_ORIGIN_NOTES` (one entry per registered layer ID),
+enforced by `REC2-ORIGIN-*` tests.
+
+---
+
 ## Registry Maintenance Rules
 
 **When adding a new canonical layer:**
@@ -815,9 +883,10 @@ LicensedSyllableCandidate serves as the mathematical bridge between:
 - TERMINOLOGY_MAP.md — canonical naming conventions
 - THREE_LAYER_LETTER_ARCHITECTURE.md — letter layer architectural decision
 - REPOSITORY_RESPONSIBILITY_MATRIX.md — repository responsibility matrix (REC-1 boundary enforcement)
+- PROJECT_RECOVERY_CANONICAL_MAP.md — recovery map (§3 origins, §4 canonical phases; REC-2 authority)
 
 ---
 
-**Document Version:** 1.2
-**Last Updated:** 2026-06-13
+**Document Version:** 1.3
+**Last Updated:** 2026-06-14
 **Status:** Authoritative registry

@@ -379,7 +379,7 @@ class TestP0ImplementedInvariants:
         """CORE2-INVARIANT-09: مرحلة P0 لكل طبقة لم تتغير بعد التقدم."""
         for layer_id in _P0_LAYER_IDS:
             spec = p0_registry.get(layer_id)
-            assert spec.phase == "P0_BINARY_FOUNDATION"
+            assert spec.phase == "SCG-P0"
 
     def test_CORE2_INVARIANT_10_p0_output_types_unchanged_after_advancement(
         self, p0_registry

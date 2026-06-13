@@ -400,10 +400,10 @@ class TestInvariantsPreserved:
         assert cts.origin.layer_id == LAYER_ID_P0_TYPED_CODEPOINT
 
     def test_CORE3_INVARIANT_10_p1_phases_unchanged(self, p1_registry):
-        """CORE3-INVARIANT-10: مرحلة P1_DAL_ALONE_ATOMIC لم تتغير بعد التقدم."""
+        """CORE3-INVARIANT-10: مرحلة SCG-P1 لم تتغير بعد التقدم."""
         for layer_id in _P1_LAYER_IDS:
             spec = p1_registry.get(layer_id)
-            assert spec.phase == "P1_DAL_ALONE_ATOMIC", (
+            assert spec.phase == "SCG-P1", (
                 f"Layer {layer_id} phase changed after SPECIFIED advancement"
             )
 
