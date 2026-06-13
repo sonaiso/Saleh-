@@ -2,6 +2,9 @@
 master_registry_seed.py — بذرة سجل الطبقات الرئيسي
 
 PR-CORE-1: تسجيل المراحل P0-P12 كـ LayerSpecs مخططة فقط.
+REC-2 (PROJECT_RECOVERY_CANONICAL_MAP.md §3 / §4.1 / §4.2): توحيد أسماء
+الأطوار بالبادئة القانونية SCG- وإسناد كل طبقة إلى أصلها من الأصول الثلاثة.
+هذا تحديث حوكمة فقط — لا تقدّم في الحالات، لا طبقات جديدة، لا runtime جديد.
 
 القانون:
     كل مرحلة هي LayerSpec بحالة PLANNED.
@@ -13,20 +16,32 @@ PR-CORE-1: تسجيل المراحل P0-P12 كـ LayerSpecs مخططة فقط.
     build_master_registry_seed() → MasterLayerRegistry
     تُرجع سجلًا يحتوي كل المراحل الـ 13 بحالة PLANNED.
 
-المراحل:
-    P0  — Binary Foundation (الأساس الثنائي)
-    P1  — Dal Alone Atomic (الدال وحده ذريًا)
-    P2  — Registry Projection (إسقاط السجل)
-    P3  — Root Stem Closure (إغلاق الجذر والساق)
-    P4  — Jamid Mushtaq (الجامد والمشتق)
-    P5  — Mufrad Word Contracts (عقود الكلمة المفردة)
-    P6  — Verbal Signified Alone (المدلول الفعلي وحده)
-    P7  — Composition Readiness (استعداد التركيب)
-    P8  — Amil Mamul (العامل والمعمول)
-    P9  — Sentence Geometry (هندسة الجملة)
-    P10 — Relation Geometry (هندسة العلاقة)
-    P11 — Irab Geometry (هندسة الإعراب)
-    P12 — Ifadah Speech Force (قوة الإفادة الكلامية)
+تمييز البادئات (PROJECT_RECOVERY_CANONICAL_MAP.md §4.1 — binding):
+    BF0    = Binary Foundation              (Binary- repository: L00…L04)
+    SCG-P0 = SlotGeometry Core phase 0      (Saleh- repository: Unicode/TypedCodePoint/Glyph)
+    AR-P0  = Arabic Voice/Verbal Origin     (future Arabic package/repo)
+    Declared: Binary-P0 ≠ Arabic-SCG-P0.
+
+المراحل (السلم القانوني بعد REC-2 — §4.2):
+    SCG-P0  — SlotGeometry Core phase 0 (Unicode / TypedCodePoint / Glyph;
+              kanat P0_BINARY_FOUNDATION — أُزيل لفظ BINARY_FOUNDATION
+              حسمًا لتصادم §6.2 مع BF0)
+    SCG-P1  — Dal Alone Atomic (الدال وحده ذريًا)
+    SCG-P2  — Registry Projection (إسقاط السجل)
+    SCG-P3  — Root Stem Closure (إغلاق الجذر والساق)
+    SCG-P4  — Jamid Mushtaq (الجامد والمشتق)
+    SCG-P5  — Mufrad Word Contracts (عقود الكلمة المفردة)
+    SCG-P6  — Verbal Signified Alone (المدلول الفعلي وحده)
+    SCG-P7  — Composition Readiness (استعداد التركيب)
+    SCG-P8  — Amil Mamul (العامل والمعمول)
+    SCG-P9  — Sentence Geometry (هندسة الجملة)
+    SCG-P10 — Relation Geometry (هندسة العلاقة)
+    SCG-P11 — Irab Geometry (هندسة الإعراب)
+    SCG-P12 — Ifadah Speech Force (قوة الإفادة الكلامية)
+
+إسناد الأصول (§3): جميع طبقات هذا السجل تخدم الأصل الثاني —
+نظام لفظي عربي يحفظ انتقالات الصوت (Saleh- algebraic spine).
+انظر LAYER_ORIGIN_NOTES أدناه.
 
 غير مسموح بتنفيذ أي طبقة قبل أن تظهر في هذا السجل.
 """
@@ -98,13 +113,61 @@ _ABSOLUTE_FORBIDDEN: tuple[str, ...] = (
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# P0 — Binary Foundation
+# الأصول الثلاثة — Origin traceability (REC-2; PROJECT_RECOVERY_CANONICAL_MAP §3)
+#
+# قانون الإسناد: كل طبقة بلا أصل من هذه الأصول الثلاثة = خارج المشروع أو تجريبية.
+# No layer without one of the three origins.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# الأصل الأول: صوت بشري عربي محفوظ الأثر (preserved sound trace).
+# يخدمه Binary- (BF0) للأثر المكتوب/المرمَّز، ثم AR-P0 مستقبلًا للأصل الصوتي.
+ORIGIN_FIRST_PRESERVED_SOUND_TRACE = "الأصل الأول"
+
+# الأصل الثاني: نظام لفظي عربي يحفظ انتقالات الصوت
+# (verbal system preserving transitions). يخدمه Saleh- — العمود الفقري الجبري.
+ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM = "الأصل الثاني"
+
+# الأصل الثالث: مدلول وضعي — ثبات كيان أو علاقة نُقل إلى لفظ
+# (conventional signified). حزمة/مستودع عربي مستقبلي فقط.
+ORIGIN_THIRD_CONVENTIONAL_SIGNIFIED = "الأصل الثالث"
+
+# إسناد كل طبقة مسجلة إلى أصلها — REC-2 (§3 registry-binding):
+# جميع طبقات SCG-P0…SCG-P12 في هذا السجل تخدم الأصل الثاني
+# (Saleh- algebraic spine: qiyas transitions, slot geometry).
+LAYER_ORIGIN_NOTES: dict[str, str] = {
+    # SCG-P0
+    LAYER_ID_P0_UNICODE_CANDIDATE: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P0_TYPED_CODEPOINT: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P0_GLYPH_CLASSIFICATION: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    # SCG-P1
+    LAYER_ID_P1_LETTER_IDENTITY_CARRIER: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P1_HARAKA_FUNCTION_CARRIER: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P1_POSITION_CARRIER: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P1_SLOT_CANDIDATE: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    # SCG-P2 … SCG-P12
+    LAYER_ID_P2_REGISTRY_PROJECTION: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P3_ROOT_STEM_CLOSURE: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P4_JAMID_MUSHTAQ: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P5_MUFRAD_WORD_CONTRACTS: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P6_VERBAL_SIGNIFIED_ALONE: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P7_COMPOSITION_READINESS: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P8_AMIL_MAMUL: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P9_SENTENCE_GEOMETRY: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P10_RELATION_GEOMETRY: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P11_IRAB_GEOMETRY: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P12_IFADAH_SPEECH_FORCE: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SCG-P0 — SlotGeometry Core phase 0 (Unicode/TypedCodePoint/Glyph)
 # ─────────────────────────────────────────────────────────────────────────────
 
 _P0_UNICODE_CANDIDATE = LayerSpec(
     id=LAYER_ID_P0_UNICODE_CANDIDATE,
     name="UnicodeCandidateLayer",
-    phase="P0_BINARY_FOUNDATION",
+    phase="SCG-P0",
     origin=OriginSpec(
         layer_id=LAYER_ID_ROOT,
         output_type="RawTextInput",
@@ -140,7 +203,7 @@ _P0_UNICODE_CANDIDATE = LayerSpec(
 _P0_TYPED_CODEPOINT = LayerSpec(
     id=LAYER_ID_P0_TYPED_CODEPOINT,
     name="TypedCodePointLayer",
-    phase="P0_BINARY_FOUNDATION",
+    phase="SCG-P0",
     origin=OriginSpec(
         layer_id=LAYER_ID_P0_UNICODE_CANDIDATE,
         output_type="UnicodeCandidate",
@@ -188,7 +251,7 @@ _P0_TYPED_CODEPOINT = LayerSpec(
 _P0_GLYPH_CLASSIFICATION = LayerSpec(
     id=LAYER_ID_P0_GLYPH_CLASSIFICATION,
     name="GlyphClassificationLayer",
-    phase="P0_BINARY_FOUNDATION",
+    phase="SCG-P0",
     origin=OriginSpec(
         layer_id=LAYER_ID_P0_TYPED_CODEPOINT,
         output_type="TypedCodePoint",
@@ -235,7 +298,7 @@ _P0_GLYPH_CLASSIFICATION = LayerSpec(
 _P1_LETTER_IDENTITY_CARRIER = LayerSpec(
     id=LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
     name="LetterIdentityCarrierLayer",
-    phase="P1_DAL_ALONE_ATOMIC",
+    phase="SCG-P1",
     origin=OriginSpec(
         layer_id=LAYER_ID_P0_TYPED_CODEPOINT,
         output_type="TypedCodePoint",
@@ -281,7 +344,7 @@ _P1_LETTER_IDENTITY_CARRIER = LayerSpec(
 _P1_HARAKA_FUNCTION_CARRIER = LayerSpec(
     id=LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
     name="HarakaFunctionCarrierLayer",
-    phase="P1_DAL_ALONE_ATOMIC",
+    phase="SCG-P1",
     origin=OriginSpec(
         layer_id=LAYER_ID_P0_TYPED_CODEPOINT,
         output_type="TypedCodePoint",
@@ -327,7 +390,7 @@ _P1_HARAKA_FUNCTION_CARRIER = LayerSpec(
 _P1_CONDITIONED_TYPED_SEQUENCE = LayerSpec(
     id=LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
     name="ConditionedTypedSequenceLayer",
-    phase="P1_DAL_ALONE_ATOMIC",
+    phase="SCG-P1",
     origin=OriginSpec(
         layer_id=LAYER_ID_P0_TYPED_CODEPOINT,
         output_type="TypedCodePoint",
@@ -376,7 +439,7 @@ _P1_CONDITIONED_TYPED_SEQUENCE = LayerSpec(
 _P1_POSITION_CARRIER = LayerSpec(
     id=LAYER_ID_P1_POSITION_CARRIER,
     name="PositionCarrierLayer",
-    phase="P1_DAL_ALONE_ATOMIC",
+    phase="SCG-P1",
     origin=OriginSpec(
         layer_id=LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
         output_type="ConditionedTypedSequence",
@@ -420,7 +483,7 @@ _P1_POSITION_CARRIER = LayerSpec(
 _P1_SLOT_CANDIDATE = LayerSpec(
     id=LAYER_ID_P1_SLOT_CANDIDATE,
     name="SlotCandidateLayer",
-    phase="P1_DAL_ALONE_ATOMIC",
+    phase="SCG-P1",
     origin=OriginSpec(
         layer_id=LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
         output_type="LetterIdentityCarrier",
@@ -492,7 +555,7 @@ _P1_SLOT_CANDIDATE = LayerSpec(
 _P2_REGISTRY_PROJECTION = LayerSpec(
     id=LAYER_ID_P2_REGISTRY_PROJECTION,
     name="RegistryProjectionLayer",
-    phase="P2_REGISTRY_PROJECTION",
+    phase="SCG-P2",
     origin=OriginSpec(
         layer_id=LAYER_ID_P1_SLOT_CANDIDATE,
         output_type="SlotCandidate",
@@ -549,7 +612,7 @@ _P2_REGISTRY_PROJECTION = LayerSpec(
 _P3_ROOT_STEM_CLOSURE = LayerSpec(
     id=LAYER_ID_P3_ROOT_STEM_CLOSURE,
     name="RootStemClosureLayer",
-    phase="P3_ROOT_STEM_CLOSURE",
+    phase="SCG-P3",
     origin=OriginSpec(
         layer_id=LAYER_ID_P2_REGISTRY_PROJECTION,
         output_type="RegistryProjectionCandidate",
@@ -608,7 +671,7 @@ _P3_ROOT_STEM_CLOSURE = LayerSpec(
 _P4_JAMID_MUSHTAQ = LayerSpec(
     id=LAYER_ID_P4_JAMID_MUSHTAQ,
     name="JamidMushtaqLayer",
-    phase="P4_JAMID_MUSHTAQ",
+    phase="SCG-P4",
     origin=OriginSpec(
         layer_id=LAYER_ID_P3_ROOT_STEM_CLOSURE,
         output_type="RootStemCandidate",
@@ -660,7 +723,7 @@ _P4_JAMID_MUSHTAQ = LayerSpec(
 _P5_MUFRAD_WORD_CONTRACTS = LayerSpec(
     id=LAYER_ID_P5_MUFRAD_WORD_CONTRACTS,
     name="MufradWordContractsLayer",
-    phase="P5_MUFRAD_WORD_CONTRACTS",
+    phase="SCG-P5",
     origin=OriginSpec(
         layer_id=LAYER_ID_P4_JAMID_MUSHTAQ,
         output_type="JamidMushtaqCandidate",
@@ -718,7 +781,7 @@ _P5_MUFRAD_WORD_CONTRACTS = LayerSpec(
 _P6_VERBAL_SIGNIFIED_ALONE = LayerSpec(
     id=LAYER_ID_P6_VERBAL_SIGNIFIED_ALONE,
     name="VerbalSignifiedAloneLayer",
-    phase="P6_VERBAL_SIGNIFIED_ALONE",
+    phase="SCG-P6",
     origin=OriginSpec(
         layer_id=LAYER_ID_P5_MUFRAD_WORD_CONTRACTS,
         output_type="MufradWordCandidate",
@@ -772,7 +835,7 @@ _P6_VERBAL_SIGNIFIED_ALONE = LayerSpec(
 _P7_COMPOSITION_READINESS = LayerSpec(
     id=LAYER_ID_P7_COMPOSITION_READINESS,
     name="CompositionReadinessLayer",
-    phase="P7_COMPOSITION_READINESS",
+    phase="SCG-P7",
     origin=OriginSpec(
         layer_id=LAYER_ID_P6_VERBAL_SIGNIFIED_ALONE,
         output_type="VerbalSignifiedCandidate",
@@ -827,7 +890,7 @@ _P7_COMPOSITION_READINESS = LayerSpec(
 _P8_AMIL_MAMUL = LayerSpec(
     id=LAYER_ID_P8_AMIL_MAMUL,
     name="AmilMamulLayer",
-    phase="P8_AMIL_MAMUL",
+    phase="SCG-P8",
     origin=OriginSpec(
         layer_id=LAYER_ID_P7_COMPOSITION_READINESS,
         output_type="CompositionReadinessCandidate",
@@ -884,7 +947,7 @@ _P8_AMIL_MAMUL = LayerSpec(
 _P9_SENTENCE_GEOMETRY = LayerSpec(
     id=LAYER_ID_P9_SENTENCE_GEOMETRY,
     name="SentenceGeometryLayer",
-    phase="P9_SENTENCE_GEOMETRY",
+    phase="SCG-P9",
     origin=OriginSpec(
         layer_id=LAYER_ID_P8_AMIL_MAMUL,
         output_type="AmilMamulCandidate",
@@ -938,7 +1001,7 @@ _P9_SENTENCE_GEOMETRY = LayerSpec(
 _P10_RELATION_GEOMETRY = LayerSpec(
     id=LAYER_ID_P10_RELATION_GEOMETRY,
     name="RelationGeometryLayer",
-    phase="P10_RELATION_GEOMETRY",
+    phase="SCG-P10",
     origin=OriginSpec(
         layer_id=LAYER_ID_P9_SENTENCE_GEOMETRY,
         output_type="SentenceGeometryCandidate",
@@ -991,7 +1054,7 @@ _P10_RELATION_GEOMETRY = LayerSpec(
 _P11_IRAB_GEOMETRY = LayerSpec(
     id=LAYER_ID_P11_IRAB_GEOMETRY,
     name="IrabGeometryLayer",
-    phase="P11_IRAB_GEOMETRY",
+    phase="SCG-P11",
     origin=OriginSpec(
         layer_id=LAYER_ID_P10_RELATION_GEOMETRY,
         output_type="RelationGeometryCandidate",
@@ -1045,7 +1108,7 @@ _P11_IRAB_GEOMETRY = LayerSpec(
 _P12_IFADAH_SPEECH_FORCE = LayerSpec(
     id=LAYER_ID_P12_IFADAH_SPEECH_FORCE,
     name="IfadahSpeechForceLayer",
-    phase="P12_IFADAH_SPEECH_FORCE",
+    phase="SCG-P12",
     origin=OriginSpec(
         layer_id=LAYER_ID_P11_IRAB_GEOMETRY,
         output_type="IrabGeometryCandidate",

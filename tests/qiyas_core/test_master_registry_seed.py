@@ -91,7 +91,7 @@ class TestSeedPhases:
         """SEED-PHASES-03: مرحلة P0 لها ثلاث طبقات."""
         p0_layers = [
             s for s in seed_registry.all_layers()
-            if s.phase == "P0_BINARY_FOUNDATION"
+            if s.phase == "SCG-P0"
         ]
         assert len(p0_layers) == 3
 
@@ -99,24 +99,24 @@ class TestSeedPhases:
         """SEED-PHASES-04: مرحلة P1 لها خمس طبقات."""
         p1_layers = [
             s for s in seed_registry.all_layers()
-            if s.phase == "P1_DAL_ALONE_ATOMIC"
+            if s.phase == "SCG-P1"
         ]
         assert len(p1_layers) == 5
 
     def test_SEED_PHASES_05_phases_p2_to_p12_each_have_one_layer(self, seed_registry):
         """SEED-PHASES-05: المراحل P2-P12 كل مرحلة طبقة واحدة."""
         single_phase_ids = [
-            "P2_REGISTRY_PROJECTION",
-            "P3_ROOT_STEM_CLOSURE",
-            "P4_JAMID_MUSHTAQ",
-            "P5_MUFRAD_WORD_CONTRACTS",
-            "P6_VERBAL_SIGNIFIED_ALONE",
-            "P7_COMPOSITION_READINESS",
-            "P8_AMIL_MAMUL",
-            "P9_SENTENCE_GEOMETRY",
-            "P10_RELATION_GEOMETRY",
-            "P11_IRAB_GEOMETRY",
-            "P12_IFADAH_SPEECH_FORCE",
+            "SCG-P2",
+            "SCG-P3",
+            "SCG-P4",
+            "SCG-P5",
+            "SCG-P6",
+            "SCG-P7",
+            "SCG-P8",
+            "SCG-P9",
+            "SCG-P10",
+            "SCG-P11",
+            "SCG-P12",
         ]
         for phase_id in single_phase_ids:
             layers_in_phase = [
