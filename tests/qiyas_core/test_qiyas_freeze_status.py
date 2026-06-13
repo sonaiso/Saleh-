@@ -48,7 +48,9 @@ def test_state_markers_present(status_output: str) -> None:
         assert marker in status_output, f"state marker {marker!r} missing"
 
 
-@pytest.mark.parametrize("rec_id", ["REC-1", "REC-2", "REC-3", "REC-4"])
+@pytest.mark.parametrize(
+    "rec_id", ["REC-0", "REC-1", "REC-2", "REC-3", "REC-4", "REC-5", "REC-6"]
+)
 def test_rec_queue_id_present(status_output: str, rec_id: str) -> None:
     assert rec_id in status_output, f"REC queue id {rec_id!r} missing"
 
@@ -68,23 +70,27 @@ def test_pr_123_not_queried_statement_present(status_output: str) -> None:
 
 
 def test_section_2_rec_queue_header_present(status_output: str) -> None:
-    assert "## 2. REC Queue" in status_output
+    assert "## 2. Canonical REC Queue" in status_output
 
 
-def test_section_3_still_blocked_header_present(status_output: str) -> None:
-    assert "## 3. Still Blocked" in status_output
+def test_section_3_saleh_scope_boundary_header_present(status_output: str) -> None:
+    assert "## 3. Saleh- Scope Boundary" in status_output
 
 
-def test_section_4_allowed_header_present(status_output: str) -> None:
-    assert "## 4. Allowed While Frozen" in status_output
+def test_section_4_still_blocked_header_present(status_output: str) -> None:
+    assert "## 4. Still Blocked" in status_output
 
 
-def test_section_5_unblock_header_present(status_output: str) -> None:
-    assert "## 5. Unblock Condition" in status_output
+def test_section_5_allowed_header_present(status_output: str) -> None:
+    assert "## 5. Allowed While Frozen" in status_output
 
 
-def test_section_6_constitutional_boundary_header_present(status_output: str) -> None:
-    assert "## 6. Constitutional Boundary" in status_output
+def test_section_6_unblock_header_present(status_output: str) -> None:
+    assert "## 6. Unblock Condition" in status_output
+
+
+def test_section_7_constitutional_boundary_header_present(status_output: str) -> None:
+    assert "## 7. Constitutional Boundary" in status_output
 
 
 @pytest.mark.parametrize(
@@ -201,3 +207,116 @@ def test_forbidden_higher_layer_names_only_within_negation_section(
 
 def test_end_marker_present(status_output: str) -> None:
     assert "End of Saleh/Qiyas Freeze Readiness Status." in status_output
+
+
+# --- Canonical REC map alignment tests ------------------------------------
+
+
+def test_canonical_rec_queue_header_phrase_present(status_output: str) -> None:
+    assert "Canonical REC Queue" in status_output
+
+
+def test_rec0_references_canonical_map_filename(status_output: str) -> None:
+    assert "PROJECT_RECOVERY_CANONICAL_MAP.md" in status_output
+
+
+def test_rec1_label_present(status_output: str) -> None:
+    assert "Responsibility Matrix" in status_output
+
+
+def test_rec2_label_present(status_output: str) -> None:
+    assert "Canonical Layer Registry alignment" in status_output
+
+
+def test_rec3_label_present(status_output: str) -> None:
+    assert "Naming Correction Plan" in status_output
+
+
+def test_rec3_haraka_function_carrier_mentioned(status_output: str) -> None:
+    assert "HarakaFunctionCarrier" in status_output
+
+
+def test_rec4_label_present(status_output: str) -> None:
+    assert "Binary- boundary enforcement" in status_output
+
+
+def test_rec4_saleh_scope_statement_present(status_output: str) -> None:
+    """The Saleh- scope boundary must explicitly state that Binary- work is
+    outside this repository's allowed scope."""
+    assert (
+        "Binary- repo writes are outside this repository's allowed scope."
+        in status_output
+    )
+
+
+def test_rec5_label_present(status_output: str) -> None:
+    assert "YAML Schema" in status_output
+
+
+def test_runtime_resumption_phrase_present(status_output: str) -> None:
+    assert (
+        "Runtime resumption / layer-by-layer unfreeze" in status_output
+        or "runtime resumption" in status_output.lower()
+    )
+
+
+def test_unfreeze_layer_by_layer_phrase_present(status_output: str) -> None:
+    assert "one layer at a time" in status_output
+
+
+@pytest.mark.parametrize(
+    "blocked_item",
+    [
+        "Layer 4 runtime",
+        "LicensedSyllableCandidate runtime",
+        "BoundaryEvidence runtime promotion",
+        "syllable registry",
+        "syllable segmentation",
+        "REC-5 / REC-6 until REC-1…REC-4 are complete",
+    ],
+)
+def test_new_blocked_item_present(status_output: str, blocked_item: str) -> None:
+    assert blocked_item in status_output, (
+        f"new still-blocked item {blocked_item!r} missing"
+    )
+
+
+def test_no_runtime_admission_phrase_present(status_output: str) -> None:
+    assert "no runtime admission" in status_output
+
+
+def test_pr_123_not_consumed_statement_present(status_output: str) -> None:
+    assert (
+        "PR #123, if present externally, is not consumed by this tool."
+        in status_output
+    )
+
+
+# --- Determinism guard: tool performs no network/GitHub/file reads --------
+
+
+def test_tool_source_does_not_import_network_or_io_libraries() -> None:
+    """The freeze tool is hardcoded and deterministic by design. It must not
+    import any network / GitHub / file-system library at module level, nor
+    call open()/urllib/requests/subprocess on the gh CLI at runtime."""
+    source = STATUS_SCRIPT.read_text(encoding="utf-8")
+    forbidden_imports = (
+        "import requests",
+        "import urllib",
+        "from urllib",
+        "import http",
+        "from http",
+        "import socket",
+        "import asyncio",
+    )
+    for forbidden in forbidden_imports:
+        assert forbidden not in source, (
+            f"forbidden network/IO import {forbidden!r} found in freeze tool source"
+        )
+    # The tool must not open files or call subprocess of gh.
+    assert "open(" not in source, "freeze tool source contains open() call"
+    assert 'subprocess.run(["gh"' not in source, (
+        "freeze tool source contains a gh CLI subprocess call"
+    )
+    # The tool must not import gh or call any github_api function.
+    assert "github_api" not in source.lower()

@@ -29,29 +29,54 @@ class RecQueueItem:
 
 REC_QUEUE: tuple[RecQueueItem, ...] = (
     RecQueueItem(
+        rec_id="REC-0",
+        label="PROJECT_RECOVERY_CANONICAL_MAP.md (this document)",
+        status="landed",
+        signal="reference map; merged via PR #122 and present on main",
+    ),
+    RecQueueItem(
         rec_id="REC-1",
-        label="repository responsibility matrix / governance ownership",
+        label="Responsibility Matrix",
         status="open_or_pending",
-        signal="PR #123 may exist as DRAFT (live PR status not queried by this tool)",
+        signal="may be represented by PR #123 DRAFT (live PR status not queried by this tool)",
     ),
     RecQueueItem(
         rec_id="REC-2",
-        label="pending",
+        label="Canonical Layer Registry alignment",
         status="pending",
         signal="no public signal observed",
     ),
     RecQueueItem(
         rec_id="REC-3",
-        label="pending",
+        label="Naming Correction Plan / HarakaFunctionCarrier rename",
         status="pending",
         signal="no public signal observed",
     ),
     RecQueueItem(
         rec_id="REC-4",
-        label="pending",
-        status="pending",
+        label="Binary- boundary enforcement",
+        status="pending outside Saleh-",
+        signal="performed in Binary- by the maintainer; Saleh- writes are forbidden",
+    ),
+    RecQueueItem(
+        rec_id="REC-5",
+        label="YAML Schema",
+        status="pending after REC-1…REC-4",
         signal="no public signal observed",
     ),
+    RecQueueItem(
+        rec_id="REC-6",
+        label="Runtime resumption / layer-by-layer unfreeze",
+        status="blocked until prior REC items complete and maintainer explicitly lifts freeze",
+        signal="no public signal observed",
+    ),
+)
+
+
+SALEH_SCOPE_BOUNDARY: tuple[str, ...] = (
+    "Saleh- may report REC-4, but must not implement Binary- boundary enforcement.",
+    "Binary- repo writes are outside this repository's allowed scope.",
+    "PR #123, if present externally, is not consumed by this tool.",
 )
 
 
@@ -65,6 +90,13 @@ STILL_BLOCKED: tuple[str, ...] = (
     "SNAP-003",
     "Track B / C / D",
     "runtime registry work",
+    "Layer 4 runtime",
+    "LicensedSyllableCandidate runtime",
+    "BoundaryEvidence runtime promotion",
+    "syllable registry",
+    "syllable segmentation",
+    "HarakaFunction runtime / LetterIdentity runtime expansion",
+    "REC-5 / REC-6 until REC-1…REC-4 are complete",
 )
 
 
@@ -79,6 +111,10 @@ ALLOWED_WHILE_FROZEN: tuple[str, ...] = (
 
 
 UNBLOCK_CONDITIONS: tuple[str, ...] = (
+    "REC-1, REC-2, REC-3, and REC-4 are complete",
+    "REC-5 is completed where applicable",
+    "the maintainer explicitly authorizes REC-6 runtime resumption",
+    "unfreeze proceeds one layer at a time",
     "REC-1 through REC-4 must be complete",
     "maintainer must explicitly lift the freeze",
     "only then may Phase 2 / Track B readiness be considered",
@@ -108,8 +144,12 @@ def _render_section_1_title_and_state(lines: list[str]) -> None:
 
 def _render_section_2_rec_queue(lines: list[str]) -> None:
     lines.append(SEPARATOR)
-    lines.append("## 2. REC Queue")
+    lines.append("## 2. Canonical REC Queue")
     lines.append(SEPARATOR)
+    lines.append("Mirrors PROJECT_RECOVERY_CANONICAL_MAP.md § 7 verbatim. Each item is")
+    lines.append("docs/registry governance; no runtime implementation enters the queue")
+    lines.append("before REC-6 (Runtime resumption) opens.")
+    lines.append("")
     for item in REC_QUEUE:
         lines.append(f"  {item.rec_id}: {item.label}")
         lines.append(f"         status={item.status}")
@@ -119,9 +159,18 @@ def _render_section_2_rec_queue(lines: list[str]) -> None:
     lines.append("")
 
 
-def _render_section_3_still_blocked(lines: list[str]) -> None:
+def _render_section_3_saleh_scope_boundary(lines: list[str]) -> None:
     lines.append(SEPARATOR)
-    lines.append("## 3. Still Blocked")
+    lines.append("## 3. Saleh- Scope Boundary")
+    lines.append(SEPARATOR)
+    for statement in SALEH_SCOPE_BOUNDARY:
+        lines.append(f"  * {statement}")
+    lines.append("")
+
+
+def _render_section_4_still_blocked(lines: list[str]) -> None:
+    lines.append(SEPARATOR)
+    lines.append("## 4. Still Blocked")
     lines.append(SEPARATOR)
     lines.append("While the freeze is active, the following remain blocked:")
     for blocked in STILL_BLOCKED:
@@ -129,9 +178,9 @@ def _render_section_3_still_blocked(lines: list[str]) -> None:
     lines.append("")
 
 
-def _render_section_4_allowed_while_frozen(lines: list[str]) -> None:
+def _render_section_5_allowed_while_frozen(lines: list[str]) -> None:
     lines.append(SEPARATOR)
-    lines.append("## 4. Allowed While Frozen")
+    lines.append("## 5. Allowed While Frozen")
     lines.append(SEPARATOR)
     lines.append("The following are allowed while the freeze is active:")
     for allowed in ALLOWED_WHILE_FROZEN:
@@ -139,18 +188,19 @@ def _render_section_4_allowed_while_frozen(lines: list[str]) -> None:
     lines.append("")
 
 
-def _render_section_5_unblock_condition(lines: list[str]) -> None:
+def _render_section_6_unblock_condition(lines: list[str]) -> None:
     lines.append(SEPARATOR)
-    lines.append("## 5. Unblock Condition")
+    lines.append("## 6. Unblock Condition")
     lines.append(SEPARATOR)
+    lines.append("Runtime remains blocked until:")
     for condition in UNBLOCK_CONDITIONS:
         lines.append(f"  * {condition}")
     lines.append("")
 
 
-def _render_section_6_constitutional_boundary(lines: list[str]) -> None:
+def _render_section_7_constitutional_boundary(lines: list[str]) -> None:
     lines.append(SEPARATOR)
-    lines.append("## 6. Constitutional Boundary")
+    lines.append("## 7. Constitutional Boundary")
     lines.append(SEPARATOR)
     lines.append("This status check explicitly does NOT:")
     lines.append("  * admit any row into runtime")
@@ -171,10 +221,11 @@ def render_freeze_status() -> str:
     lines: list[str] = []
     _render_section_1_title_and_state(lines)
     _render_section_2_rec_queue(lines)
-    _render_section_3_still_blocked(lines)
-    _render_section_4_allowed_while_frozen(lines)
-    _render_section_5_unblock_condition(lines)
-    _render_section_6_constitutional_boundary(lines)
+    _render_section_3_saleh_scope_boundary(lines)
+    _render_section_4_still_blocked(lines)
+    _render_section_5_allowed_while_frozen(lines)
+    _render_section_6_unblock_condition(lines)
+    _render_section_7_constitutional_boundary(lines)
     return "\n".join(lines)
 
 
