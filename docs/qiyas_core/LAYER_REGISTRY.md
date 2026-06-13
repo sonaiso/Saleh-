@@ -814,9 +814,10 @@ LicensedSyllableCandidate serves as the mathematical bridge between:
 - EXPERIMENTAL_TO_CANONICAL_MAP.md — experimental component mapping
 - TERMINOLOGY_MAP.md — canonical naming conventions
 - THREE_LAYER_LETTER_ARCHITECTURE.md — letter layer architectural decision
+- REPOSITORY_RESPONSIBILITY_MATRIX.md — repository responsibility matrix (REC-1 boundary enforcement)
 
 ---
 
-**Document Version:** 1.1
-**Last Updated:** 2026-06-09
+**Document Version:** 1.2
+**Last Updated:** 2026-06-13
 **Status:** Authoritative registry
