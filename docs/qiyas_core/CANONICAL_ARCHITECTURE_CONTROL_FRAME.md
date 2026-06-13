@@ -593,6 +593,7 @@ The maintainer enforces this document by:
 - TERMINOLOGY_MAP.md — fixed canonical naming
 - RESET_CONSTITUTION.md — constitutional foundation
 - AUDIT_AFTER_RESET_CONSTITUTION.md — constitutional audit evidence
+- REPOSITORY_RESPONSIBILITY_MATRIX.md — repository responsibility matrix and cross-repository boundary enforcement (REC-1)
 
 ---
 
