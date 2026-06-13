@@ -96,6 +96,10 @@ class TokenAnalysisTrace:
     has_leading_boundary: bool
     has_trailing_boundary: bool
     token_position: str
+    surface_codepoints: tuple[str, ...]
+    surface_codepoint_names: tuple[str, ...]
+    surface_nfc_equal: bool
+    surface_slice_equal: bool
 
 
 @dataclass(frozen=True)
@@ -112,6 +116,18 @@ class QiyasAnalysisTrace:
     resolver_used_count: int = 0
     unique_surface_count: int = 0
     repeated_surface_count: int = 0
+
+
+def _surface_codepoints(surface: str) -> tuple[str, ...]:
+    return tuple(f"U+{ord(ch):04X}" for ch in surface)
+
+
+def _surface_codepoint_names(surface: str) -> tuple[str, ...]:
+    return tuple(unicodedata.name(ch, "UNKNOWN") for ch in surface)
+
+
+def _is_nfc_equal(surface: str) -> bool:
+    return unicodedata.normalize("NFC", surface) == surface
 
 
 def _is_arabic_letter(ch: str) -> bool:
@@ -294,9 +310,14 @@ def _analyze_token(
     has_leading_boundary: bool,
     has_trailing_boundary: bool,
     token_position: str,
+    input_text: str,
 ) -> TokenAnalysisTrace:
     nfc_token = unicodedata.normalize("NFC", token)
     pairs = _parse_letter_haraka_pairs(nfc_token)
+    codepoints = _surface_codepoints(nfc_token)
+    codepoint_names = _surface_codepoint_names(nfc_token)
+    nfc_equal = _is_nfc_equal(nfc_token)
+    slice_equal = nfc_token == input_text[start_index:end_index]
     if not pairs:
         return TokenAnalysisTrace(
             token_index=token_index,
@@ -315,6 +336,10 @@ def _analyze_token(
             has_leading_boundary=has_leading_boundary,
             has_trailing_boundary=has_trailing_boundary,
             token_position=token_position,
+            surface_codepoints=codepoints,
+            surface_codepoint_names=codepoint_names,
+            surface_nfc_equal=nfc_equal,
+            surface_slice_equal=slice_equal,
         )
 
     trace_label = f"tok{token_index:02d}_{uuid.uuid4().hex[:6]}"
@@ -366,6 +391,10 @@ def _analyze_token(
         has_leading_boundary=has_leading_boundary,
         has_trailing_boundary=has_trailing_boundary,
         token_position=token_position,
+        surface_codepoints=codepoints,
+        surface_codepoint_names=codepoint_names,
+        surface_nfc_equal=nfc_equal,
+        surface_slice_equal=slice_equal,
     )
 
 
@@ -435,6 +464,7 @@ def analyze_potential_trace(text: str) -> QiyasAnalysisTrace:
                 has_leading_boundary=has_leading_boundary,
                 has_trailing_boundary=has_trailing_boundary,
                 token_position=_token_position(idx, total),
+                input_text=nfc_text,
             )
         )
     tokens_tuple = tuple(token_traces)
@@ -479,6 +509,15 @@ def render_analysis_trace(trace: QiyasAnalysisTrace) -> str:
             f"leading={token_trace.has_leading_boundary} "
             f"trailing={token_trace.has_trailing_boundary}"
         )
+        lines.append(
+            f"  identity_codepoints={' '.join(token_trace.surface_codepoints)}"
+        )
+        lines.append(
+            f"  identity_codepoint_names="
+            f"{' | '.join(token_trace.surface_codepoint_names)}"
+        )
+        lines.append(f"  identity_nfc_equal={token_trace.surface_nfc_equal}")
+        lines.append(f"  identity_slice_equal={token_trace.surface_slice_equal}")
         lines.append("")
     lines.append("aggregate_summary:")
     lines.append(f"  total_token_count={trace.total_token_count}")
