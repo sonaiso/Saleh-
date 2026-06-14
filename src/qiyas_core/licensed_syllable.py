@@ -341,6 +341,20 @@ def _surface_codepoint_names(surface: str) -> tuple[str, ...]:
     return tuple(unicodedata.name(ch, "UNKNOWN") for ch in surface)
 
 
+def licensed_cell_shape(surface: str) -> Optional[AllowedSyllableShape]:
+    """Reuse hook for the licensed-cell-extension runtime.
+
+    Returns the licensed ``AllowedSyllableShape`` for a contiguous surface
+    slice, or ``None`` if the slice is not a single licensed cell under the
+    closed contract. This is a thin public wrapper over the existing
+    ``_detect_shape`` detector — it introduces NO new shape logic, NO new
+    semantics, and does not change Layer 4 behaviour. It exists so the cell
+    extension module can reuse the shape detector without forking it.
+    """
+    cv_string, _reason = _detect_shape(surface)
+    return AllowedSyllableShape(cv_string) if cv_string is not None else None
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Per-token analysis: build evidence + candidate or invalidation
 # ─────────────────────────────────────────────────────────────────────────────
