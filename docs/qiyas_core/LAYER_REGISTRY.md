@@ -900,6 +900,35 @@ Enforced by `tests/qiyas_core/test_naming_correction_rec3.py` (`REC3-*`).
 
 ---
 
+## Validated LayerSpec Source — slot_geometry YAML (REC-5)
+
+**Authority:** `PROJECT_RECOVERY_CANONICAL_MAP.md` §7 (REC-5) + §8 supreme law
+(`لا Runtime بلا YAML مصدّق`). Admitted under a **narrow freeze lift** limited to
+`schemas/slot_geometry/`.
+
+REC-5 adds a validated source artifact for the canonical LayerSpecs:
+
+| File | Role |
+| --- | --- |
+| `schemas/slot_geometry/layerspec.schema.yaml` | JSON-Schema (Draft-07, YAML-encoded) validating the LayerSpec source structure |
+| `schemas/slot_geometry/layers.yaml` | The 19 canonical LayerSpecs serialized — the validated source |
+
+**Source-of-truth rule (binding).** The Python registry
+(`build_master_registry_seed()`) remains the **single runtime source of truth**.
+`layers.yaml` *mirrors* it and is kept consistent by equivalence tests; it is a
+specification artifact, **not** a runtime input.
+
+**Non-goals (still frozen).** No `src/qiyas_core/slot_geometry_yaml/` package; no
+schema runtime; **no runtime YAML loader** ("No runtime execution of YAML"); no
+`examples/` tree; no layer added; no `LayerStatus` advancement; no Layer 5; no
+semantic runtime or meaning / hukm / i'rab / dalalah / tafsir / RealityClaim /
+FinalMeaning claims. The only schema surface admitted is `schemas/slot_geometry/`.
+
+Enforced by `tests/qiyas_core/test_rec5_slot_geometry_schema.py` (`REC5-*`) and
+the narrowed `REC1-FREEZE-01` guard.
+
+---
+
 ## Registry Maintenance Rules
 
 **When adding a new canonical layer:**
