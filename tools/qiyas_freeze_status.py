@@ -37,32 +37,32 @@ REC_QUEUE: tuple[RecQueueItem, ...] = (
     RecQueueItem(
         rec_id="REC-1",
         label="Responsibility Matrix",
-        status="open_or_pending",
-        signal="may be represented by PR #123 DRAFT (live PR status not queried by this tool)",
+        status="done",
+        signal="merged on main — Responsibility Matrix doc + REC1-* enforcement tests (PR #134)",
     ),
     RecQueueItem(
         rec_id="REC-2",
         label="Canonical Layer Registry alignment",
-        status="pending",
-        signal="no public signal observed",
+        status="done",
+        signal="merged on main — SCG- phase prefixes + §3 origin notes (PR #136)",
     ),
     RecQueueItem(
         rec_id="REC-3",
         label="Naming Correction Plan / HarakaFunctionCarrier rename",
-        status="pending",
-        signal="no public signal observed",
+        status="done",
+        signal="merged on main — HarakaFunctionCarrier → HarakaMarkIdentityCarrier (PR #137)",
     ),
     RecQueueItem(
         rec_id="REC-4",
         label="Binary- boundary enforcement",
-        status="pending outside Saleh-",
-        signal="performed in Binary- by the maintainer; Saleh- writes are forbidden",
+        status="recorded outside Saleh- (Binary-side / maintainer-owned)",
+        signal="recorded in Saleh-; performed in Binary- by the maintainer; Saleh- writes are forbidden",
     ),
     RecQueueItem(
         rec_id="REC-5",
         label="YAML Schema",
-        status="pending after REC-1…REC-4",
-        signal="no public signal observed",
+        status="done",
+        signal="merged on main — validated LayerSpec schema under schemas/slot_geometry/ (PR #138)",
     ),
     RecQueueItem(
         rec_id="REC-6",
@@ -93,7 +93,7 @@ STILL_BLOCKED: tuple[str, ...] = (
     "syllable registry",
     "syllable segmentation",
     "HarakaFunction runtime / LetterIdentity runtime expansion",
-    "REC-5 / REC-6 until REC-1…REC-4 are complete",
+    "REC-6 runtime resumption until the maintainer explicitly lifts the freeze",
     "global REC freeze release (only narrow per-layer authorizations granted)",
 )
 
@@ -112,6 +112,9 @@ NARROWLY_AUTHORIZED: tuple[str, ...] = (
     "not promoted to a standalone runtime layer)",
     "SyllableShapeEvidence / PhoneticEconomyEvidence / "
     "SyllableInvalidationEvidence (Layer 4 evidence types, potential-only)",
+    "REC-5 validated LayerSpec schema/source under schemas/slot_geometry/ "
+    "(potential-only source artifact, narrow freeze lift; no runtime YAML "
+    "loader, no slot_geometry_yaml package)",
 )
 
 

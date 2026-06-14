@@ -86,17 +86,21 @@ maintainer instruction after REC-1 … REC-4 are merged.
 
 ```text
 REC-0   : DONE — merged as PR #122 (governance map only).
-REC-1   : this document + the REC1-* enforcement tests.
-REC-2   : PENDING — Canonical Layer Registry alignment (SCG- phase prefixes
-          + §3 origin notes). The next admissible PR after REC-1 merges.
-REC-3   : PENDING — Naming Correction Plan / HarakaFunctionCarrier rename.
-          Admissible only after REC-2 merges.
+REC-1   : DONE — this document + the REC1-* enforcement tests (PR #134).
+REC-2   : DONE — Canonical Layer Registry alignment, SCG- phase prefixes
+          + §3 origin notes (PR #136).
+REC-3   : DONE — Naming Correction Plan, HarakaFunctionCarrier →
+          HarakaMarkIdentityCarrier (PR #137).
 REC-4   : PENDING — Binary- boundary enforcement, executed inside Binary-
-          by the maintainer only (cross-write from Saleh- is FORBIDDEN).
-REC-5   : PENDING — YAML Schema, only after REC-1 … REC-4.
+          by the maintainer only (cross-write from Saleh- is FORBIDDEN);
+          recorded on the Saleh- side, no Saleh- implementation required.
+REC-5   : DONE — validated LayerSpec schema merged under the REC-5 narrow
+          freeze lift (PR #138); a runtime YAML loader remains forbidden.
 REC-6   : BLOCKED — Runtime resumption, layer-by-layer, only by explicit
           maintainer authorization after REC-1 … REC-5.
-YAML / Runtime / Metrics / Lambert W / P1 : BLOCKED.
+YAML runtime / Runtime / Metrics / Lambert W / P1 : BLOCKED.
+The global REC freeze remains ACTIVE; REC-3 and REC-5 being complete does not
+lift it. Layer 5+ remains blocked pending a separate maintainer authorization.
 ```
 
 ### 4.1 Narrow Layer 4 authorization (2026-06-13)
