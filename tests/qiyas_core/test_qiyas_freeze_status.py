@@ -321,8 +321,19 @@ def test_narrow_authorization_does_not_lift_global_freeze(
     assert "freeze_status=ACTIVE" in status_output
     # Narrow auth section must state its own non-lifting nature.
     assert "do not lift the global freeze" in status_output
-    assert "do not authorize Layer 5 or higher" in status_output
+    assert "do not authorize Layer 6 or higher" in status_output
     assert "do not authorize semantic runtime" in status_output
+
+
+def test_layer5_recorded_as_narrow_authorization_only(status_output: str) -> None:
+    """Layer 5 is recorded as a narrow per-layer authorization only — not a
+    global unfreeze and not REC-6. The global freeze stays ACTIVE."""
+    assert "Layer 5 LicensedSyllableSequenceCandidate runtime" in status_output
+    assert "narrow authorization 2026-06-14" in status_output
+    assert "not a global unfreeze, not REC-6" in status_output
+    assert "freeze_status=ACTIVE" in status_output
+    # Layer 6+ remains unauthorized.
+    assert "do not authorize Layer 6 or higher" in status_output
 
 
 def test_layer4_runtime_removed_from_still_blocked_section(

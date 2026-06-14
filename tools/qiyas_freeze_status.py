@@ -115,6 +115,10 @@ NARROWLY_AUTHORIZED: tuple[str, ...] = (
     "REC-5 validated LayerSpec schema/source under schemas/slot_geometry/ "
     "(potential-only source artifact, narrow freeze lift; no runtime YAML "
     "loader, no slot_geometry_yaml package)",
+    "Layer 5 LicensedSyllableSequenceCandidate runtime "
+    "(potential-only, narrow authorization 2026-06-14; structural composition "
+    "of adjacent Layer 4 syllable candidates; not a global unfreeze, not REC-6, "
+    "not Layer 6+)",
 )
 
 
@@ -209,7 +213,7 @@ def _render_section_4_5_narrowly_authorized(lines: list[str]) -> None:
         lines.append(f"  * {entry}")
     lines.append("")
     lines.append("These narrow authorizations do not lift the global freeze,")
-    lines.append("do not authorize Layer 5 or higher,")
+    lines.append("do not authorize Layer 6 or higher,")
     lines.append("do not authorize semantic runtime,")
     lines.append("and do not introduce meaning / hukm / i'rab / dalalah / reality claims.")
     lines.append("")
