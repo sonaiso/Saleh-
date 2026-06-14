@@ -770,7 +770,9 @@ LicensedSyllableCandidate(
   → Syllable attempts to cross word/phrase boundary
 
 فارق:pattern_invalid:present
-  → Pattern not in licensed set {CV, CVC, CVV, CVVC}
+  → Pattern not in licensed set {CV, CVC, CVV, CVVC, CVCC, CVVCC}
+    (authoritative closed contract: the AllowedSyllableShape enum in
+     src/qiyas_core/licensed_syllable.py)
 ```
 
 ### 10.2 Deferral Conditions

@@ -2,11 +2,11 @@
 
 Thirteen test groups per the maintainer's directive (2026-06-13):
     1.  API existence
-    2.  Allowed shape contract (exactly CV / CVC / CVV / CVVC / CVVCC)
+    2.  Allowed shape contract (exactly CV / CVC / CVV / CVVC / CVCC / CVVCC)
     3.  BoundaryEvidence shape
     4.  Identity preservation
     5.  Candidate emission for simple CV tokens
-    6.  CVC / CVV / CVVC / CVVCC shape tests
+    6.  CVC / CVV / CVVC / CVCC / CVVCC shape tests
     7.  Unsupported shape invalidation
     8.  Economy rule
     9.  Integration with analysis_trace (no mutation of lower-layer evidence)
@@ -61,16 +61,18 @@ LICENSED_MODULE_SRC = REPO_ROOT / "src" / "qiyas_core" / "licensed_syllable.py"
 # Canonical sample input from the directive
 SAMPLE_INPUT = "بِ ضَ وَ يَ ضَرَبَ"
 
-# Canonical example strings per shape (CV/CVC/CVV/CVVC/CVVCC).
-# CVV/CVVC/CVVCC use explicitly constructed strings — they show the
+# Canonical example strings per shape (CV/CVC/CVV/CVVC/CVCC/CVVCC).
+# CVV/CVVC/CVCC/CVVCC use explicitly constructed strings — they show the
 # codepoint pattern only and make no semantic claim.
 CV_EXAMPLES = ("بِ", "ضَ", "وَ", "يَ")
 CVC_EXAMPLE = "مِنْ"
 CVV_EXAMPLE = "قَا"
 CVVC_EXAMPLE = "قَالْ"
+CVCC_EXAMPLE = "بَيت"
 CVVCC_EXAMPLE = "قَالْتْ"
 UNSUPPORTED_EXAMPLES = (
     "ضَرَبَ",      # reduces to CVCVCV — not in contract
+    "شَاذّ",        # shadda / gemination unsupported in the closed contract
     "hello",        # non-Arabic codepoints
     "ابن",          # bare consonants without harakat — out of contract here
 )
@@ -140,20 +142,20 @@ class TestApiExistence:
 
 
 class TestAllowedShapeContract:
-    """Group 2 — Exactly CV / CVC / CVV / CVVC / CVVCC are valid shapes."""
+    """Group 2 — Exactly CV / CVC / CVV / CVVC / CVCC / CVVCC are valid shapes."""
 
     def test_enum_is_enum(self) -> None:
         assert issubclass(AllowedSyllableShape, Enum)
 
-    def test_exactly_five_allowed_members(self) -> None:
+    def test_exactly_six_allowed_members(self) -> None:
         members = {m.value for m in AllowedSyllableShape}
-        assert members == {"CV", "CVC", "CVV", "CVVC", "CVVCC"}
-        assert len(members) == 5
+        assert members == {"CV", "CVC", "CVV", "CVVC", "CVCC", "CVVCC"}
+        assert len(members) == 6
 
     def test_allowed_tuple_matches_enum(self) -> None:
         assert set(ALLOWED_SYLLABLE_SHAPES) == set(AllowedSyllableShape)
         # Tuple is ordered and contains every member exactly once
-        assert len(ALLOWED_SYLLABLE_SHAPES) == 5
+        assert len(ALLOWED_SYLLABLE_SHAPES) == 6
 
     @pytest.mark.parametrize(
         "forbidden_value",
@@ -298,7 +300,7 @@ class TestCvCandidateEmission:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Group 6 — CVC / CVV / CVVC / CVVCC explicit shape tests
+# Group 6 — CVC / CVV / CVVC / CVCC / CVVCC explicit shape tests
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -306,6 +308,7 @@ SHAPE_EXAMPLES = (
     (AllowedSyllableShape.CVC, CVC_EXAMPLE),
     (AllowedSyllableShape.CVV, CVV_EXAMPLE),
     (AllowedSyllableShape.CVVC, CVVC_EXAMPLE),
+    (AllowedSyllableShape.CVCC, CVCC_EXAMPLE),
     (AllowedSyllableShape.CVVCC, CVVCC_EXAMPLE),
 )
 
@@ -346,6 +349,7 @@ class TestNonCvShapes:
         assert analysis.meaning_status == "not_introduced"
         assert analysis.hukm_status == "not_introduced"
         assert analysis.irab_status == "not_introduced"
+        assert analysis.dalalah_status == "not_introduced"
         assert analysis.reality_status == "not_introduced"
         c = analysis.candidates[0]
         candidate_fields = {f.name for f in c.__dataclass_fields__.values()}
@@ -355,6 +359,35 @@ class TestNonCvShapes:
             "final_meaning", "interpretation", "tafsir",
         ):
             assert forbidden_field not in candidate_fields
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Group 6B — CVCC closed-contract correction
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class TestCvccContractCorrection:
+    """CVCC is now part of the closed Layer 4 contract (six shapes)."""
+
+    def test_cvcc_is_an_allowed_shape(self) -> None:
+        assert AllowedSyllableShape("CVCC") is AllowedSyllableShape.CVCC
+        assert AllowedSyllableShape.CVCC in ALLOWED_SYLLABLE_SHAPES
+
+    def test_baat_emits_cvcc_candidate(self) -> None:
+        analysis = analyze_licensed_syllables(CVCC_EXAMPLE)  # "بَيت"
+        assert len(analysis.candidates) == 1
+        c = analysis.candidates[0]
+        assert c.shape is AllowedSyllableShape.CVCC
+        assert c.identity_preserved is True
+        assert c.boundary_evidence.boundary_preserved is True
+        assert c.economy_evidence.economy_satisfied is True
+        assert c.runtime_status == CANDIDATE_RUNTIME_STATUS
+        assert c.potential_only is True
+
+    def test_baat_no_longer_invalidated(self) -> None:
+        analysis = analyze_licensed_syllables(CVCC_EXAMPLE)
+        surfaces = {inv.surface_form_vocalized for inv in analysis.invalidations}
+        assert CVCC_EXAMPLE not in surfaces
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -540,7 +573,7 @@ class TestDemoToolCli:
         [
             "Licensed Syllable Analysis",
             "runtime_status=layer4_potential_only",
-            "allowed_shapes=CV,CVC,CVV,CVVC,CVVCC",
+            "allowed_shapes=CV,CVC,CVV,CVVC,CVCC,CVVCC",
             "candidate_count",
             "invalidation_count",
             "Constitutional Boundary",
@@ -754,4 +787,5 @@ class TestRuntimeStatusConstants:
         assert a.meaning_status == "not_introduced"
         assert a.hukm_status == "not_introduced"
         assert a.irab_status == "not_introduced"
+        assert a.dalalah_status == "not_introduced"
         assert a.reality_status == "not_introduced"

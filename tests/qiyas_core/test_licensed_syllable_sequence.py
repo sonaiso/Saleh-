@@ -276,7 +276,20 @@ def test_LAYER5_POT_02_analysis_statuses_not_introduced():
     assert analysis.meaning_status == "not_introduced"
     assert analysis.hukm_status == "not_introduced"
     assert analysis.irab_status == "not_introduced"
+    assert analysis.dalalah_status == "not_introduced"
     assert analysis.reality_status == "not_introduced"
+
+
+def test_LAYER5_COMPOSE_04_sequence_with_cvcc_constituent():
+    """LAYER5-COMPOSE-04: Layer 5 composes a sequence that includes a Layer 4
+    CVCC candidate (e.g. 'بَيت'), now that CVCC is in the closed contract."""
+    analysis = analyze_licensed_syllable_sequence("بَ مَا مِن بَيت")
+    assert len(analysis.candidates) == 1
+    assert len(analysis.invalidations) == 0
+    candidate = analysis.candidates[0]
+    assert candidate.length == 4
+    assert "CVCC" in candidate.constituent_shapes
+    assert candidate.identity_preserved is True
 
 
 # ─────────────────────────────────────────────────────────────────────────────

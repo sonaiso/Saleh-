@@ -160,6 +160,7 @@ class LicensedSyllableSequenceAnalysis:
     meaning_status: str
     hukm_status: str
     irab_status: str
+    dalalah_status: str
     reality_status: str
 
 
@@ -423,6 +424,7 @@ def analyze_licensed_syllable_sequence(text: str) -> LicensedSyllableSequenceAna
         meaning_status=NOT_INTRODUCED,
         hukm_status=NOT_INTRODUCED,
         irab_status=NOT_INTRODUCED,
+        dalalah_status=NOT_INTRODUCED,
         reality_status=NOT_INTRODUCED,
     )
 
@@ -516,6 +518,7 @@ def render_licensed_syllable_sequence_analysis(
         f"  * meaning_status={analysis.meaning_status} "
         f"hukm_status={analysis.hukm_status} "
         f"irab_status={analysis.irab_status} "
+        f"dalalah_status={analysis.dalalah_status} "
         f"reality_status={analysis.reality_status}"
     )
 
