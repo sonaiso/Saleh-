@@ -100,7 +100,8 @@ REC-6   : BLOCKED — Runtime resumption, layer-by-layer, only by explicit
           maintainer authorization after REC-1 … REC-5.
 YAML runtime / Runtime / Metrics / Lambert W / P1 : BLOCKED.
 The global REC freeze remains ACTIVE; REC-3 and REC-5 being complete does not
-lift it. Layer 5+ remains blocked pending a separate maintainer authorization.
+lift it. Layer 6+ remains blocked; Layer 5 is narrowly authorized
+(potential-only) — see §4.2.
 ```
 
 ### 4.1 Narrow Layer 4 authorization (2026-06-13)
@@ -135,6 +136,42 @@ Still BLOCKED (no narrow exception granted):
 Layer 4 candidates carry `runtime_status="potential_only_not_semantic_runtime"`
 and the analysis bundle records
 `meaning_status=hukm_status=irab_status=reality_status="not_introduced"`.
+
+### 4.2 Narrow Layer 5 authorization (2026-06-14)
+
+Maintainer Hussein Hiyassat explicitly authorized **Layer 5
+`LicensedSyllableSequenceCandidate` runtime as a potential-only slice**
+(`src/qiyas_core/licensed_syllable_sequence.py`). Layer 5 only performs
+structural composition of adjacent, ordered, boundary-preserving Layer 4
+syllable candidates; it emits invalidation evidence otherwise. This is a
+single explicit per-layer narrow authorization — not a global REC freeze
+release, not REC-6, not Layer 6+.
+
+**Supersession note:** this §4.2 grant narrows the §4.1 "Layer 5 and above"
+blocked entry to **Layer 6 and above**; everything else in §4.1 stands.
+
+```text
+Authorized narrowly:
+  * Layer 5 LicensedSyllableSequenceCandidate runtime (potential-only)
+  * SequenceAdjacencyEvidence / SequenceOrderEvidence /
+    SequenceIdentityPreservationEvidence /
+    SequenceBoundaryPreservationEvidence /
+    SyllableSequenceInvalidationEvidence (Layer 5 evidence types)
+
+Still BLOCKED (no narrow exception granted):
+  * Layer 6 and above
+  * semantic runtime / wordhood
+  * root / wazn / morphology / grammar / i'rab / dalalah / tafsir / meaning
+  * WordCandidate / LafzCandidate / DalalahCandidate / HukmCandidate /
+    FinalMeaning / RealityClaim
+  * canonical 19-layer registry admission for Layer 5
+  * REC-6 runtime resumption / global REC freeze release
+```
+
+Layer 5 candidates carry
+`runtime_status="potential_only_not_semantic_runtime"` and the analysis bundle
+records `meaning_status=hukm_status=irab_status=reality_status="not_introduced"`.
+The canonical 19-layer SCG registry is unchanged.
 
 ---
 

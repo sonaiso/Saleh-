@@ -82,6 +82,52 @@ Layer 4 candidates carry `runtime_status="potential_only_not_semantic_runtime"`
 and the analysis bundle records
 `meaning_status=hukm_status=irab_status=reality_status="not_introduced"`.
 
+### 1.2 Narrow Layer 5 authorization (2026-06-14)
+
+Maintainer Hussein Hiyassat explicitly authorized **Layer 5
+`LicensedSyllableSequenceCandidate` runtime as a potential-only slice**
+(`src/qiyas_core/licensed_syllable_sequence.py`). Layer 5 only performs
+**structural composition** of adjacent, ordered, boundary-preserving Layer 4
+`LicensedSyllableCandidate` objects into a potential-only sequence candidate;
+it emits invalidation evidence when composition is not licensed.
+
+This is a single explicit per-layer narrow authorization. It does **not** lift
+the global freeze, does **not** lift any other §1 forbidden item, does **not**
+authorize Layer 6 or above, semantic runtime, meaning, hukm, i'rab, dalalah,
+tafsir, or reality claims, and is **not** REC-6.
+
+**Supersession note:** this §1.2 grant narrows the blanket "Layer 5 and above"
+entry of the §1.1 "Still blocked" list to **Layer 6 and above**; Layer 5 now
+carries an explicit narrow exception. Everything else in §1.1's blocked list
+stands unchanged.
+
+Narrowly authorized (potential-only):
+
+```text
+Layer 5 LicensedSyllableSequenceCandidate runtime
+  (structural composition over already-licensed Layer 4 candidates)
+SequenceAdjacencyEvidence / SequenceOrderEvidence /
+  SequenceIdentityPreservationEvidence / SequenceBoundaryPreservationEvidence /
+  SyllableSequenceInvalidationEvidence (Layer 5 evidence types)
+```
+
+Still blocked (no narrow exception granted):
+
+```text
+Layer 6 and above, semantic runtime, wordhood,
+WordCandidate / LafzCandidate / DalalahCandidate / HukmCandidate /
+  FinalMeaning / RealityClaim,
+root / wazn / morphology / grammar / i'rab / dalalah / tafsir / meaning,
+canonical 19-layer registry admission for Layer 5,
+REC-6 runtime resumption, global REC freeze release.
+```
+
+Layer 5 candidates carry
+`runtime_status="potential_only_not_semantic_runtime"` and the analysis bundle
+records `meaning_status=hukm_status=irab_status=reality_status="not_introduced"`.
+The canonical 19-layer SCG registry is **unchanged** (Layer 5 is a standalone
+narrow runtime, not a registry LayerSpec).
+
 ---
 
 ## 2. Repository Responsibility Matrix — مصفوفة مسؤولية المستودعات
