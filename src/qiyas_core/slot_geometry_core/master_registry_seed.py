@@ -63,7 +63,16 @@ LAYER_ID_P0_GLYPH_CLASSIFICATION = "P0_GLYPH_CLASSIFICATION"
 
 # P1 — Dal Alone Atomic
 LAYER_ID_P1_LETTER_IDENTITY_CARRIER = "P1_LETTER_IDENTITY_CARRIER"
-LAYER_ID_P1_HARAKA_FUNCTION_CARRIER = "P1_HARAKA_FUNCTION_CARRIER"
+# REC-3 (Naming Correction Plan, option O3) — PROJECT_RECOVERY_CANONICAL_MAP §6.1:
+# the atomic haraka layer is renamed HarakaFunctionCarrier → HarakaMarkIdentityCarrier
+# (الحركة أولًا علامة ذات هوية؛ الوظيفة لاحقًا بعد Gate وسياق وتركيب). The new
+# string below is the canonical layer id. See TERMINOLOGY_MAP.md §8.
+LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER = "P1_HARAKA_MARK_IDENTITY_CARRIER"
+# Transitional compatibility alias (REC-3 O3). The legacy constant resolves to
+# the new canonical id, so untouched runtime/import sites keep working without a
+# full transitive rename. The legacy string is NOT the canonical LayerSpec id or
+# name — that is proved in tests/qiyas_core/test_naming_correction_rec3.py.
+LAYER_ID_P1_HARAKA_FUNCTION_CARRIER = LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER
 LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE = "P1_CONDITIONED_TYPED_SEQUENCE"
 LAYER_ID_P1_POSITION_CARRIER = "P1_POSITION_CARRIER"
 LAYER_ID_P1_SLOT_CANDIDATE = "P1_SLOT_CANDIDATE"
@@ -141,7 +150,7 @@ LAYER_ORIGIN_NOTES: dict[str, str] = {
     LAYER_ID_P0_GLYPH_CLASSIFICATION: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
     # SCG-P1
     LAYER_ID_P1_LETTER_IDENTITY_CARRIER: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
-    LAYER_ID_P1_HARAKA_FUNCTION_CARRIER: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
+    LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
     LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
     LAYER_ID_P1_POSITION_CARRIER: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
     LAYER_ID_P1_SLOT_CANDIDATE: ORIGIN_SECOND_VERBAL_TRANSITION_SYSTEM,
@@ -229,6 +238,7 @@ _P0_TYPED_CODEPOINT = LayerSpec(
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
         "LetterIdentityCarrier",
         "HarakaFunctionCarrier",
+        "HarakaMarkIdentityCarrier",
         "SlotCandidate",
         "SlotGeometry",
     ),
@@ -322,6 +332,7 @@ _P1_LETTER_IDENTITY_CARRIER = LayerSpec(
         "SlotCandidate",
         "SlotGeometry",
         "HarakaFunctionCarrier",
+        "HarakaMarkIdentityCarrier",
         "ConditionedTypedSequence",
     ),
     minimum_required_fields=(
@@ -341,16 +352,16 @@ _P1_LETTER_IDENTITY_CARRIER = LayerSpec(
     status=LayerStatus.PLANNED,
 )
 
-_P1_HARAKA_FUNCTION_CARRIER = LayerSpec(
-    id=LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
-    name="HarakaFunctionCarrierLayer",
+_P1_HARAKA_MARK_IDENTITY_CARRIER = LayerSpec(
+    id=LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
+    name="HarakaMarkIdentityCarrierLayer",
     phase="SCG-P1",
     origin=OriginSpec(
         layer_id=LAYER_ID_P0_TYPED_CODEPOINT,
         output_type="TypedCodePoint",
     ),
     branch=BranchSpec(
-        output_type="HarakaFunctionCarrier",
+        output_type="HarakaMarkIdentityCarrier",
         branch_reason=(
             "إثبات وظيفة الحركة ذريًا: unicode + mark_identity + haraka_class "
             "+ functional_role + غياب الفارق القادح"
@@ -413,6 +424,7 @@ _P1_CONDITIONED_TYPED_SEQUENCE = LayerSpec(
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
         "LetterIdentityCarrier",
         "HarakaFunctionCarrier",
+        "HarakaMarkIdentityCarrier",
         "SlotCandidate",
         "SlotGeometry",
     ),
@@ -463,6 +475,7 @@ _P1_POSITION_CARRIER = LayerSpec(
         "SlotGeometry",
         "LetterIdentityCarrier",
         "HarakaFunctionCarrier",
+        "HarakaMarkIdentityCarrier",
     ),
     minimum_required_fields=(
         "position_index",
@@ -491,7 +504,7 @@ _P1_SLOT_CANDIDATE = LayerSpec(
     branch=BranchSpec(
         output_type="SlotCandidate",
         branch_reason=(
-            "دمج LetterIdentityCarrier + HarakaFunctionCarrier + PositionCarrier "
+            "دمج LetterIdentityCarrier + HarakaMarkIdentityCarrier + PositionCarrier "
             "+ AlignmentEvidence في مرشح خانة مرخّص"
         ),
     ),
@@ -534,7 +547,7 @@ _P1_SLOT_CANDIDATE = LayerSpec(
     ),
     allowed_previous_layer_ids=(
         LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
-        LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+        LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
         LAYER_ID_P1_POSITION_CARRIER,
         LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
     ),
@@ -1179,7 +1192,7 @@ def build_master_registry_seed() -> MasterLayerRegistry:
 
     # P1 — Dal Alone Atomic
     registry.register(_P1_LETTER_IDENTITY_CARRIER)
-    registry.register(_P1_HARAKA_FUNCTION_CARRIER)
+    registry.register(_P1_HARAKA_MARK_IDENTITY_CARRIER)
     registry.register(_P1_CONDITIONED_TYPED_SEQUENCE)
     registry.register(_P1_POSITION_CARRIER)
     registry.register(_P1_SLOT_CANDIDATE)
@@ -1291,7 +1304,7 @@ def build_p0_implemented_registry() -> MasterLayerRegistry:
 # معرفات طبقات P1
 _P1_LAYER_IDS: tuple[str, ...] = (
     LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
-    LAYER_ID_P1_HARAKA_FUNCTION_CARRIER,
+    LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
     LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
     LAYER_ID_P1_POSITION_CARRIER,
     LAYER_ID_P1_SLOT_CANDIDATE,
@@ -1309,7 +1322,7 @@ def build_p1_specified_registry() -> MasterLayerRegistry:
 
     الطبقات المُحدَّدة (SPECIFIED):
         P1_LETTER_IDENTITY_CARRIER     — إثبات هوية الحرف ذريًا
-        P1_HARAKA_FUNCTION_CARRIER     — إثبات وظيفة الحركة ذريًا
+        P1_HARAKA_MARK_IDENTITY_CARRIER — إثبات وظيفة الحركة ذريًا
         P1_CONDITIONED_TYPED_SEQUENCE  — إثبات تهيئة التسلسل
         P1_POSITION_CARRIER            — إثبات الموضع في التسلسل
         P1_SLOT_CANDIDATE              — دمج المكونات الأربعة في مرشح خانة
@@ -1319,7 +1332,7 @@ def build_p1_specified_registry() -> MasterLayerRegistry:
 
     Non-Goals:
         هذه الدالة لا تُنفِّذ LetterIdentityCarrier runtime.
-        هذه الدالة لا تُنفِّذ HarakaFunctionCarrier runtime.
+        هذه الدالة لا تُنفِّذ HarakaMarkIdentityCarrier runtime.
         هذه الدالة لا تُنفِّذ ConditionedTypedSequence runtime.
         هذه الدالة لا تُنفِّذ PositionCarrier runtime.
         هذه الدالة لا تُنفِّذ SlotCandidate runtime.

@@ -85,7 +85,7 @@ Each layer entry follows this template:
 - TypedCodePoint
 - LetterCodePoint / HarakaCodePoint / BoundaryCodePoint / PunctuationCodePoint
 - LetterIdentityCarrier
-- HarakaFunctionCarrier
+- HarakaMarkIdentityCarrier
 - SlotCandidate
 - SyllableCandidate
 - MeaningCandidate
@@ -128,7 +128,7 @@ Each layer entry follows this template:
 **Forbidden Outputs:**
 - AtomicUnitCandidate (old experimental name)
 - LetterIdentityCarrier (next layer)
-- HarakaFunctionCarrier (next layer)
+- HarakaMarkIdentityCarrier (next layer)
 - SlotCandidate
 - SyllableCandidate
 - MeaningCandidate
@@ -144,7 +144,7 @@ Each layer entry follows this template:
 ```
 TypedCodePoint branches:
   → LetterIdentityCarrier (atomic identity proof, independent)
-  → HarakaFunctionCarrier (atomic function proof, independent)
+  → HarakaMarkIdentityCarrier (atomic function proof, independent)
 
 TypedCodePoint* (sequence):
   → ConditionedTypedSequence → AlignmentEvidence + PositionCarrier
@@ -193,7 +193,7 @@ These branches are INDEPENDENT and do NOT depend on each other.
 
 **Forbidden Outputs:**
 - ArabicLetterCoordinateCarrier (next enrichment layer)
-- HarakaFunctionCarrier (parallel proof, not output of letter layer)
+- HarakaMarkIdentityCarrier (parallel proof, not output of letter layer)
 - SlotCandidate (requires composition)
 - SyllableCandidate
 - MeaningCandidate
@@ -204,10 +204,17 @@ These branches are INDEPENDENT and do NOT depend on each other.
 
 **Constitutional Requirement:** LetterIdentityCarrier does NOT require ConditionedTypedSequence. It is an atomic proof independent of sequence context.
 
-### Layer 2B: HarakaFunctionCarrier
+### Layer 2B: HarakaMarkIdentityCarrier
+
+> **Naming correction (REC-3 O3):** formerly `HarakaFunctionCarrier`. Renamed to
+> `HarakaMarkIdentityCarrier` because the haraka is first a mark with identity;
+> *function* is a later claim that requires a gate, context, and composition
+> (PROJECT_RECOVERY_CANONICAL_MAP §6.1). The registry id is
+> `P1_HARAKA_MARK_IDENTITY_CARRIER`; the legacy id/name are retained only as
+> transitional aliases. The runtime adapter rename is **not** part of O3.
 
 **Input:** HarakaCodePoint
-**Output:** HarakaFunctionCarrier
+**Output:** HarakaMarkIdentityCarrier
 **Status:** canonical
 **Source PR:** #25 (initial scope), #28 (corrected)
 **Coverage:** Full
@@ -245,7 +252,7 @@ These branches are INDEPENDENT and do NOT depend on each other.
 
 **Note:** Functional haraka classification (opening/closing/neutral), not just Unicode identity.
 
-**Constitutional Requirement:** HarakaFunctionCarrier does NOT require ConditionedTypedSequence. It is an atomic proof independent of sequence context.
+**Constitutional Requirement:** HarakaMarkIdentityCarrier does NOT require ConditionedTypedSequence. It is an atomic proof independent of sequence context.
 
 ### Layer 2C: PositionCarrier
 
@@ -291,7 +298,7 @@ These branches are INDEPENDENT and do NOT depend on each other.
 
 **CRITICAL: This layer does NOT produce:**
 - ❌ LetterIdentityCarrier (separate atomic proof, Layer 2A)
-- ❌ HarakaFunctionCarrier (separate atomic proof, Layer 2B)
+- ❌ HarakaMarkIdentityCarrier (separate atomic proof, Layer 2B)
 - ❌ SlotCandidate (next layer, requires composition)
 
 **This layer ONLY produces:**
@@ -312,7 +319,7 @@ These branches are INDEPENDENT and do NOT depend on each other.
 
 **Forbidden Outputs:**
 - LetterIdentityCarrier (atomic proof, not sequence proof)
-- HarakaFunctionCarrier (atomic proof, not sequence proof)
+- HarakaMarkIdentityCarrier (atomic proof, not sequence proof)
 - SlotCandidate (requires Layer 2A + Layer 2B + Layer 2C + Layer 2D evidence)
 - SyllableCandidate
 - MeaningCandidate
@@ -325,7 +332,7 @@ These branches are INDEPENDENT and do NOT depend on each other.
 
 ### Layer 3: SlotCandidate
 
-**Input:** LetterIdentityCarrier + HarakaFunctionCarrier + PositionCarrier + AlignmentEvidence
+**Input:** LetterIdentityCarrier + HarakaMarkIdentityCarrier + PositionCarrier + AlignmentEvidence
 **Output:** SlotCandidate
 **Status:** canonical
 **Source PR:** #25 (initial), #28 (corrected to require all four ingredients)
@@ -335,13 +342,13 @@ These branches are INDEPENDENT and do NOT depend on each other.
 
 **Required Ingredients (ALL FOUR MANDATORY):**
 1. LetterIdentityCarrier (from Layer 2A)
-2. HarakaFunctionCarrier (from Layer 2B)
+2. HarakaMarkIdentityCarrier (from Layer 2B)
 3. PositionCarrier (from Layer 2C)
 4. AlignmentEvidence (from Layer 2D)
 
 **Formation Rule:**
 ```
-SlotCandidate = LetterIdentityCarrier ⊗ HarakaFunctionCarrier ⊗ PositionCarrier ⊗ AlignmentEvidence
+SlotCandidate = LetterIdentityCarrier ⊗ HarakaMarkIdentityCarrier ⊗ PositionCarrier ⊗ AlignmentEvidence
 ```
 
 **Blocking Conditions:**
@@ -472,7 +479,7 @@ Root(ب) from numeric  ✗ (semantic derivation)
 Γ_haraka(x, E, D, G) → RoleSpectrumCandidate
 
 where:
-  x = HarakaFunctionCarrier (from Phase 1)
+  x = HarakaMarkIdentityCarrier (from Phase 1)
   E = EvidenceSet (PositionCarrier + AlignmentEvidence)
   D = HarakaRoleDomain (new domain)
   G = Option[SlotGeometryCandidate] (optional geometric context)
@@ -545,7 +552,7 @@ Each hypothesis MUST declare forbidden outputs including at minimum:
 - Prosodic: + `("ArudCandidate", "FinalMeterJudgment")`
 
 **Acceptance Law (8 Conditions):**
-1. HasCarrier(x) — HarakaFunctionCarrier present
+1. HasCarrier(x) — HarakaMarkIdentityCarrier present
 2. HasPosition(x) — PositionCarrier present
 3. HasAlignment(x) — AlignmentEvidence present
 4. HasDomainDeclaration(x) — HarakaRoleDomain declared
@@ -787,7 +794,8 @@ LicensedSyllableCandidate serves as the mathematical bridge between:
 **Authority:** `PROJECT_RECOVERY_CANONICAL_MAP.md` §3 / §4.1 / §4.2 — executed
 by REC-2 of the corrective queue (§7). Scope: phase-string prefixes and
 per-layer origin notes only. No new layers, no status advancement, no rename
-of `HarakaFunctionCarrier` (that is deferred to REC-3).
+of the haraka layer (the `HarakaFunctionCarrier` → `HarakaMarkIdentityCarrier`
+rename was deferred to REC-3 and is now applied — see the REC-3 section below).
 
 ### Phase-prefix disambiguation (§4.1, binding)
 
@@ -847,6 +855,48 @@ All 19 layers registered in `build_master_registry_seed()` belong to `SCG-`
 phases and trace to **الأصل الثاني**. The machine-checkable assignment is
 `master_registry_seed.LAYER_ORIGIN_NOTES` (one entry per registered layer ID),
 enforced by `REC2-ORIGIN-*` tests.
+
+---
+
+## Naming Correction — Haraka Atomic Layer (REC-3)
+
+**Authority:** `PROJECT_RECOVERY_CANONICAL_MAP.md` §6.1 (suspension ruling) and
+§7 REC-3 row — executed as **option O3** (registry + docs surface rename plus
+transitional compatibility aliases). The conversion table is fixed in
+`TERMINOLOGY_MAP.md` §8.
+
+**Ruling (verbatim):**
+
+```text
+الحركة أولًا علامة ذات هوية.
+ثم لاحقًا قد تصير وظيفة، بعد Gate وسياق وتركيب.
+```
+
+The name `HarakaFunctionCarrier` asserted *function* at the atomic-identity
+stage, which jumps a gate. The corrected canonical name proves mark identity
+only; function is deferred to a later, gated stage.
+
+### Conversion table (former → canonical)
+
+| Surface | Former | Canonical (REC-3) |
+| --- | --- | --- |
+| LayerSpec name | `HarakaFunctionCarrierLayer` | `HarakaMarkIdentityCarrierLayer` |
+| Layer id (`LayerSpec.id`) | `P1_HARAKA_FUNCTION_CARRIER` | `P1_HARAKA_MARK_IDENTITY_CARRIER` |
+| Output type | `HarakaFunctionCarrier` | `HarakaMarkIdentityCarrier` |
+| ID constant | `LAYER_ID_P1_HARAKA_FUNCTION_CARRIER` | `LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER` |
+
+### Scope of O3 (explicit non-goals)
+
+- **Registry + docs surface only.** The runtime adapter, rules, guards, proof
+  machinery, and their import sites are **not** renamed under O3; the legacy
+  constant resolves to the new canonical id via a transitional alias so they
+  keep working without a full transitive rename.
+- No semantic change to gates, ranks, layer count, phase, status, or any
+  constitutional boundary. Sibling layers continue to forbid **both** the legacy
+  and the canonical output names during the transition.
+- No new function claims; no runtime resumption; the global freeze is unchanged.
+
+Enforced by `tests/qiyas_core/test_naming_correction_rec3.py` (`REC3-*`).
 
 ---
 

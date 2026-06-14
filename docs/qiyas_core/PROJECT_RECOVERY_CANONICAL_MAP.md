@@ -341,6 +341,18 @@ TERMINOLOGY_MAP-style conversion table:
 Until REC-3 merges, the layer is **suspended**: no runtime work, no new
 references, no status advancement.
 
+**REC-3 execution status (option O3).** REC-3 is executed as **O3**: the
+**registry + docs surface** rows of the occurrence table above
+(`master_registry_seed.py` LayerSpec id/name/output_type and the
+`LAYER_REGISTRY.md` references) are renamed to `HarakaMarkIdentityCarrier` /
+`P1_HARAKA_MARK_IDENTITY_CARRIER`, with a transitional compatibility alias on
+the legacy ID constant and both output names retained in sibling
+`forbidden_outputs`. The **runtime rows** (adapter, rules, guards, proof
+machinery, and their import sites) are **not** renamed under O3 and remain on
+the legacy spelling pending a later corrective step; this is a deliberate
+partial execution, not an omission. No status advancement, no runtime work, and
+no semantic change accompany O3. Conversion table: `TERMINOLOGY_MAP.md` §8.
+
 ### 6.2 `P0_BINARY_FOUNDATION` phase string — naming collision
 
 `Saleh-` phase string `"P0_BINARY_FOUNDATION"` (master_registry_seed.py lines
