@@ -20,7 +20,7 @@ The module consumes lower-layer evidence from qiyas_core.analysis_trace
 not rewrite MIU statuses.
 
 Allowed syllable shapes (closed contract):
-    CV, CVC, CVV, CVVC, CVVCC. No other shape is valid. Any unsupported
+    CV, CVC, CVV, CVVC, CVCC, CVVCC. No other shape is valid. Any unsupported
     surface emits SyllableInvalidationEvidence; no candidate is emitted
     for it.
 
@@ -101,6 +101,7 @@ class AllowedSyllableShape(Enum):
     CVC = "CVC"
     CVV = "CVV"
     CVVC = "CVVC"
+    CVCC = "CVCC"
     CVVCC = "CVVCC"
 
 
@@ -109,6 +110,7 @@ ALLOWED_SYLLABLE_SHAPES: tuple[AllowedSyllableShape, ...] = (
     AllowedSyllableShape.CVC,
     AllowedSyllableShape.CVV,
     AllowedSyllableShape.CVVC,
+    AllowedSyllableShape.CVCC,
     AllowedSyllableShape.CVVCC,
 )
 
@@ -208,6 +210,7 @@ class LicensedSyllableAnalysis:
     meaning_status: str
     hukm_status: str
     irab_status: str
+    dalalah_status: str
     reality_status: str
 
 
@@ -248,7 +251,7 @@ def _classify_codepoint(ch: str) -> str:
 
 
 def _detect_shape(surface: str) -> tuple[Optional[str], str]:
-    """Detect CV/CVC/CVV/CVVC/CVVCC pattern in surface.
+    """Detect CV/CVC/CVV/CVVC/CVCC/CVVCC pattern in surface.
 
     Returns (cv_string_or_none, reason). cv_string is one of the five
     allowed shape strings, or None when the surface does not match the
@@ -273,7 +276,7 @@ def _detect_shape(surface: str) -> tuple[Optional[str], str]:
         )
 
     # Reject shadda in the initial detector — gemination is out of scope
-    # for the closed contract of CV/CVC/CVV/CVVC/CVVCC.
+    # for the closed contract of CV/CVC/CVV/CVVC/CVCC/CVVCC.
     if "g" in classes:
         idx = classes.index("g")
         return None, (
@@ -526,6 +529,7 @@ def analyze_licensed_syllables(text: str) -> LicensedSyllableAnalysis:
         meaning_status=NOT_INTRODUCED,
         hukm_status=NOT_INTRODUCED,
         irab_status=NOT_INTRODUCED,
+        dalalah_status=NOT_INTRODUCED,
         reality_status=NOT_INTRODUCED,
     )
 
@@ -612,6 +616,7 @@ def render_licensed_syllable_analysis(analysis: LicensedSyllableAnalysis) -> str
         f"  * meaning_status={analysis.meaning_status} "
         f"hukm_status={analysis.hukm_status} "
         f"irab_status={analysis.irab_status} "
+        f"dalalah_status={analysis.dalalah_status} "
         f"reality_status={analysis.reality_status}"
     )
 

@@ -67,7 +67,7 @@ LAYER4_READINESS_GATES: tuple[tuple[str, str, str], ...] = (
     (
         "allowed syllable-shape contract in code",
         "SATISFIED",
-        "AllowedSyllableShape enum: CV, CVC, CVV, CVVC, CVVCC (closed contract)",
+        "AllowedSyllableShape enum: CV, CVC, CVV, CVVC, CVCC, CVVCC (closed contract)",
     ),
     (
         "invalidation rule for unsupported shapes",
@@ -75,15 +75,15 @@ LAYER4_READINESS_GATES: tuple[tuple[str, str, str], ...] = (
         "SyllableInvalidationEvidence; candidate_emitted=False; deterministic reason",
     ),
     (
-        "tests for CV, CVC, CVV, CVVC, CVVCC only",
+        "tests for CV, CVC, CVV, CVVC, CVCC, CVVCC only",
         "SATISFIED",
-        "tests/qiyas_core/test_licensed_syllable.py groups 5 (CV) + 6 (CVC/CVV/CVVC/CVVCC)",
+        "tests/qiyas_core/test_licensed_syllable.py groups 5 (CV) + 6 (CVC/CVV/CVVC/CVCC/CVVCC)",
     ),
     (
         "proof that no meaning/hukm/i'rab/reality is introduced",
         "SATISFIED",
         "test groups 11 (negative constitutional guard) + 12 (no Layer 5+ classes); "
-        "analysis bundle records meaning_status=hukm_status=irab_status=reality_status=not_introduced",
+        "analysis bundle records meaning_status=hukm_status=irab_status=dalalah_status=reality_status=not_introduced",
     ),
     (
         "maintainer unfreeze / explicit authorization if freeze remains active",
@@ -99,6 +99,7 @@ ALLOWED_SYLLABLE_SHAPES: tuple[str, ...] = (
     "CVC",
     "CVV",
     "CVVC",
+    "CVCC",
     "CVVCC",
 )
 

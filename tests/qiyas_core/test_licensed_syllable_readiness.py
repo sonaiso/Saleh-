@@ -101,7 +101,7 @@ def test_section_3_readiness_gates_header(readiness_output: str) -> None:
         "phonetic economy proof rule",
         "allowed syllable-shape contract in code",
         "invalidation rule for unsupported shapes",
-        "tests for CV, CVC, CVV, CVVC, CVVCC only",
+        "tests for CV, CVC, CVV, CVVC, CVCC, CVVCC only",
         "proof that no meaning/hukm/i'rab/reality is introduced",
         "maintainer unfreeze / explicit authorization if freeze remains active",
     ],
@@ -118,7 +118,7 @@ def test_section_3_gate_listed(readiness_output: str, gate_name: str) -> None:
         "phonetic economy proof rule: SATISFIED",
         "allowed syllable-shape contract in code: SATISFIED",
         "invalidation rule for unsupported shapes: SATISFIED",
-        "tests for CV, CVC, CVV, CVVC, CVVCC only: SATISFIED",
+        "tests for CV, CVC, CVV, CVVC, CVCC, CVVCC only: SATISFIED",
         "proof that no meaning/hukm/i'rab/reality is introduced: SATISFIED",
     ],
 )
@@ -146,7 +146,7 @@ def test_section_4_allowed_syllable_shapes_header(readiness_output: str) -> None
     assert "## 4. Allowed Syllable Shapes" in readiness_output
 
 
-@pytest.mark.parametrize("shape", ["CV", "CVC", "CVV", "CVVC", "CVVCC"])
+@pytest.mark.parametrize("shape", ["CV", "CVC", "CVV", "CVVC", "CVCC", "CVVCC"])
 def test_section_4_syllable_shape_label_present(
     readiness_output: str, shape: str
 ) -> None:
