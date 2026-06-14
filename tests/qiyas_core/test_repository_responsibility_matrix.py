@@ -161,11 +161,25 @@ class TestRec1MapExistsAndDeclaresFreeze:
 class TestRec1FreezeEnforcedInWorkingTree:
     """REC1-FREEZE — التجميد مفروض اختباريًا على الشجرة، لا وثائقيًا فقط."""
 
-    def test_REC1_FREEZE_01_no_yaml_schema_surfaces(self):
-        """REC1-FREEZE-01: لا حزمة YAML — لا slot_geometry_yaml ولا schemas ولا examples."""
+    def test_REC1_FREEZE_01_only_rec5_schema_surface_admitted(self):
+        """REC1-FREEZE-01 (REC-5 narrow lift): لا حزمة YAML runtime — لا
+        slot_geometry_yaml ولا examples. REC-5 admits ONLY schemas/slot_geometry/
+        as the validated LayerSpec source (YAML files only); no other schemas/*
+        subtree and no runtime package may appear."""
+        # Still fully frozen — REC-5 did not touch these:
         assert not (SRC / "qiyas_core" / "slot_geometry_yaml").exists()
-        assert not (REPO_ROOT / "schemas").exists()
         assert not (REPO_ROOT / "examples").exists()
+        # REC-5 narrow lift: schemas/ may exist, but ONLY with the slot_geometry
+        # subtree, and that subtree may contain YAML source/schema files only.
+        schemas_root = REPO_ROOT / "schemas"
+        if schemas_root.exists():
+            children = sorted(
+                p.name for p in schemas_root.iterdir() if not p.name.startswith(".")
+            )
+            assert children == ["slot_geometry"], children
+            for path in (schemas_root / "slot_geometry").rglob("*"):
+                if path.is_file():
+                    assert path.suffix in {".yaml", ".yml"}, path.name
 
     def test_REC1_FREEZE_02_no_lambert_w_machinery_in_src(self):
         """REC1-FREEZE-02: لا آلات Lambert W في src/ — لا اسم ملف ولا محتوى."""

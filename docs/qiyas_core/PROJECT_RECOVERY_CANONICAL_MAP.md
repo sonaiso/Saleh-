@@ -36,7 +36,7 @@ While the freeze holds, the following are **forbidden** in both repositories:
 | --- | --- | --- |
 | New PR-D | No new domain/feature PR streams | Open PRs: #121 (docs-only snapshot, explicitly "do not merge"), #120 (third-party draft). No other streams may open. |
 | P1 runtime | No new runtime work on P1 layers | P1 layers are registry-status SPECIFIED only — `build_p1_specified_registry`, file: `src/qiyas_core/slot_geometry_core/master_registry_seed.py`, symbol: `build_p1_specified_registry`, line: 1238. They must not advance. |
-| YAML implementation | No `slot_geometry_yaml` package, no schema runtime | PASS (absence verified): no `schemas/**` files, no `examples/**` files, no `src/qiyas_core/slot_geometry_yaml/` package exist on `main`; no open YAML PR (two PR searches returned 0 results). |
+| YAML implementation | No `slot_geometry_yaml` package, no schema runtime | PARTIAL (REC-5 narrow lift): `schemas/slot_geometry/` now holds the REC-5 validated LayerSpec source (`layerspec.schema.yaml` + `layers.yaml`, YAML only). Still absent/forbidden: `src/qiyas_core/slot_geometry_yaml/` package, any schema runtime / runtime YAML loader, and `examples/**`. |
 | Lambert W | No transcendental-function machinery | PASS (absence verified): `Lambert|lambert` matches only third-party `.venv` pygments builtins; zero matches in `src/`, `tests/`, `docs/`. |
 | Metrics | No measurement/metrics expansion | No metrics package exists under `src/qiyas_core/` beyond the already-merged logarithmic measurement carriers (`src/qiyas_core/logarithmic_measurement.py`, symbol: `LicensedMeasuredQuantity`, line: 64). |
 | HarakaFunction | The name and the layer are suspended (تُعلَّق) | file: `src/qiyas_core/slot_geometry_core/master_registry_seed.py`, symbol: `name="HarakaFunctionCarrierLayer"`, line: 283; file: `src/qiyas_core/haraka_function_adapter.py`, symbol: `class HarakaFunctionLayerAdapter`, line: 39. See §6. |
@@ -296,8 +296,11 @@ Required corrections: REC-1, REC-2, REC-3 in §7 (matrix doc, phase
 
 **Verified absences in Saleh- `main` (freeze-relevant):**
 
-- PASS (absence): no YAML schema — glob `schemas/**` → no files; glob
-  `examples/**` → no files; no `src/qiyas_core/slot_geometry_yaml/` package.
+- PARTIAL (REC-5 narrow lift): the validated LayerSpec source exists under
+  `schemas/slot_geometry/` (`layerspec.schema.yaml` + `layers.yaml`, YAML only).
+  Still absent: glob `examples/**` → no files; no
+  `src/qiyas_core/slot_geometry_yaml/` package; no schema runtime / runtime
+  YAML loader.
 - PASS (absence): no Lambert W machinery — repository-wide grep matches only
   `.venv` pygments builtins.
 - PASS (absence): no open YAML PR — PR searches for `slot_geometry_yaml` and
@@ -407,6 +410,18 @@ implementation enters the queue before REC-5 closes.** The mandated order is:
 
 A PR not in this queue, or out of this order, is rejected while the freeze
 holds.
+
+**REC-5 execution status (narrow lift).** REC-5 is executed as a *validated
+source artifact only*: `schemas/slot_geometry/layerspec.schema.yaml` (LayerSpec
+validation contract) and `schemas/slot_geometry/layers.yaml` (the 19 canonical
+LayerSpecs serialized), with equivalence tests against
+`build_master_registry_seed()` and freeze tests proving only
+`schemas/slot_geometry/` was admitted. The Python registry remains the single
+runtime source of truth; **no runtime YAML loader, no `slot_geometry_yaml`
+package, and no schema runtime** are introduced ("No runtime execution of
+YAML"). This narrow lift does not advance any layer status, add any layer, lift
+any other freeze item, or authorize REC-6 runtime / Layer 5. Enforced by
+`tests/qiyas_core/test_rec5_slot_geometry_schema.py` (`REC5-*`).
 
 ---
 

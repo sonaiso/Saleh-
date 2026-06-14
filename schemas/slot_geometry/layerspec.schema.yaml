@@ -1,0 +1,142 @@
+# slot_geometry/layerspec.schema.yaml — REC-5 LayerSpec validation schema
+#
+# Authority: PROJECT_RECOVERY_CANONICAL_MAP.md §7 (REC-5).
+# Validates the structure of schemas/slot_geometry/layers.yaml. This is a
+# *validation contract* only — it is NOT executed by any runtime code and does
+# not drive registry behavior (REC-5 non-goal: "No runtime execution of YAML").
+# The field set mirrors src/qiyas_core/slot_geometry_core/layer_spec.py.
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://saleh.qiyas/schemas/slot_geometry/layerspec.schema.yaml"
+title: slot_geometry LayerSpec source document
+type: object
+additionalProperties: false
+required:
+  - schema_version
+  - layer_count
+  - layers
+properties:
+  schema_version:
+    type: integer
+    const: 1
+  source:
+    type: string
+  layer_count:
+    type: integer
+    minimum: 0
+  layers:
+    type: array
+    items:
+      $ref: "#/definitions/layerspec"
+
+definitions:
+  non_empty_string:
+    type: string
+    minLength: 1
+
+  string_list:
+    type: array
+    items:
+      $ref: "#/definitions/non_empty_string"
+
+  origin:
+    type: object
+    additionalProperties: false
+    required: [layer_id, output_type]
+    properties:
+      layer_id:
+        $ref: "#/definitions/non_empty_string"
+      output_type:
+        $ref: "#/definitions/non_empty_string"
+
+  branch:
+    type: object
+    additionalProperties: false
+    required: [output_type, branch_reason]
+    properties:
+      output_type:
+        $ref: "#/definitions/non_empty_string"
+      branch_reason:
+        $ref: "#/definitions/non_empty_string"
+
+  layerspec:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - name
+      - phase
+      - status
+      - origin
+      - branch
+      - shared_cause
+      - conditions
+      - blockers
+      - invalidating_differences
+      - target_boundary_closes
+      - target_boundary_opens
+      - forbidden_outputs
+      - minimum_required_fields
+      - preserves_ids
+      - allowed_changes
+      - forbidden_changes
+    properties:
+      id:
+        $ref: "#/definitions/non_empty_string"
+      name:
+        $ref: "#/definitions/non_empty_string"
+      phase:
+        $ref: "#/definitions/non_empty_string"
+      status:
+        type: string
+        enum: [planned, specified, implemented, audited, closed]
+      origin:
+        $ref: "#/definitions/origin"
+      branch:
+        $ref: "#/definitions/branch"
+      shared_cause:
+        $ref: "#/definitions/non_empty_string"
+      # conditions, target_boundary_closes, minimum_required_fields, preserves_ids
+      # are required-non-empty by the LayerSpec contract (layer_spec.py __post_init__).
+      conditions:
+        allOf:
+          - $ref: "#/definitions/string_list"
+          - minItems: 1
+      blockers:
+        $ref: "#/definitions/string_list"
+      invalidating_differences:
+        $ref: "#/definitions/string_list"
+      target_boundary_closes:
+        allOf:
+          - $ref: "#/definitions/string_list"
+          - minItems: 1
+      target_boundary_opens:
+        $ref: "#/definitions/string_list"
+      # Every layer MUST forbid the three absolute outputs (layer_spec.py).
+      forbidden_outputs:
+        allOf:
+          - $ref: "#/definitions/string_list"
+          - minItems: 1
+          - contains:
+              const: HukmCandidate
+          - contains:
+              const: RealityClaim
+          - contains:
+              const: FinalMeaning
+      minimum_required_fields:
+        allOf:
+          - $ref: "#/definitions/string_list"
+          - minItems: 1
+      preserves_ids:
+        allOf:
+          - $ref: "#/definitions/string_list"
+          - minItems: 1
+      allowed_changes:
+        $ref: "#/definitions/string_list"
+      forbidden_changes:
+        $ref: "#/definitions/string_list"
+      allowed_previous_layer_ids:
+        $ref: "#/definitions/string_list"
+      allowed_next_layer_ids:
+        $ref: "#/definitions/string_list"
+      forbidden_direct_next_layer_ids:
+        $ref: "#/definitions/string_list"
