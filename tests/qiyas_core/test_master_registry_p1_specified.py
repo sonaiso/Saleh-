@@ -461,6 +461,11 @@ class TestNonGoals:
         """CORE3-NONGOAL-07: مخرجات P1 هي مرشحات (Carrier/Candidate/Sequence) لا أحكام."""
         candidate_output_types = {
             "LetterIdentityCarrier",
+            # REC-3 (O3): the haraka atomic layer output_type was renamed
+            # HarakaFunctionCarrier → HarakaMarkIdentityCarrier. The legacy
+            # name is retained here only as a transitional alias so the set
+            # accepts either spelling during the deferred runtime rename.
+            "HarakaMarkIdentityCarrier",
             "HarakaFunctionCarrier",
             "ConditionedTypedSequence",
             "PositionCarrier",

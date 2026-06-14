@@ -333,18 +333,24 @@ def test_rec2_does_not_introduce_new_layers(seed_registry) -> None:
 
 
 def test_rec2_does_not_rename_haraka_function_carrier() -> None:
-    """REC2-NONGOAL-01: the HarakaFunctionCarrier rename is REC-3 scope, not REC-2.
+    """REC2-NONGOAL-01 (superseded by REC-3 O3): the haraka rename was REC-3
+    scope, not REC-2. REC-2 itself introduced no rename; REC-3 has since applied
+    the registry+docs surface rename HarakaFunctionCarrier →
+    HarakaMarkIdentityCarrier with a transitional compatibility alias.
 
-    The registry must still carry the legacy name on the layer-ID constant
-    and on the LayerSpec, and the recovery map must still record the rename
-    as pending under REC-3.
+    This guard now asserts the post-REC-3 transition contract:
+      * the legacy layer-ID constant is retained only as an alias and resolves
+        to the new canonical id (it is no longer the canonical id string);
+      * the new canonical LayerSpec name is present in the seed source;
+      * the recovery map still records the conversion target name.
+    The exhaustive REC-3 assertions live in test_naming_correction_rec3.py.
     """
-    assert LAYER_ID_P1_HARAKA_FUNCTION_CARRIER == "P1_HARAKA_FUNCTION_CARRIER"
+    assert LAYER_ID_P1_HARAKA_FUNCTION_CARRIER == "P1_HARAKA_MARK_IDENTITY_CARRIER"
     seed_source = _read(REGISTRY_SEED)
-    assert "HarakaFunctionCarrierLayer" in seed_source, (
-        "HarakaFunctionCarrier layer name unexpectedly removed (REC-3 not REC-2)"
+    assert "HarakaMarkIdentityCarrierLayer" in seed_source, (
+        "REC-3 canonical haraka layer name missing from registry seed"
     )
-    # The §7 queue must still list REC-3 with the rename target name.
+    # The §7 queue / §6.1 occurrence record must still carry the target name.
     map_text = _read(RECOVERY_MAP_DOC)
     assert "HarakaMarkIdentityCarrier" in map_text
 

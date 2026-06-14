@@ -134,3 +134,41 @@ to the kernel’s algebraic behavior.
   evidence machinery (`فارق:`, `defer:`) the kernel already enforces.
 - `ALGEBRAIC_FOUNDATION_CONTRACT.md` — fixes the algebraic skeleton that
   this vocabulary describes.
+
+---
+
+## 8. Naming Correction — HarakaFunctionCarrier → HarakaMarkIdentityCarrier (REC-3)
+
+**Authority:** `PROJECT_RECOVERY_CANONICAL_MAP.md` §6.1 and §7 REC-3 row,
+executed as **option O3** (registry + docs surface rename + transitional
+compatibility aliases). See also `LAYER_REGISTRY.md` → "Naming Correction —
+Haraka Atomic Layer (REC-3)".
+
+The atomic haraka layer was named to assert a *function* at the
+atomic-identity stage. Per the constitutional ruling — *الحركة أولًا علامة ذات
+هوية؛ ثم لاحقًا قد تصير وظيفة، بعد Gate وسياق وتركيب* (the haraka is first a mark
+with an identity; it may become a function only later, after a gate, context,
+and composition) — the canonical name is corrected to **mark identity**. This
+removes a premature function claim; it adds none.
+
+### Conversion table (former → canonical)
+
+| Surface | Former | Canonical (REC-3) |
+| --- | --- | --- |
+| LayerSpec name | `HarakaFunctionCarrierLayer` | `HarakaMarkIdentityCarrierLayer` |
+| Layer id (`LayerSpec.id`) | `P1_HARAKA_FUNCTION_CARRIER` | `P1_HARAKA_MARK_IDENTITY_CARRIER` |
+| Output type | `HarakaFunctionCarrier` | `HarakaMarkIdentityCarrier` |
+| ID constant | `LAYER_ID_P1_HARAKA_FUNCTION_CARRIER` | `LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER` |
+
+**Transitional aliases.** The legacy ID constant
+`LAYER_ID_P1_HARAKA_FUNCTION_CARRIER` is retained in
+`master_registry_seed.py` and resolves to the new canonical id, so untouched
+runtime/import sites keep working without a full transitive rename. Sibling
+layers' `forbidden_outputs` list **both** the legacy and the canonical output
+names during the transition, preserving every boundary.
+
+**Out of O3 scope (deferred):** the runtime adapter, rules, guards, and proof
+machinery keep the legacy spelling for now; their rename is a later corrective
+step, not part of this naming correction.
+
+Enforced by `tests/qiyas_core/test_naming_correction_rec3.py` (`REC3-*`).
