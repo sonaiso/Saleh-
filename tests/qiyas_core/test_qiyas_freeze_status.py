@@ -55,12 +55,14 @@ def test_rec_queue_id_present(status_output: str, rec_id: str) -> None:
     assert rec_id in status_output, f"REC queue id {rec_id!r} missing"
 
 
-def test_rec1_open_or_pending_status(status_output: str) -> None:
+def test_rec1_done_status(status_output: str) -> None:
+    """REC-1 has merged (PR #134); the queue must no longer mark it pending."""
     rec1_index = status_output.find("REC-1")
     assert rec1_index >= 0
     rec1_section = status_output[rec1_index : rec1_index + 400]
-    assert "open_or_pending" in rec1_section, (
-        "REC-1 must be marked status=open_or_pending while PR #123 is unresolved"
+    assert "status=done" in rec1_section, "REC-1 must be marked status=done after merge"
+    assert "open_or_pending" not in rec1_section, (
+        "REC-1 stale 'open_or_pending' status must be reconciled after merge"
     )
 
 
@@ -269,7 +271,7 @@ def test_unfreeze_layer_by_layer_phrase_present(status_output: str) -> None:
     [
         "syllable registry",
         "syllable segmentation",
-        "REC-5 / REC-6 until REC-1…REC-4 are complete",
+        "REC-6 runtime resumption until the maintainer explicitly lifts the freeze",
         "global REC freeze release",
     ],
 )
