@@ -592,10 +592,24 @@ _P2_REGISTRY_PROJECTION = LayerSpec(
         "word_type_priors",
     ),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards.
         "RootCandidate",
         "WordTypeJudgment",
         "CaseEffect",
         "IrabCandidate",
+        # Exact downstream canonical output types P2 must NOT produce (no-jump;
+        # SCG-P2 spec-authoring authorization 2026-06-15). P2 may only OPEN
+        # these as priors via target_boundary_opens, never emit them.
+        "RootStemCandidate",       # SCG-P3
+        "JamidMushtaqCandidate",   # SCG-P4
+        "MufradWordCandidate",     # SCG-P5
+        "VerbalSignifiedCandidate",  # SCG-P6
+        "CompositionReadinessCandidate",  # SCG-P7
+        "AmilMamulCandidate",      # SCG-P8
+        "SentenceGeometryCandidate",  # SCG-P9
+        "RelationGeometryCandidate",  # SCG-P10
+        "IrabGeometryCandidate",   # SCG-P11
+        "IfadahCandidate",         # SCG-P12
     ),
     minimum_required_fields=(
         "slot_candidate_ref",
@@ -1351,6 +1365,34 @@ def build_p1_specified_registry() -> MasterLayerRegistry:
         # PLANNED → SPECIFIED (تحديد المواصفة فقط — لا تنفيذ)
         registry.update_status(layer_id, LayerStatus.SPECIFIED)
 
+    return registry
+
+
+def build_p2_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P2 فقط (2026-06-15): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا adapter. الانتقال: PLANNED → SPECIFIED فقط.
+
+    SPECIFIED تعني: المواصفة موثقة وقابلة للاختبار، لكن Runtime لم يُكتب بعد.
+    تبني على build_p1_specified_registry (P0 IMPLEMENTED، P1 SPECIFIED) وتُقدِّم
+    P2 وحدها إلى SPECIFIED؛ تبقى P3-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ RegistryProjectionCandidate runtime.
+        هذه الدالة لا تُقدِّم P3-P12.
+        هذه الدالة لا تنتج RootStemCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج معنى أو جذرًا أو وزنًا أو كلمة أو إعرابًا أو حكمًا.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1 SPECIFIED، P2 SPECIFIED،
+        وبقية الطبقات P3-P12 بحالة PLANNED.
+    """
+    registry = build_p1_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P2 وحدها (تأليف مواصفة فقط — لا تنفيذ)
+    registry.update_status(LAYER_ID_P2_REGISTRY_PROJECTION, LayerStatus.SPECIFIED)
     return registry
 
 

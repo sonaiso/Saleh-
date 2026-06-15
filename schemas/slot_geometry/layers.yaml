@@ -431,6 +431,16 @@ layers:
   - WordTypeJudgment
   - CaseEffect
   - IrabCandidate
+  - RootStemCandidate
+  - JamidMushtaqCandidate
+  - MufradWordCandidate
+  - VerbalSignifiedCandidate
+  - CompositionReadinessCandidate
+  - AmilMamulCandidate
+  - SentenceGeometryCandidate
+  - RelationGeometryCandidate
+  - IrabGeometryCandidate
+  - IfadahCandidate
   minimum_required_fields:
   - slot_candidate_ref
   - registry_entry_ref
