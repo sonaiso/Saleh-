@@ -490,6 +490,15 @@ layers:
   - MeaningCandidate
   - CaseEffect
   - IrabCandidate
+  - JamidMushtaqCandidate
+  - MufradWordCandidate
+  - VerbalSignifiedCandidate
+  - CompositionReadinessCandidate
+  - AmilMamulCandidate
+  - SentenceGeometryCandidate
+  - RelationGeometryCandidate
+  - IrabGeometryCandidate
+  - IfadahCandidate
   minimum_required_fields:
   - slot_sequence_refs
   - root_pattern_evidence

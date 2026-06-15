@@ -665,10 +665,24 @@ _P3_ROOT_STEM_CLOSURE = LayerSpec(
         "word_pattern_candidates",
     ),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards.
         "WordTypeJudgment",
         "MeaningCandidate",
         "CaseEffect",
         "IrabCandidate",
+        # Exact downstream canonical output types P3 must NOT produce (no-jump;
+        # SCG-P3 spec-authoring authorization 2026-06-15). P3 may only OPEN
+        # jamid/mushtaq + word-pattern priors via target_boundary_opens, never
+        # emit any downstream candidate.
+        "JamidMushtaqCandidate",   # SCG-P4
+        "MufradWordCandidate",     # SCG-P5
+        "VerbalSignifiedCandidate",  # SCG-P6
+        "CompositionReadinessCandidate",  # SCG-P7
+        "AmilMamulCandidate",      # SCG-P8
+        "SentenceGeometryCandidate",  # SCG-P9
+        "RelationGeometryCandidate",  # SCG-P10
+        "IrabGeometryCandidate",   # SCG-P11
+        "IfadahCandidate",         # SCG-P12
     ),
     minimum_required_fields=(
         "slot_sequence_refs",
@@ -1393,6 +1407,36 @@ def build_p2_specified_registry() -> MasterLayerRegistry:
     registry = build_p1_specified_registry()
     # PLANNED → SPECIFIED لـ SCG-P2 وحدها (تأليف مواصفة فقط — لا تنفيذ)
     registry.update_status(LAYER_ID_P2_REGISTRY_PROJECTION, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p3_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P3 (RootStemClosure) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P3 فقط (2026-06-15): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا adapter، ولا استخراج جذر. الانتقال:
+    PLANNED → SPECIFIED فقط.
+
+    SPECIFIED تعني: المواصفة موثقة وقابلة للاختبار، لكن Runtime لم يُكتب بعد.
+    تبني على build_p2_specified_registry (P0 IMPLEMENTED، P1+P2 SPECIFIED)
+    وتُقدِّم P3 وحدها إلى SPECIFIED؛ تبقى P4-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ RootStemCandidate runtime.
+        هذه الدالة لا تستخرج جذرًا ولا تُسند وزنًا ولا تُصنِّف كلمة.
+        هذه الدالة لا تُقدِّم P4-P12.
+        هذه الدالة لا تنتج JamidMushtaqCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج معنى أو إعرابًا أو حكمًا.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1+P2+P3 SPECIFIED،
+        وبقية الطبقات P4-P12 بحالة PLANNED.
+    """
+    registry = build_p2_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P3 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا استخراج)
+    registry.update_status(LAYER_ID_P3_ROOT_STEM_CLOSURE, LayerStatus.SPECIFIED)
     return registry
 
 
