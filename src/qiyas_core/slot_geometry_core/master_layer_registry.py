@@ -115,10 +115,55 @@ class MasterLayerRegistry:
                 f"Cannot transition layer '{layer_id}' from {spec.status} to {new_status}. "
                 f"Allowed transitions: {allowed_next_statuses}."
             )
+        # بوابة تبعية التنفيذ (implementation-dependency gate): لا تُنفَّذ طبقة
+        # قبل تنفيذ أصلها. تُطبَّق فقط عند الانتقال إلى IMPLEMENTED.
+        if new_status is LayerStatus.IMPLEMENTED:
+            self._assert_origin_implemented(spec)
         # Python frozen dataclasses لا تُعدَّل — نُعيد التسجيل
         import dataclasses
         updated = dataclasses.replace(spec, status=new_status)
         self._layers[layer_id] = updated
+
+    def _assert_origin_implemented(self, spec: LayerSpec) -> None:
+        """
+        بوابة تبعية التنفيذ (hybrid rule).
+
+        لا يجوز نقل طبقة L إلى IMPLEMENTED إلا إذا كان أصلها O مُنفَّذًا:
+
+            - O == ROOT                 → مسموح (لا أصل سابق).
+            - O.phase == L.phase (INTRA) → يجب أن تكون طبقة الأصل O نفسها IMPLEMENTED.
+            - O.phase != L.phase (CROSS) → يجب أن تكون كل طبقات O.phase IMPLEMENTED.
+            - غير ذلك                    → RegistryViolation.
+
+        يُفعّل القاعدة constitutional rule «لا قفزة بلا تراخيص» على مستوى الـ runtime:
+        لا فرع مُنفَّذ بلا أصل مُنفَّذ. (companion downgrade rule مؤجَّل — راجع الملاحظة.)
+        """
+        origin_id = spec.origin.layer_id
+        if origin_id == "ROOT":
+            return
+        origin = self.get(origin_id)
+        if origin.phase == spec.phase:
+            # INTRA edge: طبقة الأصل المحددة يجب أن تكون مُنفَّذة.
+            if origin.status is not LayerStatus.IMPLEMENTED:
+                raise RegistryViolation(
+                    f"Cannot implement layer '{spec.id}': its origin layer "
+                    f"'{origin_id}' (same phase {spec.phase}) is {origin.status}, "
+                    f"not IMPLEMENTED. لا فرع مُنفَّذ بلا أصله المُنفَّذ."
+                )
+            return
+        # CROSS edge: كل طبقات مرحلة الأصل يجب أن تكون مُنفَّذة.
+        unimplemented = tuple(
+            layer.id
+            for layer in self._layers.values()
+            if layer.phase == origin.phase and layer.status is not LayerStatus.IMPLEMENTED
+        )
+        if unimplemented:
+            raise RegistryViolation(
+                f"Cannot implement layer '{spec.id}': its origin phase "
+                f"'{origin.phase}' is not fully IMPLEMENTED. "
+                f"Pending layers: {unimplemented}. "
+                "لا مرحلة لاحقة بلا اكتمال تنفيذ المرحلة الأصل."
+            )
 
     def all_layers(self) -> Iterator[LayerSpec]:
         """إرجاع جميع الطبقات المسجلة."""
