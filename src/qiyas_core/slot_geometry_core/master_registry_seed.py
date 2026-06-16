@@ -732,9 +732,22 @@ _P4_JAMID_MUSHTAQ = LayerSpec(
     target_boundary_closes=("jamid_mushtaq_candidates",),
     target_boundary_opens=("word_type_candidates",),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards.
         "WordTypeJudgment",
         "MeaningCandidate",
         "IrabCandidate",
+        # Exact downstream canonical output types P4 must NOT produce (no-jump;
+        # SCG-P4 spec-authoring authorization 2026-06-16). P4 may only OPEN
+        # word-type candidates as priors via target_boundary_opens, never emit
+        # any downstream candidate.
+        "MufradWordCandidate",     # SCG-P5
+        "VerbalSignifiedCandidate",  # SCG-P6
+        "CompositionReadinessCandidate",  # SCG-P7
+        "AmilMamulCandidate",      # SCG-P8
+        "SentenceGeometryCandidate",  # SCG-P9
+        "RelationGeometryCandidate",  # SCG-P10
+        "IrabGeometryCandidate",   # SCG-P11
+        "IfadahCandidate",         # SCG-P12
     ),
     minimum_required_fields=(
         "root_stem_ref",
@@ -790,9 +803,21 @@ _P5_MUFRAD_WORD_CONTRACTS = LayerSpec(
         "composition_readiness_candidates",
     ),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards.
         "IrabCandidate",
         "CaseEffect",
         "SentenceCandidate",
+        # Exact downstream canonical output types P5 must NOT produce (no-jump;
+        # SCG-P5 spec-authoring authorization 2026-06-16). P5 may only OPEN
+        # verbal-signified / composition-readiness priors via
+        # target_boundary_opens, never emit any downstream candidate.
+        "VerbalSignifiedCandidate",  # SCG-P6
+        "CompositionReadinessCandidate",  # SCG-P7
+        "AmilMamulCandidate",      # SCG-P8
+        "SentenceGeometryCandidate",  # SCG-P9
+        "RelationGeometryCandidate",  # SCG-P10
+        "IrabGeometryCandidate",   # SCG-P11
+        "IfadahCandidate",         # SCG-P12
     ),
     minimum_required_fields=(
         "root_stem_ref",
@@ -843,10 +868,21 @@ _P6_VERBAL_SIGNIFIED_ALONE = LayerSpec(
     target_boundary_closes=("verbal_signified_candidates",),
     target_boundary_opens=("composition_readiness_candidates",),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards — "signified" must never close into meaning.
         "IrabCandidate",
         "CaseEffect",
         "SentenceCandidate",
         "MeaningJudgment",
+        # Exact downstream canonical output types P6 must NOT produce (no-jump;
+        # SCG-P6 spec-authoring authorization 2026-06-16). P6 may only OPEN
+        # composition-readiness priors via target_boundary_opens, never emit
+        # any downstream candidate.
+        "CompositionReadinessCandidate",  # SCG-P7
+        "AmilMamulCandidate",      # SCG-P8
+        "SentenceGeometryCandidate",  # SCG-P9
+        "RelationGeometryCandidate",  # SCG-P10
+        "IrabGeometryCandidate",   # SCG-P11
+        "IfadahCandidate",         # SCG-P12
     ),
     minimum_required_fields=(
         "mufrad_word_ref",
@@ -900,9 +936,19 @@ _P7_COMPOSITION_READINESS = LayerSpec(
     target_boundary_closes=("composition_readiness_candidates",),
     target_boundary_opens=("amil_mamul_candidates",),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards — readiness, not composition itself.
         "IrabCandidate",
         "CaseEffect",
         "SentenceCandidate",
+        # Exact downstream canonical output types P7 must NOT produce (no-jump;
+        # SCG-P7 spec-authoring authorization 2026-06-16). P7 may only OPEN
+        # amil/mamul priors via target_boundary_opens, never emit any downstream
+        # candidate.
+        "AmilMamulCandidate",      # SCG-P8
+        "SentenceGeometryCandidate",  # SCG-P9
+        "RelationGeometryCandidate",  # SCG-P10
+        "IrabGeometryCandidate",   # SCG-P11
+        "IfadahCandidate",         # SCG-P12
     ),
     minimum_required_fields=(
         "verbal_signified_refs",
@@ -1437,6 +1483,124 @@ def build_p3_specified_registry() -> MasterLayerRegistry:
     registry = build_p2_specified_registry()
     # PLANNED → SPECIFIED لـ SCG-P3 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا استخراج)
     registry.update_status(LAYER_ID_P3_ROOT_STEM_CLOSURE, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p4_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P4 (JamidMushtaq) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P4 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا adapter، لا استخراج جذر، لا إسناد وزن. الانتقال:
+    PLANNED → SPECIFIED فقط.
+
+    تبني على build_p3_specified_registry (P0 IMPLEMENTED، P1+P2+P3 SPECIFIED)
+    وتُقدِّم P4 وحدها إلى SPECIFIED؛ تبقى P5-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ JamidMushtaqCandidate runtime.
+        هذه الدالة لا تستخرج جذرًا ولا تُسند وزنًا ولا تُصنِّف معنى.
+        هذه الدالة لا تُقدِّم P5-P12.
+        هذه الدالة لا تنتج MufradWordCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج معنى أو إعرابًا أو حكمًا.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P4 SPECIFIED،
+        وبقية الطبقات P5-P12 بحالة PLANNED.
+    """
+    registry = build_p3_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P4 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا استخراج)
+    registry.update_status(LAYER_ID_P4_JAMID_MUSHTAQ, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p5_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P5 (MufradWordContracts) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P5 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا ادعاء وجود كلمة معجمية، لا معنى. الانتقال:
+    PLANNED → SPECIFIED فقط.
+
+    تبني على build_p4_specified_registry وتُقدِّم P5 وحدها إلى SPECIFIED؛
+    تبقى P6-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ MufradWordCandidate runtime.
+        هذه الدالة لا تدّعي معنى الكلمة ولا حدودها النهائية المعجمية.
+        هذه الدالة لا تُقدِّم P6-P12.
+        هذه الدالة لا تنتج VerbalSignifiedCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج إعرابًا أو حكمًا.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P5 SPECIFIED،
+        وبقية الطبقات P6-P12 بحالة PLANNED.
+    """
+    registry = build_p4_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P5 وحدها (تأليف مواصفة فقط — لا تنفيذ)
+    registry.update_status(LAYER_ID_P5_MUFRAD_WORD_CONTRACTS, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p6_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P6 (VerbalSignifiedAlone) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P6 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا دلالة معجمية، لا معنى نهائي. الانتقال:
+    PLANNED → SPECIFIED فقط.
+
+    المدلول اللفظي هنا إمكان بنيوي وحده — لا يُغلق المعنى ولا يدّعيه.
+    تبني على build_p5_specified_registry وتُقدِّم P6 وحدها إلى SPECIFIED؛
+    تبقى P7-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ VerbalSignifiedCandidate runtime.
+        هذه الدالة لا تُغلق المعنى المعجمي ولا تنتج MeaningJudgment.
+        هذه الدالة لا تُقدِّم P7-P12.
+        هذه الدالة لا تنتج CompositionReadinessCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج إعرابًا أو حكمًا.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P6 SPECIFIED،
+        وبقية الطبقات P7-P12 بحالة PLANNED.
+    """
+    registry = build_p5_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P6 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا دلالة)
+    registry.update_status(LAYER_ID_P6_VERBAL_SIGNIFIED_ALONE, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p7_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P7 (CompositionReadiness) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P7 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا تركيب فعلي، لا إسناد محقَّق. الانتقال:
+    PLANNED → SPECIFIED فقط.
+
+    P7 تُثبت استعداد التركيب فقط (بوابة شروط)، لا التركيب نفسه.
+    تبني على build_p6_specified_registry وتُقدِّم P7 وحدها إلى SPECIFIED؛
+    تبقى P8-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ CompositionReadinessCandidate runtime.
+        هذه الدالة لا تُكوِّن علاقة عامل-معمول ولا إسنادًا محقَّقًا.
+        هذه الدالة لا تُقدِّم P8-P12.
+        هذه الدالة لا تنتج AmilMamulCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج إعرابًا أو حكمًا.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P7 SPECIFIED،
+        وبقية الطبقات P8-P12 بحالة PLANNED.
+    """
+    registry = build_p6_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P7 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا تركيب)
+    registry.update_status(LAYER_ID_P7_COMPOSITION_READINESS, LayerStatus.SPECIFIED)
     return registry
 
 

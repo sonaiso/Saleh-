@@ -545,6 +545,14 @@ layers:
   - WordTypeJudgment
   - MeaningCandidate
   - IrabCandidate
+  - MufradWordCandidate
+  - VerbalSignifiedCandidate
+  - CompositionReadinessCandidate
+  - AmilMamulCandidate
+  - SentenceGeometryCandidate
+  - RelationGeometryCandidate
+  - IrabGeometryCandidate
+  - IfadahCandidate
   minimum_required_fields:
   - root_stem_ref
   - derivation_class_evidence
@@ -593,6 +601,13 @@ layers:
   - IrabCandidate
   - CaseEffect
   - SentenceCandidate
+  - VerbalSignifiedCandidate
+  - CompositionReadinessCandidate
+  - AmilMamulCandidate
+  - SentenceGeometryCandidate
+  - RelationGeometryCandidate
+  - IrabGeometryCandidate
+  - IfadahCandidate
   minimum_required_fields:
   - root_stem_ref
   - word_class_evidence
@@ -640,6 +655,12 @@ layers:
   - CaseEffect
   - SentenceCandidate
   - MeaningJudgment
+  - CompositionReadinessCandidate
+  - AmilMamulCandidate
+  - SentenceGeometryCandidate
+  - RelationGeometryCandidate
+  - IrabGeometryCandidate
+  - IfadahCandidate
   minimum_required_fields:
   - mufrad_word_ref
   - signified_class_evidence
@@ -688,6 +709,11 @@ layers:
   - IrabCandidate
   - CaseEffect
   - SentenceCandidate
+  - AmilMamulCandidate
+  - SentenceGeometryCandidate
+  - RelationGeometryCandidate
+  - IrabGeometryCandidate
+  - IfadahCandidate
   minimum_required_fields:
   - verbal_signified_refs
   - composition_boundary_evidence
