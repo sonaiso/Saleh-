@@ -199,8 +199,19 @@ class TestRec1FreezeEnforcedInWorkingTree:
         assert not (SRC / "qiyas_core" / "metrics.py").exists()
 
     def test_REC1_FREEZE_04_no_registry_builder_advances_p1_beyond_specified(self):
-        """REC1-FREEZE-04: لا بانٍ في السجل يرفع أي طبقة P1 فوق SPECIFIED."""
+        """REC1-FREEZE-04: لا بانٍ في السجل يرفع أي طبقة P1 فوق SPECIFIED،
+        إلا الاستثناء المُصرَّح به في SCG-P1 PR-1: الباني
+        ``build_p1_atomic_carriers_implemented_registry`` يرفع **فقط** الطبقتين
+        الذريتين LetterIdentityCarrier و HarakaMarkIdentityCarrier إلى
+        IMPLEMENTED؛ تبقى ConditionedTypedSequence و PositionCarrier و
+        SlotCandidate ≤ SPECIFIED، ويبقى المنع ساريًا لكل باقي البناة."""
         allowed = {LayerStatus.PLANNED, LayerStatus.SPECIFIED}
+        # Narrow PR-1 carve-out (2026-06-17): exactly the two atomic carriers.
+        pr1_builder = "build_p1_atomic_carriers_implemented_registry"
+        atomic_carriers = {
+            master_registry_seed.LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
+            master_registry_seed.LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
+        }
         builders = [
             (name, value)
             for name, value in vars(master_registry_seed).items()
@@ -213,9 +224,16 @@ class TestRec1FreezeEnforcedInWorkingTree:
             registry = builder()
             for layer_id in _P1_LAYER_IDS:
                 status = registry.get(layer_id).status
+                if name == pr1_builder and layer_id in atomic_carriers:
+                    # Authorized PR-1 advancement of the two atomic carriers only.
+                    assert status is LayerStatus.IMPLEMENTED, (
+                        f"{name} must advance {layer_id} to IMPLEMENTED (PR-1)"
+                    )
+                    continue
                 assert status in allowed, (
                     f"{name} advances {layer_id} to {status}; "
-                    "P1 runtime is frozen (لا P1 runtime)"
+                    "P1 runtime is frozen except the PR-1 atomic carriers "
+                    "(لا P1 runtime عدا الطبقتين الذريتين المُصرَّح بهما)"
                 )
 
     def test_REC1_FREEZE_05_no_p1_implemented_builder_exists(self):

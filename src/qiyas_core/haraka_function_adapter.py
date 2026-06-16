@@ -1,14 +1,19 @@
 """
 HarakaFunctionLayerAdapter — Gap #4 adapter.
 
-Converts a HarakaCodePoint candidate into a HarakaFunctionCarrier by building
-the full evidence set (vocalic_function, energy_profile) and invoking
-QiyasKernel.apply().
+Converts a HarakaCodePoint candidate into a HarakaMarkIdentityCarrier (canonical,
+REC-3 / SCG-P1 PR-1) by building the full evidence set (vocalic_function,
+energy_profile) and invoking QiyasKernel.apply().
+
+REC-3 / SCG-P1 PR-1 transitional alias: the canonical emitted candidate type is
+``HarakaMarkIdentityCarrier``. The legacy name ``HarakaFunctionCarrier`` remains
+a transitional alias accepted by consumers but is NOT canonical; this PR does
+not coordinate-rename all consumers.
 
 Constitutional law enforced:
-  HarakaFunctionCarrier ⊬ CaseEffect
-  HarakaFunctionCarrier ⊬ I'rab
-  HarakaFunctionCarrier ⊬ Hukm
+  HarakaMarkIdentityCarrier ⊬ CaseEffect
+  HarakaMarkIdentityCarrier ⊬ I'rab
+  HarakaMarkIdentityCarrier ⊬ Hukm
 (via forbidden_outputs in every HARAKA_FUNCTION rule)
 """
 
