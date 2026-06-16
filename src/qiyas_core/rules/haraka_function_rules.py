@@ -16,7 +16,13 @@ Constitutional law:
 
 Layer: HarakaFunctionQiyas
 Input (far): HarakaCodePoint
-Output:      HarakaFunctionCarrier
+Output:      HarakaMarkIdentityCarrier  (canonical, REC-3 / SCG-P1 PR-1)
+
+REC-3 / SCG-P1 PR-1 transitional-alias note: the canonical emitted candidate
+type is ``HarakaMarkIdentityCarrier``. The legacy spelling
+``HarakaFunctionCarrier`` survives only as a transitional alias (registry compat
+constant + sibling forbidden_outputs) and is NOT the canonical runtime output.
+This PR does not perform a coordinated rename across all consumers.
 """
 
 from qiyas_core.enums import EvidenceRank, QiyasPattern, WadiGate
@@ -58,7 +64,7 @@ def _make_haraka_rule(
         required_wadi_gates=_ALL_WADI,
         invalidating_differences=invalidating_diffs,
         neutral_identity_domain="haraka_identity",
-        output_candidate_type="HarakaFunctionCarrier",
+        output_candidate_type="HarakaMarkIdentityCarrier",
         forbidden_outputs=FORBIDDEN_HARAKA_FUNCTION,
         rank_ceiling=EvidenceRank.FORMAL_STRUCTURE,
     )

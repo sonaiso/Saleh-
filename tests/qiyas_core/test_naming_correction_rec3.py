@@ -20,7 +20,8 @@ These tests enforce:
   REC3-NOTCANON-*  — the legacy name/id is NOT any registered canonical surface
   REC3-PRESERVE-*  — layer count, phase, status, boundaries unchanged
   REC3-BOUNDARY-*  — sibling forbidden_outputs keep BOTH names (transition-safe)
-  REC3-DEFER-*     — O3 did not rename the runtime adapter/rules (deferred)
+  REC3-PR1-*       — SCG-P1 PR-1 canonicalizes the runtime (O3 deferral lifted,
+                     transitional-alias strategy)
   REC3-DOC-*       — docs record the terminology conversion
 """
 
@@ -196,22 +197,27 @@ def test_REC3_BOUNDARY_01_siblings_forbid_both_output_names():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# REC3-DEFER — O3 explicitly does NOT rename the runtime files
+# REC3-PR1 — SCG-P1 PR-1 canonicalizes the runtime (the O3 deferral is lifted)
+#
+# REC-3 (option O3) deferred the runtime rename. SCG-P1 PR-1 (2026-06-17) lifts
+# that deferral for the atomic Haraka carrier under a transitional-alias strategy:
+# the runtime now EMITS the canonical HarakaMarkIdentityCarrier; the legacy
+# HarakaFunctionCarrier survives only as a transitional alias (registry compat
+# constant + sibling forbidden_outputs). No coordinated rename of all consumers.
 # ─────────────────────────────────────────────────────────────────────────────
 
-def test_REC3_DEFER_01_runtime_adapter_keeps_legacy_spelling():
-    """REC3-DEFER-01: the runtime adapter is out of O3 scope and keeps the legacy
-    spelling (a full transitive rename was explicitly not performed)."""
-    adapter = _read(HARAKA_ADAPTER_SRC)
-    assert LEGACY_OUTPUT in adapter
-    assert CANON_OUTPUT not in adapter
-
-
-def test_REC3_DEFER_02_runtime_rules_keep_legacy_spelling():
-    """REC3-DEFER-02: the runtime rules are out of O3 scope and keep the legacy
-    spelling."""
+def test_REC3_PR1_01_runtime_rules_emit_canonical():
+    """REC3-PR1-01: the runtime rules now emit the canonical output name."""
     rules = _read(HARAKA_RULES_SRC)
-    assert CANON_OUTPUT not in rules
+    assert f'output_candidate_type="{CANON_OUTPUT}"' in rules
+    assert f'output_candidate_type="{LEGACY_OUTPUT}"' not in rules
+
+
+def test_REC3_PR1_02_runtime_adapter_references_canonical():
+    """REC3-PR1-02: the runtime adapter references the canonical name (the legacy
+    name may still appear only as a documented transitional alias)."""
+    adapter = _read(HARAKA_ADAPTER_SRC)
+    assert CANON_OUTPUT in adapter
 
 
 # ─────────────────────────────────────────────────────────────────────────────

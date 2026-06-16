@@ -1449,6 +1449,47 @@ def build_p1_specified_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرفات الطبقتين الذريتين في SCG-P1 (atomic carriers — PR-1)
+_P1_ATOMIC_CARRIER_IDS: tuple[str, ...] = (
+    LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
+    LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
+)
+
+
+def build_p1_atomic_carriers_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم الطبقتين الذريتين فقط في SCG-P1 إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P1 PR-1 (atomic carriers, 2026-06-17): يُقدِّم
+    **فقط** LetterIdentityCarrier و HarakaMarkIdentityCarrier من SPECIFIED إلى
+    IMPLEMENTED عبر بوابة تبعية التنفيذ (كلاهما CROSS من P0 المُنفَّذة بالكامل).
+
+    الاستراتيجية: certify-and-wire لـ Letter كما هي؛ Haraka runtime يُصدر الاسم
+    الكانوني HarakaMarkIdentityCarrier (HarakaFunctionCarrier يبقى alias انتقالي).
+
+    تبني على build_p1_specified_registry (P0 IMPLEMENTED، P1 SPECIFIED) وتُقدِّم
+    الطبقتين الذريتين فقط؛ تبقى ConditionedTypedSequence و PositionCarrier و
+    SlotCandidate بحالة SPECIFIED، وتبقى P2-P12 بحالة PLANNED.
+
+    Non-Goals (PR-1):
+        لا تُقدِّم ConditionedTypedSequence ولا PositionCarrier ولا SlotCandidate.
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُقدِّم P2-P12.
+        لا تحذف أي forbidden_outputs ولا تُغيّر بيانات البذرة (seed).
+        لا تنتج SlotGeometry ولا معنى ولا حكمًا.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED؛ LetterIdentityCarrier +
+        HarakaMarkIdentityCarrier IMPLEMENTED؛ بقية P1 (CTS، Position، Slot)
+        SPECIFIED؛ P2-P12 PLANNED. العدد يبقى 19.
+    """
+    registry = build_p1_specified_registry()
+    for layer_id in _P1_ATOMIC_CARRIER_IDS:
+        # SPECIFIED → IMPLEMENTED (الطبقتان الذريتان فقط — بوابة التبعية: CROSS من P0)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.

@@ -272,7 +272,8 @@ def test_kataba_demonstrates_parallel_letter_haraka_proofs():
 
     # Verify haraka function does NOT require letter identity
     for haraka_step in haraka_steps:
-        assert haraka_step.candidate_type == "HarakaFunctionCarrier"
+        # REC-3 / SCG-P1 PR-1: canonical emitted type is HarakaMarkIdentityCarrier.
+        assert haraka_step.candidate_type == "HarakaMarkIdentityCarrier"
         # Haraka function must NOT carry letter identity in its identity_ids
         haraka_ids = _identity_ids(haraka_step)
         assert not any(
@@ -301,8 +302,9 @@ def test_kataba_sequence_conditioning_produces_alignment_not_identity():
             f"Expected CarrierBindingCandidate, got {cts_step.candidate_type}"
         )
 
-        # Must NOT be LetterIdentityCarrier or HarakaFunctionCarrier
+        # Must NOT be LetterIdentityCarrier or Haraka identity (canonical or legacy alias)
         assert cts_step.candidate_type != "LetterIdentityCarrier"
+        assert cts_step.candidate_type != "HarakaMarkIdentityCarrier"
         assert cts_step.candidate_type != "HarakaFunctionCarrier"
 
 

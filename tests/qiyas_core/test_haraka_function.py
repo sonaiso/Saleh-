@@ -32,7 +32,7 @@ def test_fatha_haraka_proves_fatha_function():
     assert len(result.accepted) == 1
     c = result.accepted[0]
     assert c.status == CandidateStatus.ACCEPTED
-    assert c.candidate_type == "HarakaFunctionCarrier"
+    assert c.candidate_type == "HarakaMarkIdentityCarrier"
     assert c.rank == EvidenceRank.FORMAL_STRUCTURE
     assert "fatha" in c.source_rule_id
 
@@ -59,7 +59,7 @@ def test_sukun_proves_closure_function():
 
     assert len(result.accepted) == 1
     c = result.accepted[0]
-    assert c.candidate_type == "HarakaFunctionCarrier"
+    assert c.candidate_type == "HarakaMarkIdentityCarrier"
     assert "sukun" in c.source_rule_id
 
 
@@ -69,7 +69,7 @@ def test_shadda_proves_compression_function():
 
     assert len(result.accepted) == 1
     c = result.accepted[0]
-    assert c.candidate_type == "HarakaFunctionCarrier"
+    assert c.candidate_type == "HarakaMarkIdentityCarrier"
     assert "shadda" in c.source_rule_id
 
 
@@ -106,9 +106,24 @@ def test_haraka_function_forbids_case_effect():
 # ---------------------------------------------------------------------------
 
 def test_haraka_function_output_type():
-    """Output candidate_type must be HarakaFunctionCarrier."""
+    """Output candidate_type must be canonical HarakaMarkIdentityCarrier (REC-3 / PR-1)."""
     result = _adapter().prove_from_codepoint(0x064E)
-    assert result.accepted[0].candidate_type == "HarakaFunctionCarrier"
+    assert result.accepted[0].candidate_type == "HarakaMarkIdentityCarrier"
+
+
+def test_haraka_emits_canonical_not_legacy_alias():
+    """REC-3 / SCG-P1 PR-1: the runtime emits the canonical
+    HarakaMarkIdentityCarrier; the legacy HarakaFunctionCarrier is a transitional
+    alias only and must NOT be the emitted (canonical) candidate type."""
+    from qiyas_core.rules.haraka_function_rules import FATHA_FUNCTION_RULE
+
+    result = _adapter().prove_from_codepoint(0x064E)
+    emitted = result.accepted[0].candidate_type
+    assert emitted == "HarakaMarkIdentityCarrier"
+    assert emitted != "HarakaFunctionCarrier"
+    # The rule's canonical output is the new name, not the legacy alias.
+    assert FATHA_FUNCTION_RULE.output_candidate_type == "HarakaMarkIdentityCarrier"
+    assert FATHA_FUNCTION_RULE.output_candidate_type != "HarakaFunctionCarrier"
 
 
 def test_haraka_function_preserves_codepoint_identity():
