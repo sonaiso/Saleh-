@@ -19,7 +19,7 @@ from .gamma import GammaResult, GammaStatus, gamma
 from .identity_inheritance import IdentityInheritance, IdentityInheritanceViolation
 from .layer_spec import BranchSpec, LayerSpec, LayerStatus, OriginSpec
 from .master_layer_registry import MasterLayerRegistry, RegistryViolation
-from .master_registry_seed import build_master_registry_seed, build_p0_implemented_registry, build_p1_specified_registry, build_p2_specified_registry, build_p3_specified_registry, build_p4_specified_registry, build_p5_specified_registry, build_p6_specified_registry, build_p7_specified_registry
+from .master_registry_seed import build_master_registry_seed, build_p0_implemented_registry, build_p1_specified_registry, build_p2_specified_registry, build_p3_specified_registry, build_p4_specified_registry, build_p5_specified_registry, build_p6_specified_registry, build_p7_specified_registry, build_p8_specified_registry, build_p9_specified_registry, build_p10_specified_registry, build_p11_specified_registry, build_p12_specified_registry
 from .minimum_completion import MinimumCompletionSpec, MinimumCompletionViolation
 from .registry_entry import RegistryEntry, RegistryEntryViolation
 from .target_boundary import TargetBoundary
@@ -49,5 +49,10 @@ __all__ = [
     "build_p5_specified_registry",
     "build_p6_specified_registry",
     "build_p7_specified_registry",
+    "build_p8_specified_registry",
+    "build_p9_specified_registry",
+    "build_p10_specified_registry",
+    "build_p11_specified_registry",
+    "build_p12_specified_registry",
     "gamma",
 ]

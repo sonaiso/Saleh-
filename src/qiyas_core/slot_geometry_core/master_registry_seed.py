@@ -1002,9 +1002,18 @@ _P8_AMIL_MAMUL = LayerSpec(
     target_boundary_closes=("amil_mamul_candidates",),
     target_boundary_opens=("sentence_geometry_candidates",),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards — relation proven, case never judged.
         "IrabCandidate",
         "CaseJudgment",
         "SentenceCandidate",
+        # Exact downstream canonical output types P8 must NOT produce (no-jump;
+        # SCG-P8 spec-authoring authorization 2026-06-16). P8 may only OPEN
+        # sentence-geometry priors via target_boundary_opens, never emit any
+        # downstream candidate.
+        "SentenceGeometryCandidate",  # SCG-P9
+        "RelationGeometryCandidate",  # SCG-P10
+        "IrabGeometryCandidate",   # SCG-P11
+        "IfadahCandidate",         # SCG-P12
     ),
     minimum_required_fields=(
         "amil_ref",
@@ -1058,9 +1067,16 @@ _P9_SENTENCE_GEOMETRY = LayerSpec(
     target_boundary_closes=("sentence_geometry_candidates",),
     target_boundary_opens=("relation_geometry_candidates",),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards — geometry, not i'rab/case/ifadah judgment.
         "IrabCandidate",
         "CaseJudgment",
-        "IfadahCandidate",
+        "IfadahCandidate",         # SCG-P12 (also a local guard)
+        # Exact downstream canonical output types P9 must NOT produce (no-jump;
+        # SCG-P9 spec-authoring authorization 2026-06-16). P9 may only OPEN
+        # relation-geometry priors via target_boundary_opens, never emit any
+        # downstream candidate.
+        "RelationGeometryCandidate",  # SCG-P10
+        "IrabGeometryCandidate",   # SCG-P11
     ),
     minimum_required_fields=(
         "amil_mamul_refs",
@@ -1111,9 +1127,14 @@ _P10_RELATION_GEOMETRY = LayerSpec(
     target_boundary_closes=("relation_geometry_candidates",),
     target_boundary_opens=("irab_geometry_candidates",),
     forbidden_outputs=_ABSOLUTE_FORBIDDEN + (
+        # Local no-overreach guards — relations mapped, i'rab never judged.
         "IrabCandidate",
         "CaseJudgment",
-        "IfadahCandidate",
+        "IfadahCandidate",         # SCG-P12 (also a local guard)
+        # Exact downstream canonical output type P10 must NOT produce (no-jump;
+        # SCG-P10 spec-authoring authorization 2026-06-16). P10 may only OPEN
+        # irab-geometry priors via target_boundary_opens, never emit them.
+        "IrabGeometryCandidate",   # SCG-P11
     ),
     minimum_required_fields=(
         "sentence_geometry_ref",
@@ -1601,6 +1622,157 @@ def build_p7_specified_registry() -> MasterLayerRegistry:
     registry = build_p6_specified_registry()
     # PLANNED → SPECIFIED لـ SCG-P7 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا تركيب)
     registry.update_status(LAYER_ID_P7_COMPOSITION_READINESS, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p8_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P8 (AmilMamul) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P8 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا adapter، لا إعراب فعلي، لا إسناد حكم نهائي.
+    الانتقال: PLANNED → SPECIFIED فقط.
+
+    P8 تُثبت علاقة عامل-معمول كإمكان فقط، لا تُسند حالة إعرابية ولا حكمًا.
+    تبني على build_p7_specified_registry وتُقدِّم P8 وحدها إلى SPECIFIED؛
+    تبقى P9-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ AmilMamulCandidate runtime.
+        هذه الدالة لا تُسند إعرابًا ولا حالة (case) ولا نوع جملة.
+        هذه الدالة لا تُقدِّم P9-P12.
+        هذه الدالة لا تنتج SentenceGeometryCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج حكمًا أو ادعاء واقع.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P8 SPECIFIED،
+        وبقية الطبقات P9-P12 بحالة PLANNED.
+    """
+    registry = build_p7_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P8 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا إعراب)
+    registry.update_status(LAYER_ID_P8_AMIL_MAMUL, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p9_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P9 (SentenceGeometry) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P9 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا إعراب فعلي، لا إفادة محقَّقة. الانتقال:
+    PLANNED → SPECIFIED فقط.
+
+    P9 تُنظِّم العلاقات هندسيًا في بنية جملة كإمكان، لا تُسند إعرابًا ولا إفادة.
+    تبني على build_p8_specified_registry وتُقدِّم P9 وحدها إلى SPECIFIED؛
+    تبقى P10-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ SentenceGeometryCandidate runtime.
+        هذه الدالة لا تُسند إعرابًا ولا حالة ولا إفادة.
+        هذه الدالة لا تُقدِّم P10-P12.
+        هذه الدالة لا تنتج RelationGeometryCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج حكمًا أو ادعاء واقع.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P9 SPECIFIED،
+        وبقية الطبقات P10-P12 بحالة PLANNED.
+    """
+    registry = build_p8_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P9 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا إعراب)
+    registry.update_status(LAYER_ID_P9_SENTENCE_GEOMETRY, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p10_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P10 (RelationGeometry) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P10 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، لا إعراب فعلي. الانتقال: PLANNED → SPECIFIED فقط.
+
+    P10 تَرسم العلاقات الداخلية بين مكونات الجملة هندسيًا كإمكان، لا حكمًا
+    نحويًا نهائيًا ولا إعرابًا. تبني على build_p9_specified_registry وتُقدِّم
+    P10 وحدها إلى SPECIFIED؛ تبقى P11-P12 بحالة PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ RelationGeometryCandidate runtime.
+        هذه الدالة لا تُسند إعرابًا ولا حالة ولا إفادة.
+        هذه الدالة لا تُقدِّم P11-P12.
+        هذه الدالة لا تنتج IrabGeometryCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تنتج حكمًا أو ادعاء واقع.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P10 SPECIFIED،
+        وبقية الطبقات P11-P12 بحالة PLANNED.
+    """
+    registry = build_p9_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P10 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا إعراب)
+    registry.update_status(LAYER_ID_P10_RELATION_GEOMETRY, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p11_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P11 (IrabGeometry) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P11 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، **لا حكم إعرابي فعلي**، لا قرار إعراب نهائي.
+    الانتقال: PLANNED → SPECIFIED فقط.
+
+    P11 تَرسم *هندسة* الإعراب: مواضع الإعراب وإمكاناتها كمرشحات لا أحكام.
+    إنها أخطر طبقة من حيث القرب من الحكم؛ forbidden_changes تمنع
+    assign_case_judgment / assign_ifadah / assign_hukm. تبني على
+    build_p10_specified_registry وتُقدِّم P11 وحدها إلى SPECIFIED؛ تبقى P12 PLANNED.
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ IrabGeometryCandidate runtime.
+        هذه الدالة لا تُصدر حكمًا إعرابيًا ولا قرار إعراب نهائيًا (IrabFinalDecision).
+        هذه الدالة لا تُسند حالة (case) ولا إفادة ولا حكمًا.
+        هذه الدالة لا تُقدِّم P12.
+        هذه الدالة لا تنتج IfadahCandidate أو أي مخرج لاحق.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P11 SPECIFIED، وP12 PLANNED.
+    """
+    registry = build_p10_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P11 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا حكم إعراب)
+    registry.update_status(LAYER_ID_P11_IRAB_GEOMETRY, LayerStatus.SPECIFIED)
+    return registry
+
+
+def build_p12_specified_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P12 (IfadahSpeechForce) إلى حالة SPECIFIED.
+
+    تفويض ضيق لتأليف مواصفة SCG-P12 فقط (2026-06-16): تعريف المواصفة —
+    لا runtime، لا تنفيذ، **لا ادعاء واقع، لا قيمة صدق، لا حكم نهائي**.
+    الانتقال: PLANNED → SPECIFIED فقط.
+
+    P12 تَبني إمكان الإفادة الكلامية (قوة كلامية: خبر/إنشاء/طلب) كمرشح فقط —
+    لا حكم ولا ادعاء واقع. إنها الطبقة الختامية للسلسلة الكانونيكية؛
+    forbidden_changes تمنع assign_reality_claim / assign_truth_value / assign_hukm.
+    تبني على build_p11_specified_registry وتُقدِّم P12 وحدها إلى SPECIFIED.
+    بهذا تكتمل مواصفة P0-P12 (P0 IMPLEMENTED، P1-P12 SPECIFIED).
+
+    Non-Goals:
+        هذه الدالة لا تُنفِّذ IfadahCandidate runtime.
+        هذه الدالة لا تدّعي واقعًا ولا تَرسم واقعًا ولا قيمة صدق ولا حكمًا
+        (المخرجات الممنوعة محصورة في forbidden_outputs لطبقة P12).
+        هذه الدالة لا تنتج معنى نهائيًا.
+        هذه الدالة لا تحذف أي forbidden_outputs.
+        هذه الدالة لا تُنشئ طبقة بعد P12 (لا يوجد target_boundary_opens).
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED، P1-P12 SPECIFIED (السلسلة مكتملة
+        المواصفة)؛ لا طبقة بحالة IMPLEMENTED بعد P0 (الـ freeze ساري).
+    """
+    registry = build_p11_specified_registry()
+    # PLANNED → SPECIFIED لـ SCG-P12 وحدها (تأليف مواصفة فقط — لا تنفيذ، لا حكم/واقع)
+    registry.update_status(LAYER_ID_P12_IFADAH_SPEECH_FORCE, LayerStatus.SPECIFIED)
     return registry
 
 

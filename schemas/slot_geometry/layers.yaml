@@ -761,6 +761,10 @@ layers:
   - IrabCandidate
   - CaseJudgment
   - SentenceCandidate
+  - SentenceGeometryCandidate
+  - RelationGeometryCandidate
+  - IrabGeometryCandidate
+  - IfadahCandidate
   minimum_required_fields:
   - amil_ref
   - mamul_ref
@@ -808,6 +812,8 @@ layers:
   - IrabCandidate
   - CaseJudgment
   - IfadahCandidate
+  - RelationGeometryCandidate
+  - IrabGeometryCandidate
   minimum_required_fields:
   - amil_mamul_refs
   - sentence_type_evidence
@@ -853,6 +859,7 @@ layers:
   - IrabCandidate
   - CaseJudgment
   - IfadahCandidate
+  - IrabGeometryCandidate
   minimum_required_fields:
   - sentence_geometry_ref
   - relation_type_evidence
