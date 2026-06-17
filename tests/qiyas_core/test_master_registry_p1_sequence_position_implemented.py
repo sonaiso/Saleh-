@@ -138,10 +138,12 @@ def test_P1_IMPL_GATE_02_position_origin_is_cts_intra():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_P1_IMPL_NOFULL_01_no_full_or_slot_or_p2_implemented_builders():
+def test_P1_IMPL_NOFULL_01_no_full_or_p2_implemented_builders():
+    # The slot-only partial build_p1_slot_implemented_registry is authorized as
+    # of SCG-P1 PR-3; only the FULL build_p1_implemented_registry and any P2+
+    # implemented builder remain forbidden.
     for name in (
         "build_p1_implemented_registry",
-        "build_p1_slot_implemented_registry",
         "build_p2_implemented_registry",
     ):
         assert not hasattr(MRS, name), name

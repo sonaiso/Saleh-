@@ -1535,6 +1535,47 @@ def build_p1_sequence_position_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرّف طبقة الخانة في SCG-P1 (SlotCandidate convergence — PR-3)
+_P1_SLOT_IDS: tuple[str, ...] = (LAYER_ID_P1_SLOT_CANDIDATE,)
+
+
+def build_p1_slot_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SlotCandidate (نقطة الاجتماع) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P1 PR-3 (SlotCandidate convergence, 2026-06-17): يُقدِّم
+    **فقط** P1_SLOT_CANDIDATE من SPECIFIED إلى IMPLEMENTED، فوق الطبقات الأربع
+    المُنفَّذة (PR-1 + PR-2). بهذا تكتمل المرحلة P1 بأكملها (الطبقات الخمس
+    IMPLEMENTED).
+
+    SlotCandidate = اجتماع مرخّص للمكوّنات الأربعة:
+        LetterIdentityCarrier ⊗ HarakaMarkIdentityCarrier ⊗ PositionCarrier
+        ⊗ AlignmentEvidence (CarrierBindingCandidate من CTS).
+    بوابة التبعية تتحقق من أصل الخانة المُعلَن (LetterIdentityCarrier) فقط؛
+    اشتراط المكوّنات الأربعة مفروض عبر الاختبارات (slot_adapter = CERTIFY_AS_IS).
+
+    الاستراتيجية: certify-and-wire لـ slot_adapter كما هو (يُنتج SlotCandidate
+    فعليًا في خط الأنابيب بالفعل) — التغيير هنا تسجيلي فقط (status) + اختبارات.
+
+    Non-Goals (PR-3):
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P2-P12 (تبقى SPECIFIED).
+        لا تنتج SlotGeometry ولا تدخل P2/RegistryProjection.
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+        لا معنى/جذر/وزن/كلمة/حكم/إعراب/دلالة.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED؛ الطبقات الخمس في P1 IMPLEMENTED؛
+        P2-P12 SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p1_sequence_position_implemented_registry()
+    for layer_id in _P1_SLOT_IDS:
+        # SPECIFIED → IMPLEMENTED — SlotCandidate وحدها (بوابة التبعية: أصلها
+        # LetterIdentityCarrier مُنفَّذ؛ المكوّنات الأربعة مُنفَّذة).
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.
