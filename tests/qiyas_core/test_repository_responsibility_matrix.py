@@ -199,18 +199,22 @@ class TestRec1FreezeEnforcedInWorkingTree:
         assert not (SRC / "qiyas_core" / "metrics.py").exists()
 
     def test_REC1_FREEZE_04_no_registry_builder_advances_p1_beyond_specified(self):
-        """REC1-FREEZE-04: لا بانٍ في السجل يرفع أي طبقة P1 فوق SPECIFIED،
-        إلا الاستثناء المُصرَّح به في SCG-P1 PR-1: الباني
-        ``build_p1_atomic_carriers_implemented_registry`` يرفع **فقط** الطبقتين
-        الذريتين LetterIdentityCarrier و HarakaMarkIdentityCarrier إلى
-        IMPLEMENTED؛ تبقى ConditionedTypedSequence و PositionCarrier و
-        SlotCandidate ≤ SPECIFIED، ويبقى المنع ساريًا لكل باقي البناة."""
+        """REC1-FREEZE-04: لا بانٍ في السجل يرفع أي طبقة P1 فوق SPECIFIED، إلا
+        الاستثناءات المُصرَّح بها:
+          - PR-1 ``build_p1_atomic_carriers_implemented_registry`` → يرفع فقط
+            LetterIdentityCarrier + HarakaMarkIdentityCarrier إلى IMPLEMENTED.
+          - PR-2 ``build_p1_sequence_position_implemented_registry`` → يرفع فقط
+            (Letter + Haraka) + ConditionedTypedSequence + PositionCarrier.
+        تبقى SlotCandidate ≤ SPECIFIED في كل البناة، ويبقى المنع ساريًا لكل باقٍ."""
+        LETTER = master_registry_seed.LAYER_ID_P1_LETTER_IDENTITY_CARRIER
+        HARAKA = master_registry_seed.LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER
+        CTS = master_registry_seed.LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE
+        POSITION = master_registry_seed.LAYER_ID_P1_POSITION_CARRIER
         allowed = {LayerStatus.PLANNED, LayerStatus.SPECIFIED}
-        # Narrow PR-1 carve-out (2026-06-17): exactly the two atomic carriers.
-        pr1_builder = "build_p1_atomic_carriers_implemented_registry"
-        atomic_carriers = {
-            master_registry_seed.LAYER_ID_P1_LETTER_IDENTITY_CARRIER,
-            master_registry_seed.LAYER_ID_P1_HARAKA_MARK_IDENTITY_CARRIER,
+        # Authorized per-builder IMPLEMENTED carve-outs (2026-06-17).
+        carveouts: dict[str, set] = {
+            "build_p1_atomic_carriers_implemented_registry": {LETTER, HARAKA},
+            "build_p1_sequence_position_implemented_registry": {LETTER, HARAKA, CTS, POSITION},
         }
         builders = [
             (name, value)
@@ -222,18 +226,19 @@ class TestRec1FreezeEnforcedInWorkingTree:
             # Freeze fails closed: a builder that no longer takes zero
             # arguments is itself a queue change that must surface here.
             registry = builder()
+            permitted = carveouts.get(name, set())
             for layer_id in _P1_LAYER_IDS:
                 status = registry.get(layer_id).status
-                if name == pr1_builder and layer_id in atomic_carriers:
-                    # Authorized PR-1 advancement of the two atomic carriers only.
+                if layer_id in permitted:
+                    # Authorized advancement for this builder only.
                     assert status is LayerStatus.IMPLEMENTED, (
-                        f"{name} must advance {layer_id} to IMPLEMENTED (PR-1)"
+                        f"{name} must advance {layer_id} to IMPLEMENTED"
                     )
                     continue
                 assert status in allowed, (
                     f"{name} advances {layer_id} to {status}; "
-                    "P1 runtime is frozen except the PR-1 atomic carriers "
-                    "(لا P1 runtime عدا الطبقتين الذريتين المُصرَّح بهما)"
+                    "P1 runtime is frozen except the authorized carriers "
+                    "(لا P1 runtime عدا الطبقات المُصرَّح بها)"
                 )
 
     def test_REC1_FREEZE_05_no_p1_implemented_builder_exists(self):

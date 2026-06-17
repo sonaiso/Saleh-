@@ -2,7 +2,9 @@
 Position Rules — Gap #5 of ALGEBRAIC_FOUNDATION_CONTRACT.md.
 
 Layer: PositionQiyas
-Input (far): LetterCodePoint or HarakaCodePoint (any TypedCodePoint)
+Input (far): PositionEvidence  (canonical origin — emitted by ConditionedTypedSequence;
+             SCG-P1 PR-2). The codepoint is carried only as a trace/bridge reference,
+             never as the consumed canonical identity.
 Output:      PositionCarrier
 
 A PositionCarrier carries:
@@ -47,7 +49,8 @@ def _make_position_rule(position_type: str) -> QiyasRule:
         layer="PositionQiyas",
         pattern=QiyasPattern.MEMBERSHIP,
         asl_type="PositionDomain",
-        far_type="LetterCodePoint",
+        # SCG-P1 PR-2: canonical origin is the ConditionedTypedSequence PositionEvidence.
+        far_type="PositionEvidence",
         required_effective_wasf=(
             "has_position_index",
             f"has_position_type:{position_type.lower()}",

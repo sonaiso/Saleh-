@@ -1,8 +1,14 @@
 """
 PositionLayerAdapter — Gap #5 adapter.
 
-Converts a LetterCodePoint (with explicit position information supplied by
-the caller) into a PositionCarrier via QiyasKernel.apply().
+SCG-P1 PR-2: converts a ConditionedTypedSequence ``PositionEvidence`` (with
+explicit position information supplied by the caller) into a ``PositionCarrier``
+via QiyasKernel.apply().
+
+Canonical identity discipline (PR-2): the PositionCarrier **preserves the
+``conditioned_typed_sequence`` identity** carried by the PositionEvidence as its
+consumed canonical identity. The underlying codepoint is kept only as a
+**trace/bridge** reference, never as consumed canonical identity.
 """
 
 from dataclasses import dataclass
@@ -15,6 +21,10 @@ from .kernel import QiyasContext, QiyasKernel, QiyasRequest
 from .node import QiyasNodeRef
 from .rules.position_rules import get_position_rule, POSITION_INITIAL
 
+# The sequence-level identity that ConditionedTypedSequence stamps on every
+# PositionEvidence; PositionCarrier preserves it as canonical identity.
+_CTS_IDENTITY = "identity:conditioned_typed_sequence_domain"
+
 
 def _extract_codepoint(candidate: Candidate) -> int | None:
     for iid in candidate.identity_ids:
@@ -24,6 +34,11 @@ def _extract_codepoint(candidate: Candidate) -> int | None:
             except ValueError:
                 pass
     return None
+
+
+def _conditioned_sequence_identity(candidate: Candidate) -> tuple[str, ...]:
+    """The conditioned-sequence identity ids carried by a PositionEvidence."""
+    return tuple(iid for iid in candidate.identity_ids if "conditioned_typed_sequence" in iid)
 
 
 @dataclass
@@ -42,25 +57,28 @@ class PositionLayerAdapter:
 
     def build_request(
         self,
-        letter_candidate: Candidate,
+        position_evidence: Candidate,
         position_type: str = POSITION_INITIAL,
         index: int = 0,
         within_word: bool = True,
         at_boundary: bool = False,
         trace_prefix: str = "",
     ) -> QiyasRequest:
-        """Build a QiyasRequest for position classification."""
-        codepoint = _extract_codepoint(letter_candidate)
-        if codepoint is None:
+        """Build a QiyasRequest for position classification from a
+        ConditionedTypedSequence ``PositionEvidence`` (SCG-P1 PR-2)."""
+        seq_identity = _conditioned_sequence_identity(position_evidence)
+        if not seq_identity:
             raise ValueError(
-                "Candidate must have identity:codepoint:{hex} identity"
+                "PositionCarrier must consume a ConditionedTypedSequence "
+                "PositionEvidence carrying the conditioned_typed_sequence identity"
             )
 
         rule = get_position_rule(position_type)
         if rule is None:
             raise ValueError(f"Unknown position_type: {position_type!r}")
 
-        cp_hex = f"{codepoint:04x}"
+        codepoint = _extract_codepoint(position_evidence)  # bridge/trace only
+        cp_hex = f"{codepoint:04x}" if codepoint is not None else "unknown"
         if not trace_prefix:
             trace_prefix = f"position:{cp_hex}:{index}"
 
@@ -74,12 +92,18 @@ class PositionLayerAdapter:
             rank=EvidenceRank.FORMAL_STRUCTURE,
         )
 
+        # Canonical identity preserved = the conditioned-sequence identity.
+        # The codepoint is demoted to a trace/bridge reference — never consumed
+        # as canonical identity (SCG-P1 PR-2 correction #2).
+        far_trace = (f"{trace_prefix}:far",)
+        if codepoint is not None:
+            far_trace = far_trace + (f"bridge:codepoint:{cp_hex}",)
         far = QiyasNodeRef(
-            node_id=f"فرع:letter_codepoint:{cp_hex}:pos{index}",
-            node_type="LetterCodePoint",
-            identity_ids=letter_candidate.identity_ids,
-            trace_ids=(f"{trace_prefix}:far",),
-            rank=letter_candidate.rank,
+            node_id=f"فرع:position_evidence:{cp_hex}:pos{index}",
+            node_type="PositionEvidence",
+            identity_ids=seq_identity,
+            trace_ids=far_trace,
+            rank=position_evidence.rank,
         )
 
         proves = [
@@ -120,16 +144,17 @@ class PositionLayerAdapter:
 
     def prove_position(
         self,
-        letter_candidate: Candidate,
+        position_evidence: Candidate,
         position_type: str = POSITION_INITIAL,
         index: int = 0,
         within_word: bool = True,
         at_boundary: bool = False,
         trace_prefix: str = "",
     ) -> CandidateSet:
-        """Prove the position carrier for a LetterCodePoint candidate."""
+        """Prove the position carrier for a ConditionedTypedSequence
+        PositionEvidence candidate."""
         request = self.build_request(
-            letter_candidate, position_type, index, within_word, at_boundary, trace_prefix
+            position_evidence, position_type, index, within_word, at_boundary, trace_prefix
         )
         return self.kernel.apply(request)
 
@@ -143,23 +168,27 @@ class PositionLayerAdapter:
         """
         Prove position from a raw codepoint.
 
-        **WARNING: convenience/testing method only.**
+        **WARNING: convenience/testing method only.** Synthesizes a
+        ConditionedTypedSequence-shaped ``PositionEvidence`` (carrying the
+        conditioned-sequence identity + a codepoint bridge id) and proves the
+        PositionCarrier from it — mirroring the canonical
+        ConditionedTypedSequence → PositionCarrier path.
         """
         cp_hex = f"{codepoint:04x}"
-        letter_candidate = Candidate(
-            candidate_id=f"letter_codepoint:{cp_hex}",
-            candidate_type="LetterCodePoint",
+        position_evidence = Candidate(
+            candidate_id=f"position_evidence:{cp_hex}:{index}",
+            candidate_type="PositionEvidence",
             status=CandidateStatus.ACCEPTED,
-            layer="TypedCodePointClassificationQiyas",
-            source_rule_id="typed_codepoint.letter_classification",
-            asl_id="اصل:typed_codepoint_classification_domain",
-            far_id=f"فرع:unicode_candidate:{cp_hex}",
-            identity_ids=(f"identity:codepoint:{cp_hex}",),
+            layer="ConditionedTypedSequenceQiyas",
+            source_rule_id="conditioned_typed_sequence.letter_position",
+            asl_id="اصل:conditioned_typed_sequence_domain",
+            far_id=f"فرع:letter_codepoint:{cp_hex}",
+            identity_ids=(_CTS_IDENTITY, f"identity:codepoint:{cp_hex}"),
             rank=EvidenceRank.FORMAL_STRUCTURE,
             residuals=(),
-            trace_ids=(f"test:letter_codepoint:{cp_hex}",),
+            trace_ids=(f"test:position_evidence:{cp_hex}",),
             output_flags=frozenset(),
         )
         return self.prove_position(
-            letter_candidate, position_type=position_type, index=index, trace_prefix=trace_prefix
+            position_evidence, position_type=position_type, index=index, trace_prefix=trace_prefix
         )

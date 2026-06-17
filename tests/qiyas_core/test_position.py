@@ -68,11 +68,21 @@ def test_position_carrier_rank():
     assert result.accepted[0].rank == EvidenceRank.FORMAL_STRUCTURE
 
 
-def test_position_preserves_codepoint_identity():
-    """Output must preserve the source codepoint identity."""
+def test_position_preserves_conditioned_sequence_identity():
+    """SCG-P1 PR-2: PositionCarrier preserves the conditioned-sequence identity
+    (from the ConditionedTypedSequence PositionEvidence) as its canonical identity."""
     result = _adapter().prove_from_codepoint(0x0628, position_type=POSITION_MEDIAL, index=1)
     c = result.accepted[0]
-    assert "identity:codepoint:0628" in set(c.identity_ids)
+    assert "identity:conditioned_typed_sequence_domain" in set(c.identity_ids)
+
+
+def test_position_codepoint_is_trace_bridge_not_canonical_identity():
+    """SCG-P1 PR-2 correction #2: the codepoint is a trace/bridge reference,
+    NOT consumed canonical identity."""
+    result = _adapter().prove_from_codepoint(0x0628, position_type=POSITION_MEDIAL, index=1)
+    c = result.accepted[0]
+    assert "identity:codepoint:0628" not in set(c.identity_ids)
+    assert any("codepoint:0628" in t for t in c.trace_ids)
 
 
 def test_position_trace_not_in_identity():
@@ -105,10 +115,10 @@ def test_position_ambiguous_difference_blocks():
         rank=EvidenceRank.FORMAL_STRUCTURE,
     )
     far = QiyasNodeRef(
-        node_id="فرع:letter_codepoint:0628:pos0",
-        node_type="LetterCodePoint",
-        identity_ids=("identity:codepoint:0628",),
-        trace_ids=("trace:far",),
+        node_id="فرع:position_evidence:0628:pos0",
+        node_type="PositionEvidence",
+        identity_ids=("identity:conditioned_typed_sequence_domain",),
+        trace_ids=("trace:far", "bridge:codepoint:0628"),
         rank=EvidenceRank.FORMAL_STRUCTURE,
     )
 

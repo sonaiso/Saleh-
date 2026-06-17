@@ -372,20 +372,39 @@ def process_text(
             report.steps.append(LayerStep.from_set("LetterIdentityQiyas", li_set))
             li_cand = _accepted(li_set)
 
-            # PositionQiyas — sequence-position is derived from tokenizer
-            # segment context, not from `is_boundary` (Z5: §6 / §8 of
-            # PRE_QIYAS_TOKENIZER_CONSTITUTION).
-            ptype = _classify_position(text, i, markers_by_index)
-            p_set = layers.position_layer.prove_position(
+            # Canonical order (SCG-P1 PR-2): TypedCodePoint
+            #   → ConditionedTypedSequence/PositionEvidence → PositionCarrier.
+            # The sequence layer first stamps the conditioned-sequence identity
+            # on a PositionEvidence; PositionCarrier then consumes that evidence
+            # (preserving conditioned_sequence_identity as canonical; the
+            # codepoint survives only as a trace/bridge reference).
+            pe_set = layers.cts_layer.prove_letter_position(
                 t_cand,
-                position_type=ptype,
                 index=i,
-                within_word=True,
-                at_boundary=(ptype in (POSITION_INITIAL, POSITION_FINAL, POSITION_ISOLATED)),
-                trace_prefix=f"text[{i}]:p:{cp:04x}",
+                sequence_length=len(text),
+                trace_prefix=f"text[{i}]:cts:pos:{cp:04x}",
             )
-            report.steps.append(LayerStep.from_set(f"PositionQiyas[{ptype}]", p_set))
-            p_cand = _accepted(p_set)
+            report.steps.append(
+                LayerStep.from_set("ConditionedTypedSequenceQiyas[position]", pe_set)
+            )
+            pe_cand = _accepted(pe_set)
+
+            # PositionQiyas — position type derived from tokenizer segment
+            # context (Z5: §6 / §8 of PRE_QIYAS_TOKENIZER_CONSTITUTION),
+            # consuming the CTS PositionEvidence as canonical origin.
+            ptype = _classify_position(text, i, markers_by_index)
+            p_cand = None
+            if pe_cand is not None:
+                p_set = layers.position_layer.prove_position(
+                    pe_cand,
+                    position_type=ptype,
+                    index=i,
+                    within_word=True,
+                    at_boundary=(ptype in (POSITION_INITIAL, POSITION_FINAL, POSITION_ISOLATED)),
+                    trace_prefix=f"text[{i}]:p:{cp:04x}",
+                )
+                report.steps.append(LayerStep.from_set(f"PositionQiyas[{ptype}]", p_set))
+                p_cand = _accepted(p_set)
 
             # ConditionedTypedSequence + SlotQiyas (PR #27 wiring, Z5
             # tokenizer gate). Per CLAUDE.md §8 the SlotCandidate consumes

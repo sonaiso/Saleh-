@@ -281,13 +281,15 @@ def test_layer_sequence_for_letter_that_forms_a_slot():
     letter_report = reports[0]
     layers_in_order = [s.layer for s in letter_report.steps]
 
-    # PositionQiyas layer label is suffixed with [INITIAL/MEDIAL/...] in
-    # the driver, so we match by prefix.
+    # Canonical order (SCG-P1 PR-2): TypedCodePoint → ConditionedTypedSequence
+    # /PositionEvidence → PositionCarrier → ConditionedTypedSequence (carrier-binding).
+    # The PositionQiyas label is suffixed with [INITIAL/MEDIAL/...], so match by prefix.
     assert layers_in_order[0] == "UnicodeQiyas"
     assert layers_in_order[1] == "TypedCodePointClassificationQiyas"
     assert layers_in_order[2] == "LetterIdentityQiyas"
-    assert layers_in_order[3].startswith("PositionQiyas")
-    assert layers_in_order[4] == "ConditionedTypedSequenceQiyas"
+    assert layers_in_order[3] == "ConditionedTypedSequenceQiyas[position]"
+    assert layers_in_order[4].startswith("PositionQiyas")
+    assert layers_in_order[5] == "ConditionedTypedSequenceQiyas"
     assert letter_report.slot_step is not None
     assert letter_report.slot_step.layer == "SlotQiyas"
 
