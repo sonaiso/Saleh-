@@ -212,9 +212,12 @@ class TestRec1FreezeEnforcedInWorkingTree:
         POSITION = master_registry_seed.LAYER_ID_P1_POSITION_CARRIER
         allowed = {LayerStatus.PLANNED, LayerStatus.SPECIFIED}
         # Authorized per-builder IMPLEMENTED carve-outs (2026-06-17).
+        SLOT = master_registry_seed.LAYER_ID_P1_SLOT_CANDIDATE
         carveouts: dict[str, set] = {
             "build_p1_atomic_carriers_implemented_registry": {LETTER, HARAKA},
             "build_p1_sequence_position_implemented_registry": {LETTER, HARAKA, CTS, POSITION},
+            # PR-3 completes P1: SlotCandidate joins the carriers (all five P1 IMPLEMENTED).
+            "build_p1_slot_implemented_registry": {LETTER, HARAKA, CTS, POSITION, SLOT},
         }
         builders = [
             (name, value)
