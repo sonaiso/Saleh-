@@ -1467,25 +1467,70 @@ def build_p1_atomic_carriers_implemented_registry() -> MasterLayerRegistry:
     الاستراتيجية: certify-and-wire لـ Letter كما هي؛ Haraka runtime يُصدر الاسم
     الكانوني HarakaMarkIdentityCarrier (HarakaFunctionCarrier يبقى alias انتقالي).
 
-    تبني على build_p1_specified_registry (P0 IMPLEMENTED، P1 SPECIFIED) وتُقدِّم
-    الطبقتين الذريتين فقط؛ تبقى ConditionedTypedSequence و PositionCarrier و
-    SlotCandidate بحالة SPECIFIED، وتبقى P2-P12 بحالة PLANNED.
+    تبني على build_p12_specified_registry (P0 IMPLEMENTED، P1-P12 SPECIFIED —
+    سلسلة المواصفات مكتملة) وتُقدِّم الطبقتين الذريتين فقط؛ تبقى
+    ConditionedTypedSequence و PositionCarrier و SlotCandidate بحالة SPECIFIED،
+    وتبقى P2-P12 بحالة SPECIFIED.
 
     Non-Goals (PR-1):
         لا تُقدِّم ConditionedTypedSequence ولا PositionCarrier ولا SlotCandidate.
         ليست build_p1_implemented_registry الكاملة.
-        لا تُقدِّم P2-P12.
+        لا تُنفِّذ P2-P12 (تبقى SPECIFIED، لا IMPLEMENTED).
         لا تحذف أي forbidden_outputs ولا تُغيّر بيانات البذرة (seed).
         لا تنتج SlotGeometry ولا معنى ولا حكمًا.
 
     Returns:
         MasterLayerRegistry مع P0 IMPLEMENTED؛ LetterIdentityCarrier +
         HarakaMarkIdentityCarrier IMPLEMENTED؛ بقية P1 (CTS، Position، Slot)
-        SPECIFIED؛ P2-P12 PLANNED. العدد يبقى 19.
+        SPECIFIED؛ P2-P12 SPECIFIED. العدد يبقى 19.
     """
-    registry = build_p1_specified_registry()
+    registry = build_p12_specified_registry()
     for layer_id in _P1_ATOMIC_CARRIER_IDS:
         # SPECIFIED → IMPLEMENTED (الطبقتان الذريتان فقط — بوابة التبعية: CROSS من P0)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
+# معرفات طبقتي التسلسل/الموضع في SCG-P1 (sequence + position — PR-2)
+# الترتيب مهم: CTS أولًا (CROSS من P0)، ثم Position (INTRA من CTS) — بوابة التبعية.
+_P1_SEQUENCE_POSITION_IDS: tuple[str, ...] = (
+    LAYER_ID_P1_CONDITIONED_TYPED_SEQUENCE,
+    LAYER_ID_P1_POSITION_CARRIER,
+)
+
+
+def build_p1_sequence_position_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم ConditionedTypedSequence ثم PositionCarrier إلى IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P1 PR-2 (sequence + position, 2026-06-17): يُقدِّم
+    **فقط** ConditionedTypedSequence و PositionCarrier من SPECIFIED إلى
+    IMPLEMENTED، فوق الطبقتين الذريتين المُنفَّذتين (PR-1).
+
+    الترتيب يحترم بوابة التبعية الهجينة:
+      - ConditionedTypedSequence: CROSS من P0 المُنفَّذة → يجوز التقدم.
+      - PositionCarrier: INTRA من ConditionedTypedSequence → بعد تنفيذ CTS فقط.
+
+    القرارات (PR-2):
+      - CTS = اسم نطاق/طبقة + مطابقة عائلة الأدلة (CarrierBindingCandidate،
+        PositionEvidence، BoundaryEvidence، ResidualPreservationEvidence) —
+        لا container جديد، لا تغيير output_type، لا تغيير schema.
+      - PositionCarrier يستهلك PositionEvidence من CTS ويحفظ
+        conditioned_sequence_identity كهوية كانونية (codepoint = trace/bridge فقط).
+
+    Non-Goals (PR-2):
+        لا تُنفِّذ SlotCandidate (تبقى SPECIFIED).
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P2-P12 (تبقى SPECIFIED).
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED؛ Letter + Haraka + CTS + Position
+        IMPLEMENTED؛ SlotCandidate SPECIFIED؛ P2-P12 SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p1_atomic_carriers_implemented_registry()
+    for layer_id in _P1_SEQUENCE_POSITION_IDS:
+        # SPECIFIED → IMPLEMENTED بالترتيب: CTS (CROSS) ثم Position (INTRA من CTS)
         registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
     return registry
 

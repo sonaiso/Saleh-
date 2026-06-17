@@ -207,8 +207,11 @@ def test_kataba_each_letter_has_complete_layer_sequence():
         assert layers_in_order[0] == "UnicodeQiyas"
         assert layers_in_order[1] == "TypedCodePointClassificationQiyas"
         assert layers_in_order[2] == "LetterIdentityQiyas"
-        assert layers_in_order[3].startswith("PositionQiyas")
-        assert layers_in_order[4] == "ConditionedTypedSequenceQiyas"
+        # Canonical order (SCG-P1 PR-2): TypedCodePoint → ConditionedTypedSequence
+        # /PositionEvidence → PositionCarrier → ConditionedTypedSequence (carrier-binding).
+        assert layers_in_order[3] == "ConditionedTypedSequenceQiyas[position]"
+        assert layers_in_order[4].startswith("PositionQiyas")
+        assert layers_in_order[5] == "ConditionedTypedSequenceQiyas"
 
         # Verify slot step exists
         assert letter_report.slot_step is not None
@@ -292,17 +295,17 @@ def test_kataba_sequence_conditioning_produces_alignment_not_identity():
     """
     reports = process_text(KATABA)
 
-    # Get all ConditionedTypedSequenceQiyas steps
+    # All ConditionedTypedSequenceQiyas steps (SCG-P1 PR-2 canonical order adds
+    # PositionEvidence proofs alongside the carrier-binding proofs).
     cts_steps = _accepted_steps_by_layer(reports, "ConditionedTypedSequenceQiyas")
-    assert len(cts_steps) == 3  # Three carrier-binding proofs
+    carrier_binding = [s for s in cts_steps if s.candidate_type == "CarrierBindingCandidate"]
+    position_evidence = [s for s in cts_steps if s.candidate_type == "PositionEvidence"]
+    assert len(carrier_binding) == 3   # three carrier-binding proofs
+    assert len(position_evidence) == 3  # three position-evidence proofs (one per letter)
 
     for cts_step in cts_steps:
-        # Must be CarrierBindingCandidate (alignment evidence)
-        assert cts_step.candidate_type == "CarrierBindingCandidate", (
-            f"Expected CarrierBindingCandidate, got {cts_step.candidate_type}"
-        )
-
-        # Must NOT be LetterIdentityCarrier or Haraka identity (canonical or legacy alias)
+        # CTS produces only sequence-level evidence — never letter or haraka identity.
+        assert cts_step.candidate_type in ("CarrierBindingCandidate", "PositionEvidence")
         assert cts_step.candidate_type != "LetterIdentityCarrier"
         assert cts_step.candidate_type != "HarakaMarkIdentityCarrier"
         assert cts_step.candidate_type != "HarakaFunctionCarrier"
@@ -691,7 +694,11 @@ def test_kataba_complete_pipeline_baseline():
     assert len(_accepted_steps_by_layer(reports, "LetterIdentityQiyas")) == 3
     assert len(_accepted_steps_by_layer(reports, "HarakaFunctionQiyas")) == 3
     assert len(_accepted_steps_by_layer(reports, "PositionQiyas")) == 3
-    assert len(_accepted_steps_by_layer(reports, "ConditionedTypedSequenceQiyas")) == 3
+    # SCG-P1 PR-2 canonical order: CTS now yields 3 PositionEvidence + 3 carrier-binding.
+    cts_all = _accepted_steps_by_layer(reports, "ConditionedTypedSequenceQiyas")
+    assert len(cts_all) == 6
+    assert len([s for s in cts_all if s.candidate_type == "PositionEvidence"]) == 3
+    assert len([s for s in cts_all if s.candidate_type == "CarrierBindingCandidate"]) == 3
     assert len(_accepted_slot_steps(reports)) == 3
 
     # No forbidden outputs anywhere

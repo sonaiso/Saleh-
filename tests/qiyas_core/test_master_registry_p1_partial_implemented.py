@@ -62,13 +62,15 @@ def test_P1_IMPL_ADVANCE_02_cts_position_slot_remain_specified():
         assert reg.get(lid).status is LayerStatus.SPECIFIED, lid
 
 
-def test_P1_IMPL_ADVANCE_03_p0_implemented_p2_p12_planned():
+def test_P1_IMPL_ADVANCE_03_p0_implemented_p2_p12_specified():
+    # The implemented-registry builders sit atop the completed spec spine
+    # (build_p12_specified_registry), so P2-P12 are SPECIFIED, not PLANNED.
     reg = build_p1_atomic_carriers_implemented_registry()
     assert all(
         s.status is LayerStatus.IMPLEMENTED for s in reg.all_layers() if s.phase == "SCG-P0"
     )
     assert all(
-        s.status is LayerStatus.PLANNED
+        s.status is LayerStatus.SPECIFIED
         for s in reg.all_layers()
         if s.phase not in ("SCG-P0", "SCG-P1")
     )
