@@ -73,6 +73,7 @@ from qiyas_core.jamid_mushtaq_adapter import JamidMushtaqLayerAdapter
 from qiyas_core.mufrad_word_adapter import MufradWordLayerAdapter
 from qiyas_core.verbal_signified_adapter import VerbalSignifiedLayerAdapter
 from qiyas_core.composition_readiness_adapter import CompositionReadinessLayerAdapter
+from qiyas_core.amil_mamul_adapter import AmilMamulLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -117,6 +118,7 @@ class PipelineLayers:
     mufrad_word_layer: MufradWordLayerAdapter
     verbal_signified_layer: VerbalSignifiedLayerAdapter
     composition_readiness_layer: CompositionReadinessLayerAdapter
+    amil_mamul_layer: AmilMamulLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -136,6 +138,7 @@ class PipelineLayers:
             mufrad_word_layer=MufradWordLayerAdapter(kernel=kernel),
             verbal_signified_layer=VerbalSignifiedLayerAdapter(kernel=kernel),
             composition_readiness_layer=CompositionReadinessLayerAdapter(kernel=kernel),
+            amil_mamul_layer=AmilMamulLayerAdapter(kernel=kernel),
         )
 
 
@@ -593,6 +596,20 @@ def process_text(
                                                 LayerStep.from_set("CompositionReadinessQiyas", cr_set)
                                             )
 
+                                            # SCG-P8 — AmilMamulQiyas: open
+                                            # structural dependency/attachment
+                                            # RELATION possibilities (opens
+                                            # grammatical-relation + i'rab priors;
+                                            # never actual i'rab/case, grammar,
+                                            # meaning, or a P9+ candidate).
+                                            cr_cand = _accepted(cr_set)
+                                            if cr_cand is not None:
+                                                am_set = layers.amil_mamul_layer.relate(
+                                                    cr_cand, trace_prefix=f"text[{i}]:am:{cp:04x}"
+                                                )
+                                                report.steps.append(
+                                                    LayerStep.from_set("AmilMamulQiyas", am_set)
+                                                )
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).

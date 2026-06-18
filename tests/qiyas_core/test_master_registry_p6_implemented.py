@@ -4,7 +4,7 @@ Narrow SCG-P6 implementation (2026-06-18). Advances ONLY P6_VERBAL_SIGNIFIED_ALO
 to IMPLEMENTED via `build_p6_implemented_registry`, atop the implemented P5 phase.
 
 P7–P12 remain SPECIFIED; freeze stays ACTIVE for P7+; no P7 runtime;
-`build_p8_implemented_registry` remains absent.
+`build_p9_implemented_registry` remains absent.
 """
 
 from __future__ import annotations
@@ -76,7 +76,7 @@ def test_P6_IMPL_NOFULL_01_no_full_p1_implemented_builder():
 
 
 def test_P6_IMPL_NOFULL_02_no_p7_implemented_builder():
-    assert not hasattr(MRS, "build_p8_implemented_registry")
+    assert not hasattr(MRS, "build_p9_implemented_registry")
 
 
 def test_P6_IMPL_NORUNTIME_01_direct_planned_to_implemented_blocked_in_seed():

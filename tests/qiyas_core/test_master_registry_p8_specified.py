@@ -178,8 +178,11 @@ def test_P8_SPEC_RESIDUAL_01_blockers_and_invalidating_differences_explicit():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_P8_SPEC_NORUNTIME_01_no_p8_implemented_builder():
-    assert not hasattr(MRS, "build_p8_implemented_registry")
+def test_P8_SPEC_NORUNTIME_01_spec_builder_keeps_p8_specified_not_implemented():
+    # P8 is now IMPLEMENTED via build_p8_implemented_registry; the SPECIFIED
+    # builder must still stop P8 at SPECIFIED (no runtime advance from the spec).
+    assert hasattr(MRS, "build_p8_implemented_registry")
+    assert _p8(build_p8_specified_registry()).status is LayerStatus.SPECIFIED
 
 
 def test_P8_SPEC_NORUNTIME_02_builder_stops_at_specified():

@@ -121,7 +121,7 @@ def test_P1_IMPL_NOFULL_01_no_full_p1_implemented_builder():
 def test_P1_IMPL_NOFULL_02_no_full_p1_or_p4_implemented_builder():
     # build_p2/build_p3_implemented_registry are authorized as of SCG-P2/P3.
     assert not hasattr(MRS, "build_p1_implemented_registry")
-    assert not hasattr(MRS, "build_p8_implemented_registry")
+    assert not hasattr(MRS, "build_p9_implemented_registry")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
