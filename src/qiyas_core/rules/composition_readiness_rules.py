@@ -34,6 +34,32 @@ _ALL_WADI = (
     WadiGate.NULLITY,
 )
 
+# Allowed STRUCTURAL composition-readiness prior types (SCG-P7 strengthening,
+# 2026-06-18). Structural ONLY — never a final grammar/word-type/syntax judgment.
+# The adapter SELECTS one input-dependently from the readiness geometry.
+CADENCE_BOUNDARY_PRIOR = "CadenceBoundaryPrior"                       # clean cadence + closed boundary
+COMPOSITION_READINESS_GEOMETRY_CLASS = "CompositionReadinessGeometryClass"  # rich cadence skeleton
+GEMINATED_READINESS_POSSIBILITY = "GeminatedReadinessPossibility"    # gemination-bearing readiness
+STRUCTURAL_READINESS_PRIOR = "StructuralReadinessPrior"              # minimal readiness
+ALLOWED_COMPOSITION_READINESS_PRIOR_TYPES = (
+    CADENCE_BOUNDARY_PRIOR,
+    COMPOSITION_READINESS_GEOMETRY_CLASS,
+    GEMINATED_READINESS_POSSIBILITY,
+    STRUCTURAL_READINESS_PRIOR,
+)
+
+# Composition-readiness verdict reasons. P7 is no longer a forwarding stamp: it
+# reads the upstream P6 verdict + carrier geometry and discriminates into
+# ACCEPT / DEFER / BLOCK via the kernel's `فارق:` (block) / `defer:` (defer).
+#   ACCEPT : P6 ACCEPT and a clean composition boundary — short-vowel cadence
+#            AND n_consonants >= 3 (an unambiguous operand for composition).
+#   DEFER  : P6-accepted carrier, but its composition boundary is ambiguous
+#            (e.g. long-vowel-heavy / non-cadence shapes) — under-specified.
+#   BLOCK  : P6 was DEFER/BLOCK (non-accepted upstream), or no usable geometry.
+COMPOSITION_READINESS_CONFLICT = "composition_readiness_conflict"          # BLOCK (فارق)
+COMPOSITION_PRECONDITION_BLOCKED = "composition_precondition_blocked"      # BLOCK (فارق)
+COMPOSITION_READINESS_UNDERSPECIFIED = "composition_readiness_underspecified"  # DEFER (defer)
+
 # Structural PRIORS P7 OPENS (as priors for SCG-P8/P9), never produces.
 OPENED_PRIORS = ("amil_mamul_relation_priors", "sentence_geometry_priors")
 
@@ -56,8 +82,8 @@ COMPOSITION_READINESS_RULE = QiyasRule(
     ),
     required_wadi_gates=_ALL_WADI,
     invalidating_differences=(
-        "composition_readiness_conflict",
-        "composition_precondition_blocked",
+        COMPOSITION_READINESS_CONFLICT,
+        COMPOSITION_PRECONDITION_BLOCKED,
     ),
     neutral_identity_domain="composition_readiness_identity",
     output_candidate_type="CompositionReadinessCandidate",
