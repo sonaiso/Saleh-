@@ -66,6 +66,7 @@ from qiyas_core.position_adapter import PositionLayerAdapter
 from qiyas_core.registry_projection_adapter import RegistryProjectionLayerAdapter
 from qiyas_core.root_stem_adapter import RootStemLayerAdapter
 from qiyas_core.jamid_mushtaq_adapter import JamidMushtaqLayerAdapter
+from qiyas_core.mufrad_word_adapter import MufradWordLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -107,6 +108,7 @@ class PipelineLayers:
     registry_projection_layer: RegistryProjectionLayerAdapter
     root_stem_layer: RootStemLayerAdapter
     jamid_mushtaq_layer: JamidMushtaqLayerAdapter
+    mufrad_word_layer: MufradWordLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -123,6 +125,7 @@ class PipelineLayers:
             registry_projection_layer=RegistryProjectionLayerAdapter(kernel=kernel),
             root_stem_layer=RootStemLayerAdapter(kernel=kernel),
             jamid_mushtaq_layer=JamidMushtaqLayerAdapter(kernel=kernel),
+            mufrad_word_layer=MufradWordLayerAdapter(kernel=kernel),
         )
 
 
@@ -507,6 +510,19 @@ def process_text(
                                 report.steps.append(
                                     LayerStep.from_set("JamidMushtaqQiyas", jm_set)
                                 )
+
+                                # SCG-P5 — MufradWordQiyas: form a candidate-only
+                                # single-word POSSIBILITY (opens verbal-signified +
+                                # phrase-level priors; never a final lexical word,
+                                # dictionary entry, or P6+ candidate).
+                                jm_cand = _accepted(jm_set)
+                                if jm_cand is not None:
+                                    mw_set = layers.mufrad_word_layer.form(
+                                        jm_cand, trace_prefix=f"text[{i}]:mw:{cp:04x}"
+                                    )
+                                    report.steps.append(
+                                        LayerStep.from_set("MufradWordQiyas", mw_set)
+                                    )
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).

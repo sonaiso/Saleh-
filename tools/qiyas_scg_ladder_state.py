@@ -39,12 +39,12 @@ from qiyas_core.qiyas_structural_verification import (
 )
 from qiyas_core.slot_geometry_core import (
     LayerStatus,
-    build_p4_implemented_registry,
+    build_p5_implemented_registry,
 )
 
 import run_qiyas  # official Phase-1 driver (repo-root module; needs `.` on path)
 
-# Canonical SCG ladder candidate types surfaced now (P1 + P2 + P3 + P4 implemented).
+# Canonical SCG ladder candidate types surfaced now (P1 + P2 + P3 + P4 + P5 implemented).
 _LETTER = "LetterIdentityCarrier"
 _HARAKA = "HarakaMarkIdentityCarrier"
 _CTS_FAMILY = ("CarrierBindingCandidate", "PositionEvidence",
@@ -53,13 +53,13 @@ _POSITION = "PositionCarrier"
 _SLOT = "SlotCandidate"
 _PROJECTION = "RegistryProjectionCandidate"  # SCG-P2 (implemented)
 _ROOTSTEM = "RootStemCandidate"              # SCG-P3 (implemented)
-_JAMID = "JamidMushtaqCandidate"             # SCG-P4 (now implemented)
+_JAMID = "JamidMushtaqCandidate"             # SCG-P4 (implemented)
+_MUFRAD = "MufradWordCandidate"              # SCG-P5 (now implemented)
 
 # Higher-layer / semantic outputs that MUST NOT appear yet (no-jump guard).
-# P2/P3/P4 are now IMPLEMENTED, so they are expected. SCG-P5 (MufradWordCandidate)
+# P2..P5 are now IMPLEMENTED, so they are expected. SCG-P6 (VerbalSignifiedCandidate)
 # and above remain not_introduced.
 _FORBIDDEN_HIGHER = (
-    "MufradWordCandidate",          # SCG-P5
     "VerbalSignifiedCandidate",     # SCG-P6
     "CompositionReadinessCandidate",
     "AmilMamulCandidate", "SentenceGeometryCandidate",
@@ -99,6 +99,7 @@ def _ladder_counts(steps):
         _PROJECTION: types.count(_PROJECTION),
         _ROOTSTEM: types.count(_ROOTSTEM),
         _JAMID: types.count(_JAMID),
+        _MUFRAD: types.count(_MUFRAD),
     }
 
 
@@ -175,9 +176,16 @@ def render_token(token: str) -> tuple[str, dict, set]:
     lines.append(f"       wazn                         = none (WeightCandidate forbidden)")
     lines.append(f"       opened priors                = "
                  f"{', '.join(p4_priors) if p4_priors else '—'}")
-    lines.append("   SCG-P5+ :")
-    lines.append(f"       MufradWordCandidate          = not_introduced")
+    p5_priors, _ = _opened_priors_and_types(steps, _MUFRAD)
+    lines.append("   SCG-P5 mufrad word :")
+    lines.append(f"       MufradWordCandidate          = {counts[_MUFRAD]} (candidate-only)")
+    lines.append(f"       final lexical word           = none (WordCandidate forbidden)")
+    lines.append(f"       dictionary entry / morphology = none")
+    lines.append(f"       opened priors                = "
+                 f"{', '.join(p5_priors) if p5_priors else '—'}")
+    lines.append("   SCG-P6+ :")
     lines.append(f"       VerbalSignifiedCandidate     = not_introduced")
+    lines.append(f"       CompositionReadinessCandidate= not_introduced")
     lines.append(f"   higher-layer candidates present : "
                  f"{sorted(higher) if higher else 'none'}")
     lines.append(f"   semantic statuses      : meaning={v.meaning_status} hukm={v.hukm_status} "
@@ -186,36 +194,33 @@ def render_token(token: str) -> tuple[str, dict, set]:
 
 
 def render_registry_state() -> str:
-    reg = build_p4_implemented_registry()
+    reg = build_p5_implemented_registry()
     by_phase: dict[str, list] = {}
     for s in reg.all_layers():
         by_phase.setdefault(s.phase, []).append(s.status)
     kp = lambda p: int(p.split("P")[1])
-    p0_impl = all(st is LayerStatus.IMPLEMENTED for st in by_phase.get("SCG-P0", []))
-    p1_impl = all(st is LayerStatus.IMPLEMENTED for st in by_phase.get("SCG-P1", []))
-    p2_impl = all(st is LayerStatus.IMPLEMENTED for st in by_phase.get("SCG-P2", []))
-    p3_impl = all(st is LayerStatus.IMPLEMENTED for st in by_phase.get("SCG-P3", []))
-    p4_impl = all(st is LayerStatus.IMPLEMENTED for st in by_phase.get("SCG-P4", []))
-    p5_p12_spec = all(
+    impl = lambda ph: all(st is LayerStatus.IMPLEMENTED for st in by_phase.get(ph, []))
+    p6_p12_spec = all(
         st is LayerStatus.SPECIFIED
         for ph, sts in by_phase.items()
-        if ph not in ("SCG-P0", "SCG-P1", "SCG-P2", "SCG-P3", "SCG-P4")
+        if ph not in ("SCG-P0", "SCG-P1", "SCG-P2", "SCG-P3", "SCG-P4", "SCG-P5")
         for st in sts
     )
     count = sum(len(v) for v in by_phase.values())
-    lines = ["── registry state (build_p4_implemented_registry)"]
+    lines = ["── registry state (build_p5_implemented_registry)"]
     for ph in sorted(by_phase, key=kp):
         vals = sorted({st.value for st in by_phase[ph]})
         lines.append(f"   {ph:8} {','.join(vals)} ({len(by_phase[ph])})")
-    lines.append(f"   P0 IMPLEMENTED               : {p0_impl}")
-    lines.append(f"   P1 all five IMPLEMENTED       : {p1_impl}")
-    lines.append(f"   P2 RegistryProjection IMPL    : {p2_impl}")
-    lines.append(f"   P3 RootStemClosure IMPL       : {p3_impl}")
-    lines.append(f"   P4 JamidMushtaq IMPL          : {p4_impl}")
-    lines.append(f"   P5-P12 SPECIFIED              : {p5_p12_spec}")
+    lines.append(f"   P0 IMPLEMENTED               : {impl('SCG-P0')}")
+    lines.append(f"   P1 all five IMPLEMENTED       : {impl('SCG-P1')}")
+    lines.append(f"   P2 RegistryProjection IMPL    : {impl('SCG-P2')}")
+    lines.append(f"   P3 RootStemClosure IMPL       : {impl('SCG-P3')}")
+    lines.append(f"   P4 JamidMushtaq IMPL          : {impl('SCG-P4')}")
+    lines.append(f"   P5 MufradWord IMPL            : {impl('SCG-P5')}")
+    lines.append(f"   P6-P12 SPECIFIED              : {p6_p12_spec}")
     lines.append(f"   layer count                   : {count}")
-    lines.append(f"   freeze ACTIVE for P5-P12      : {p5_p12_spec} "
-                 f"(no P5+ layer is IMPLEMENTED)")
+    lines.append(f"   freeze ACTIVE for P6-P12      : {p6_p12_spec} "
+                 f"(no P6+ layer is IMPLEMENTED)")
     return "\n".join(lines)
 
 
@@ -225,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     tokens = text.split()
 
     print("=" * 72)
-    print("SCG LADDER STATE — up to SCG-P4 (structural, potential-only)")
+    print("SCG LADDER STATE — up to SCG-P5 (structural, potential-only)")
     print("=" * 72)
 
     all_higher: set = set()
@@ -233,6 +238,7 @@ def main(argv: list[str] | None = None) -> int:
     total_projections = 0
     total_rootstems = 0
     total_jamid = 0
+    total_mufrad = 0
     residual_tokens = []
     for tok in tokens:
         block, counts, higher = render_token(tok)
@@ -243,6 +249,7 @@ def main(argv: list[str] | None = None) -> int:
         total_projections += counts[_PROJECTION]
         total_rootstems += counts[_ROOTSTEM]
         total_jamid += counts[_JAMID]
+        total_mufrad += counts[_MUFRAD]
         if counts[_SLOT] == 0:
             residual_tokens.append(tok)
 
@@ -253,8 +260,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"   total RegistryProjectionCandidate  : {total_projections}")
     print(f"   total RootStemCandidate            : {total_rootstems} (candidate-only)")
     print(f"   total JamidMushtaqCandidate        : {total_jamid} (candidate-only)")
+    print(f"   total MufradWordCandidate          : {total_mufrad} (candidate-only)")
     print(f"   tokens with no SlotCandidate       : {residual_tokens or 'none'}")
-    print(f"   P5+/semantic candidates seen       : {sorted(all_higher) if all_higher else 'none'}")
+    print(f"   P6+/semantic candidates seen       : {sorted(all_higher) if all_higher else 'none'}")
     print(f"   higher semantic statuses           : not_introduced "
           f"(constant: {NOT_INTRODUCED})")
     return 0

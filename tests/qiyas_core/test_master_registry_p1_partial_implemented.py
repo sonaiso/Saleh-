@@ -131,7 +131,7 @@ def test_P1_IMPL_NOFULL_02_no_downstream_implemented_builders():
     for name in (
         "build_p1_conditioned_typed_sequence_implemented_registry",
         "build_p1_position_implemented_registry",
-        "build_p5_implemented_registry",
+        "build_p6_implemented_registry",
     ):
         assert not hasattr(MRS, name), name
 

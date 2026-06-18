@@ -1682,6 +1682,40 @@ def build_p4_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرّف طبقة الكلمة المفردة في SCG-P5 (MufradWord)
+_P5_MUFRAD_WORD_IDS: tuple[str, ...] = (LAYER_ID_P5_MUFRAD_WORD_CONTRACTS,)
+
+
+def build_p5_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P5 (MufradWord) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P5 فقط (2026-06-18): يُقدِّم **فقط**
+    P5_MUFRAD_WORD_CONTRACTS من SPECIFIED إلى IMPLEMENTED، فوق P4 المُنفَّذة.
+    بوابة التبعية تتحقق: أصل P5 هو JamidMushtaqCandidate (CROSS من مرحلة P4
+    المُنفَّذة بالكامل) → التقدم مرخّص.
+
+    P5 = طبقة **إمكان** الكلمة المفردة (candidate-only). ليست كلمة معجمية نهائية،
+    ليست مدخل قاموس، ليست صرفًا ولا نحوًا ولا معنى. تفتح verbal_signified +
+    phrase-level **priors** فقط؛ لا تُنتج VerbalSignifiedCandidate.
+
+    Non-Goals (P5):
+        لا تُنفِّذ P6 (VerbalSignifiedCandidate تبقى SPECIFIED).
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P6-P12 (تبقى SPECIFIED).
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0-P4 IMPLEMENTED؛ P5 IMPLEMENTED؛ P6-P12
+        SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p4_implemented_registry()
+    for layer_id in _P5_MUFRAD_WORD_IDS:
+        # SPECIFIED → IMPLEMENTED — P5 وحدها (CROSS من مرحلة P4 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.
