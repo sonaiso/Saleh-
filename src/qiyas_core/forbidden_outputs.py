@@ -337,6 +337,30 @@ FORBIDDEN_VERBAL_SIGNIFIED: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# CompositionReadiness layer (SCG-P7) — attests READINESS to enter composition
+# only. It performs NO actual composition, NO syntax, NO amil/mamul relation,
+# NO i'rab, NO meaning/hukm/dalalah. Opens amil/mamul + sentence-geometry PRIORS.
+FORBIDDEN_COMPOSITION_READINESS: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Exact downstream canonical output types (SCG-P8..P12) — no-jump.
+    "AmilMamulCandidate",           # SCG-P8
+    "SentenceGeometryCandidate",    # SCG-P9
+    "RelationGeometryCandidate",    # SCG-P10
+    "IrabGeometryCandidate",        # SCG-P11
+    "IfadahCandidate",              # SCG-P12
+    # Syntax / grammar / i'rab / meaning — never produced (only PRIORS opened).
+    "SentenceCandidate",
+    "IsnadJudgment",
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "TafsirCandidate",
+    "IrabCandidate",
+    "CaseEffect",
+    "CaseJudgment",
+    "Irab",
+    "SlotGeometry",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -349,6 +373,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "JamidMushtaqQiyas": FORBIDDEN_JAMID_MUSHTAQ,
     "MufradWordQiyas": FORBIDDEN_MUFRAD_WORD,
     "VerbalSignifiedQiyas": FORBIDDEN_VERBAL_SIGNIFIED,
+    "CompositionReadinessQiyas": FORBIDDEN_COMPOSITION_READINESS,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,

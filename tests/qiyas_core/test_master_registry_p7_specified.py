@@ -179,8 +179,11 @@ def test_P7_SPEC_RESIDUAL_01_blockers_and_invalidating_differences_explicit():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_P7_SPEC_NORUNTIME_01_no_p7_implemented_builder():
-    assert not hasattr(MRS, "build_p7_implemented_registry")
+def test_P7_SPEC_NORUNTIME_01_specified_builder_stops_at_specified():
+    # SCG-P7 CompositionReadiness is IMPLEMENTED as of 2026-06-18 via
+    # build_p7_implemented_registry; the SPEC builder must still stop at SPECIFIED.
+    assert hasattr(MRS, "build_p7_implemented_registry")
+    assert _p7(build_p7_specified_registry()).status is LayerStatus.SPECIFIED
 
 
 def test_P7_SPEC_NORUNTIME_02_builder_stops_at_specified():
