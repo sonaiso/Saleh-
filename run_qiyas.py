@@ -67,6 +67,7 @@ from qiyas_core.registry_projection_adapter import RegistryProjectionLayerAdapte
 from qiyas_core.root_stem_adapter import RootStemLayerAdapter
 from qiyas_core.jamid_mushtaq_adapter import JamidMushtaqLayerAdapter
 from qiyas_core.mufrad_word_adapter import MufradWordLayerAdapter
+from qiyas_core.verbal_signified_adapter import VerbalSignifiedLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -109,6 +110,7 @@ class PipelineLayers:
     root_stem_layer: RootStemLayerAdapter
     jamid_mushtaq_layer: JamidMushtaqLayerAdapter
     mufrad_word_layer: MufradWordLayerAdapter
+    verbal_signified_layer: VerbalSignifiedLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -126,6 +128,7 @@ class PipelineLayers:
             root_stem_layer=RootStemLayerAdapter(kernel=kernel),
             jamid_mushtaq_layer=JamidMushtaqLayerAdapter(kernel=kernel),
             mufrad_word_layer=MufradWordLayerAdapter(kernel=kernel),
+            verbal_signified_layer=VerbalSignifiedLayerAdapter(kernel=kernel),
         )
 
 
@@ -523,6 +526,19 @@ def process_text(
                                     report.steps.append(
                                         LayerStep.from_set("MufradWordQiyas", mw_set)
                                     )
+
+                                    # SCG-P6 — VerbalSignifiedQiyas: open verbal-
+                                    # signified semantic POSSIBILITIES (meaning +
+                                    # dalalah priors only; never actual meaning,
+                                    # dalalah, tafsir, hukm, or P7+ candidate).
+                                    mw_cand = _accepted(mw_set)
+                                    if mw_cand is not None:
+                                        vs_set = layers.verbal_signified_layer.open(
+                                            mw_cand, trace_prefix=f"text[{i}]:vs:{cp:04x}"
+                                        )
+                                        report.steps.append(
+                                            LayerStep.from_set("VerbalSignifiedQiyas", vs_set)
+                                        )
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).

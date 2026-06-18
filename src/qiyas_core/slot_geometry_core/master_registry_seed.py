@@ -1716,6 +1716,41 @@ def build_p5_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرّف طبقة المدلول اللفظي في SCG-P6 (VerbalSignified)
+_P6_VERBAL_SIGNIFIED_IDS: tuple[str, ...] = (LAYER_ID_P6_VERBAL_SIGNIFIED_ALONE,)
+
+
+def build_p6_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P6 (VerbalSignified) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P6 فقط (2026-06-18): يُقدِّم **فقط**
+    P6_VERBAL_SIGNIFIED_ALONE من SPECIFIED إلى IMPLEMENTED، فوق P5 المُنفَّذة.
+    بوابة التبعية تتحقق: أصل P6 هو MufradWordCandidate (CROSS من مرحلة P5
+    المُنفَّذة بالكامل) → التقدم مرخّص.
+
+    P6 = طبقة **فتح** الإمكانات الدلالية اللفظية (candidate-only). تفتح
+    أوّليات المعنى والدلالة (priors) فقط؛ لا تُنتج معنىً ولا دلالةً ولا تفسيرًا
+    ولا حكمًا ولا واقعًا ولا معنى نهائيًا (المخرجات الممنوعة محصورة في
+    forbidden_outputs لطبقة P6).
+
+    Non-Goals (P6):
+        لا تُنفِّذ P7 (CompositionReadinessCandidate تبقى SPECIFIED).
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P7-P12 (تبقى SPECIFIED).
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0-P5 IMPLEMENTED؛ P6 IMPLEMENTED؛ P7-P12
+        SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p5_implemented_registry()
+    for layer_id in _P6_VERBAL_SIGNIFIED_IDS:
+        # SPECIFIED → IMPLEMENTED — P6 وحدها (CROSS من مرحلة P5 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.

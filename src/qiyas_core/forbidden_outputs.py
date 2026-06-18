@@ -308,6 +308,35 @@ FORBIDDEN_MUFRAD_WORD: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# VerbalSignified layer (SCG-P6) — opens verbal-signified semantic POSSIBILITIES
+# (meaning/dalalah PRIORS) only. It NEVER produces actual meaning, dalalah,
+# tafsir, hukm, or reality — those would cross into الأصل-الثالث / final judgment.
+FORBIDDEN_VERBAL_SIGNIFIED: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Exact downstream canonical output types (SCG-P7..P12) — no-jump.
+    "CompositionReadinessCandidate",  # SCG-P7
+    "AmilMamulCandidate",           # SCG-P8
+    "SentenceGeometryCandidate",    # SCG-P9
+    "RelationGeometryCandidate",    # SCG-P10
+    "IrabGeometryCandidate",        # SCG-P11
+    "IfadahCandidate",              # SCG-P12
+    # Meaning / dalalah / tafsir — never produced (only PRIORS are opened).
+    "MeaningCandidate",
+    "MeaningJudgment",
+    "DalalahCandidate",
+    "DalalahJudgment",
+    "TafsirCandidate",
+    # Word / morphology / grammar.
+    "WordCandidate",
+    "WordTypeJudgment",
+    "RootCandidate",
+    "WeightCandidate",
+    "IrabCandidate",
+    "CaseEffect",
+    "Irab",
+    "SlotGeometry",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -319,6 +348,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "RootStemQiyas": FORBIDDEN_ROOT_STEM,
     "JamidMushtaqQiyas": FORBIDDEN_JAMID_MUSHTAQ,
     "MufradWordQiyas": FORBIDDEN_MUFRAD_WORD,
+    "VerbalSignifiedQiyas": FORBIDDEN_VERBAL_SIGNIFIED,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,
