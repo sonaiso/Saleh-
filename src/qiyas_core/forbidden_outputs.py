@@ -279,6 +279,35 @@ FORBIDDEN_JAMID_MUSHTAQ: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# MufradWord layer (SCG-P5) — a candidate-only WORDHOOD layer. Answers only
+# "could this structure form a potential single-word unit?" — NOT a final lexical
+# word (WordCandidate forbidden), NOT a dictionary entry, NOT morphology, NOT
+# grammar/meaning/i'rab/hukm.
+FORBIDDEN_MUFRAD_WORD: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Exact downstream canonical output types (SCG-P6..P12) — no-jump.
+    "VerbalSignifiedCandidate",     # SCG-P6
+    "CompositionReadinessCandidate",  # SCG-P7
+    "AmilMamulCandidate",           # SCG-P8
+    "SentenceGeometryCandidate",    # SCG-P9
+    "RelationGeometryCandidate",    # SCG-P10
+    "IrabGeometryCandidate",        # SCG-P11
+    "IfadahCandidate",              # SCG-P12
+    # Final lexical word / morphology / wazn / meaning / grammar (never produced).
+    "WordCandidate",                # final lexical word (≠ candidate MufradWordCandidate)
+    "WordTypeJudgment",
+    "LexicalEntryCandidate",
+    "RootCandidate",
+    "WeightCandidate",              # wazn
+    "FormCandidate",
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "IrabCandidate",
+    "CaseEffect",
+    "Irab",
+    "SlotGeometry",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -289,6 +318,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "RegistryProjectionQiyas": FORBIDDEN_REGISTRY_PROJECTION,
     "RootStemQiyas": FORBIDDEN_ROOT_STEM,
     "JamidMushtaqQiyas": FORBIDDEN_JAMID_MUSHTAQ,
+    "MufradWordQiyas": FORBIDDEN_MUFRAD_WORD,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,
