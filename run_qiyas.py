@@ -65,6 +65,7 @@ from qiyas_core.letter_identity_adapter import LetterIdentityLayerAdapter
 from qiyas_core.position_adapter import PositionLayerAdapter
 from qiyas_core.registry_projection_adapter import RegistryProjectionLayerAdapter
 from qiyas_core.root_stem_adapter import RootStemLayerAdapter
+from qiyas_core.jamid_mushtaq_adapter import JamidMushtaqLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -105,6 +106,7 @@ class PipelineLayers:
     slot_layer: SlotLayerAdapter
     registry_projection_layer: RegistryProjectionLayerAdapter
     root_stem_layer: RootStemLayerAdapter
+    jamid_mushtaq_layer: JamidMushtaqLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -120,6 +122,7 @@ class PipelineLayers:
             slot_layer=SlotLayerAdapter(kernel=kernel),
             registry_projection_layer=RegistryProjectionLayerAdapter(kernel=kernel),
             root_stem_layer=RootStemLayerAdapter(kernel=kernel),
+            jamid_mushtaq_layer=JamidMushtaqLayerAdapter(kernel=kernel),
         )
 
 
@@ -491,6 +494,19 @@ def process_text(
                             report.steps.append(
                                 LayerStep.from_set("RootStemQiyas", rs_set)
                             )
+
+                            # SCG-P4 — JamidMushtaqQiyas: open a structural
+                            # derivation-class POSSIBILITY from the root/stem
+                            # (candidate-only; opens word-type priors; never a
+                            # final jamid/mushtaq judgment, wazn, or P5+ candidate).
+                            rs_cand = _accepted(rs_set)
+                            if rs_cand is not None:
+                                jm_set = layers.jamid_mushtaq_layer.classify(
+                                    rs_cand, trace_prefix=f"text[{i}]:jm:{cp:04x}"
+                                )
+                                report.steps.append(
+                                    LayerStep.from_set("JamidMushtaqQiyas", jm_set)
+                                )
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).

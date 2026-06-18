@@ -1646,6 +1646,42 @@ def build_p3_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرّف طبقة جامد/مشتق في SCG-P4 (JamidMushtaq)
+_P4_JAMID_MUSHTAQ_IDS: tuple[str, ...] = (LAYER_ID_P4_JAMID_MUSHTAQ,)
+
+
+def build_p4_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P4 (JamidMushtaq) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P4 فقط (2026-06-18): يُقدِّم **فقط**
+    P4_JAMID_MUSHTAQ من SPECIFIED إلى IMPLEMENTED، فوق P3 المُنفَّذة. بوابة
+    التبعية تتحقق: أصل P4 هو RootStemCandidate (CROSS من مرحلة P3 المُنفَّذة
+    بالكامل) → التقدم مرخّص.
+
+    P4 = فتح **إمكان** تصنيف جامد/مشتق بنيوي من إمكان الجذر/الساق —
+    candidate-only. ليس حكمًا نهائيًا بأن الكلمة جامدة أو مشتقة، ليس وزنًا، ليس
+    صرفًا، ليس كلمة، ليس معنى. يفتح word-type **priors** فقط؛ لا يُنتج
+    MufradWordCandidate.
+
+    Non-Goals (P4):
+        لا تُنفِّذ P5 (MufradWordCandidate تبقى SPECIFIED).
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P5-P12 (تبقى SPECIFIED).
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+        لا حكم جامد/مشتق نهائي/وزن/صرف/كلمة/معنى/حكم/إعراب/دلالة.
+
+    Returns:
+        MasterLayerRegistry مع P0/P1/P2/P3 IMPLEMENTED؛ P4_JAMID_MUSHTAQ
+        IMPLEMENTED؛ P5-P12 SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p3_implemented_registry()
+    for layer_id in _P4_JAMID_MUSHTAQ_IDS:
+        # SPECIFIED → IMPLEMENTED — P4 وحدها (CROSS من مرحلة P3 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.

@@ -185,8 +185,11 @@ def test_P4_SPEC_RESIDUAL_01_blockers_and_invalidating_differences_explicit():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_P4_SPEC_NORUNTIME_01_no_p4_implemented_builder():
-    assert not hasattr(MRS, "build_p4_implemented_registry")
+def test_P4_SPEC_NORUNTIME_01_specified_builder_stops_at_specified():
+    # SCG-P4 JamidMushtaq is IMPLEMENTED as of 2026-06-18 via
+    # build_p4_implemented_registry; the SPEC builder must still stop at SPECIFIED.
+    assert hasattr(MRS, "build_p4_implemented_registry")
+    assert _p4(build_p4_specified_registry()).status is LayerStatus.SPECIFIED
 
 
 def test_P4_SPEC_NORUNTIME_02_builder_stops_at_specified():
