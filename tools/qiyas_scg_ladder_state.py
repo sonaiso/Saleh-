@@ -39,12 +39,12 @@ from qiyas_core.qiyas_structural_verification import (
 )
 from qiyas_core.slot_geometry_core import (
     LayerStatus,
-    build_p7_implemented_registry,
+    build_p8_implemented_registry,
 )
 
 import run_qiyas  # official Phase-1 driver (repo-root module; needs `.` on path)
 
-# Canonical SCG ladder candidate types surfaced now (P1..P7 implemented).
+# Canonical SCG ladder candidate types surfaced now (P1..P8 implemented).
 _LETTER = "LetterIdentityCarrier"
 _HARAKA = "HarakaMarkIdentityCarrier"
 _CTS_FAMILY = ("CarrierBindingCandidate", "PositionEvidence",
@@ -56,13 +56,14 @@ _ROOTSTEM = "RootStemCandidate"              # SCG-P3 (implemented)
 _JAMID = "JamidMushtaqCandidate"             # SCG-P4 (implemented)
 _MUFRAD = "MufradWordCandidate"              # SCG-P5 (implemented)
 _VERBAL = "VerbalSignifiedCandidate"         # SCG-P6 (implemented)
-_COMPREADY = "CompositionReadinessCandidate"  # SCG-P7 (now implemented)
+_COMPREADY = "CompositionReadinessCandidate"  # SCG-P7 (implemented)
+_AMIL = "AmilMamulCandidate"                 # SCG-P8 (now implemented)
 
 # Higher-layer / semantic outputs that MUST NOT appear yet (no-jump guard).
-# P2..P7 are now IMPLEMENTED, so they are expected. SCG-P8 (AmilMamulCandidate)
+# P2..P8 are now IMPLEMENTED, so they are expected. SCG-P9 (SentenceGeometryCandidate)
 # and above remain not_introduced.
 _FORBIDDEN_HIGHER = (
-    "AmilMamulCandidate", "SentenceGeometryCandidate",
+    "SentenceGeometryCandidate",
     "RelationGeometryCandidate", "IrabGeometryCandidate", "IfadahCandidate",
     "SlotGeometry", "HukmCandidate", "RealityClaim", "FinalMeaning",
 )
@@ -102,7 +103,51 @@ def _ladder_counts(steps):
         _MUFRAD: types.count(_MUFRAD),
         _VERBAL: types.count(_VERBAL),
         _COMPREADY: types.count(_COMPREADY),
+        _AMIL: types.count(_AMIL),
     }
+
+
+def _rootstem_verdicts(reports):
+    """SCG-P3 status breakdown (accepted/deferred/blocked) + CV signature + residuals
+    across a token's RootStemQiyas steps (any status, not only accepted)."""
+    acc = dfr = blk = 0
+    cv = None
+    residuals: set = set()
+    for r in reports:
+        for s in r.steps:
+            if s.layer != "RootStemQiyas":
+                continue
+            if s.status == "accepted":
+                acc += 1
+            elif s.status == "deferred":
+                dfr += 1
+            elif s.status == "blocked":
+                blk += 1
+            for t in s.trace_ids:
+                if t.startswith("root_pattern_evidence:") and "cv=" in t:
+                    cv = t.split("cv=", 1)[1].split(";", 1)[0]
+            for res in s.residuals:
+                residuals.add(res["type"])
+    return acc, dfr, blk, cv, sorted(residuals)
+
+
+def _layer_status_breakdown(reports, layer):
+    """(accepted, deferred, blocked, sorted residual types) across a layer's steps."""
+    acc = dfr = blk = 0
+    residuals: set = set()
+    for r in reports:
+        for s in r.steps:
+            if s.layer != layer:
+                continue
+            if s.status == "accepted":
+                acc += 1
+            elif s.status == "deferred":
+                dfr += 1
+            elif s.status == "blocked":
+                blk += 1
+            for res in s.residuals:
+                residuals.add(res["type"])
+    return acc, dfr, blk, sorted(residuals)
 
 
 def _opened_priors_and_types(steps, candidate_type):
@@ -161,46 +206,114 @@ def render_token(token: str) -> tuple[str, dict, set]:
     lines.append(f"       opened priors                = "
                  f"{', '.join(p2_priors) if p2_priors else '—'}")
     p3_priors, _ = _opened_priors_and_types(steps, _ROOTSTEM)
-    lines.append("   SCG-P3 root/stem closure :")
-    lines.append(f"       RootStemCandidate            = {counts[_ROOTSTEM]} (candidate-only)")
+    p3_acc, p3_dfr, p3_blk, p3_cv, p3_res = _rootstem_verdicts(reports)
+    counts["_P3_DEFER"] = p3_dfr
+    counts["_P3_BLOCK"] = p3_blk
+    lines.append("   SCG-P3 root/stem closure (information-gain) :")
+    lines.append(f"       RootStemCandidate (accepted) = {counts[_ROOTSTEM]} (candidate-only)")
+    lines.append(f"       structural verdict           = "
+                 f"accept:{p3_acc} defer:{p3_dfr} block:{p3_blk}")
+    lines.append(f"       CV signature (structural)    = {p3_cv or '—'}")
+    lines.append(f"       residuals                    = "
+                 f"{', '.join(p3_res) if p3_res else 'none'}")
     lines.append(f"       final root judgment          = none (RootCandidate forbidden)")
     lines.append(f"       wazn                         = none (WeightCandidate forbidden)")
     lines.append(f"       opened priors                = "
-                 f"{', '.join(p3_priors) if p3_priors else '—'}")
+                 f"{', '.join(p3_priors) if p3_priors else '—'} (ACCEPT only)")
     p4_priors, _ = _opened_priors_and_types(steps, _JAMID)
     jm_types = sorted({t.split(":", 1)[1] for s in steps if s.candidate_type == _JAMID
                        for t in s.trace_ids if t.startswith("jamid_mushtaq_prior_type:")})
-    lines.append("   SCG-P4 jamid/mushtaq :")
-    lines.append(f"       JamidMushtaqCandidate        = {counts[_JAMID]} (candidate-only)")
+    p4_acc, p4_dfr, p4_blk, p4_res = _layer_status_breakdown(reports, "JamidMushtaqQiyas")
+    counts["_P4_DEFER"] = p4_dfr
+    counts["_P4_BLOCK"] = p4_blk
+    lines.append("   SCG-P4 jamid/mushtaq (information-gain) :")
+    lines.append(f"       JamidMushtaqCandidate (accept)= {counts[_JAMID]} (candidate-only)")
+    lines.append(f"       structural verdict           = "
+                 f"accept:{p4_acc} defer:{p4_dfr} block:{p4_blk}")
     lines.append(f"       jamid_mushtaq_prior_type     = "
-                 f"{', '.join(jm_types) if jm_types else '—'} (structural)")
+                 f"{', '.join(jm_types) if jm_types else '—'} (structural, input-dependent)")
+    lines.append(f"       residuals                    = "
+                 f"{', '.join(p4_res) if p4_res else 'none'}")
     lines.append(f"       final jamid/mushtaq judgment = none (WordTypeJudgment forbidden)")
     lines.append(f"       wazn                         = none (WeightCandidate forbidden)")
     lines.append(f"       opened priors                = "
-                 f"{', '.join(p4_priors) if p4_priors else '—'}")
+                 f"{', '.join(p4_priors) if p4_priors else '—'} (ACCEPT only)")
     p5_priors, _ = _opened_priors_and_types(steps, _MUFRAD)
-    lines.append("   SCG-P5 mufrad word :")
-    lines.append(f"       MufradWordCandidate          = {counts[_MUFRAD]} (candidate-only)")
-    lines.append(f"       final lexical word           = none (WordCandidate forbidden)")
+    p5_types = sorted({t.split(":", 1)[1] for s in steps if s.candidate_type == _MUFRAD
+                       for t in s.trace_ids if t.startswith("mufrad_word_prior_type:")})
+    p5_acc, p5_dfr, p5_blk, p5_res = _layer_status_breakdown(reports, "MufradWordQiyas")
+    counts["_P5_DEFER"] = p5_dfr
+    counts["_P5_BLOCK"] = p5_blk
+    lines.append("   SCG-P5 mufrad word (information-gain) :")
+    lines.append(f"       MufradWordCandidate (accept) = {counts[_MUFRAD]} (candidate-only)")
+    lines.append(f"       structural verdict           = "
+                 f"accept:{p5_acc} defer:{p5_dfr} block:{p5_blk}")
+    lines.append(f"       mufrad_word_prior_type       = "
+                 f"{', '.join(p5_types) if p5_types else '—'} (structural, input-dependent)")
+    lines.append(f"       residuals                    = "
+                 f"{', '.join(p5_res) if p5_res else 'none'}")
+    lines.append(f"       final lexical word / مفرد    = none (WordCandidate forbidden)")
     lines.append(f"       dictionary entry / morphology = none")
     lines.append(f"       opened priors                = "
-                 f"{', '.join(p5_priors) if p5_priors else '—'}")
+                 f"{', '.join(p5_priors) if p5_priors else '—'} (ACCEPT only)")
     p6_priors, _ = _opened_priors_and_types(steps, _VERBAL)
-    lines.append("   SCG-P6 verbal signified :")
-    lines.append(f"       VerbalSignifiedCandidate     = {counts[_VERBAL]} (candidate-only)")
+    p6_types = sorted({t.split(":", 1)[1] for s in steps if s.candidate_type == _VERBAL
+                       for t in s.trace_ids if t.startswith("verbal_signified_prior_type:")})
+    p6_acc, p6_dfr, p6_blk, p6_res = _layer_status_breakdown(reports, "VerbalSignifiedQiyas")
+    counts["_P6_DEFER"] = p6_dfr
+    counts["_P6_BLOCK"] = p6_blk
+    lines.append("   SCG-P6 verbal signified (information-gain) :")
+    lines.append(f"       VerbalSignifiedCandidate(acc)= {counts[_VERBAL]} (candidate-only)")
+    lines.append(f"       structural verdict           = "
+                 f"accept:{p6_acc} defer:{p6_dfr} block:{p6_blk}")
+    lines.append(f"       verbal_signified_prior_type  = "
+                 f"{', '.join(p6_types) if p6_types else '—'} (structural, input-dependent)")
+    lines.append(f"       residuals                    = "
+                 f"{', '.join(p6_res) if p6_res else 'none'}")
     lines.append(f"       opened priors                = "
-                 f"{', '.join(p6_priors) if p6_priors else '—'}")
+                 f"{', '.join(p6_priors) if p6_priors else '—'} (ACCEPT only)")
+    lines.append(f"       final فعل / verb / tense     = none (pre-semantic, structural)")
     lines.append(f"       MeaningCandidate             = not_introduced")
     lines.append(f"       DalalahJudgment              = not_introduced")
     p7_priors, _ = _opened_priors_and_types(steps, _COMPREADY)
-    lines.append("   SCG-P7 composition readiness :")
-    lines.append(f"       CompositionReadinessCandidate= {counts[_COMPREADY]} (candidate-only)")
-    lines.append(f"       actual composition / syntax  = none")
+    p7_types = sorted({t.split(":", 1)[1] for s in steps if s.candidate_type == _COMPREADY
+                       for t in s.trace_ids if t.startswith("composition_readiness_prior_type:")})
+    p7_acc, p7_dfr, p7_blk, p7_res = _layer_status_breakdown(reports, "CompositionReadinessQiyas")
+    counts["_P7_DEFER"] = p7_dfr
+    counts["_P7_BLOCK"] = p7_blk
+    lines.append("   SCG-P7 composition readiness (information-gain) :")
+    lines.append(f"       CompositionReadinessCand(acc)= {counts[_COMPREADY]} (candidate-only)")
+    lines.append(f"       structural verdict           = "
+                 f"accept:{p7_acc} defer:{p7_dfr} block:{p7_blk}")
+    lines.append(f"       composition_readiness_prior  = "
+                 f"{', '.join(p7_types) if p7_types else '—'} (structural, input-dependent)")
+    lines.append(f"       residuals                    = "
+                 f"{', '.join(p7_res) if p7_res else 'none'}")
+    lines.append(f"       actual composition / syntax  = none (readiness gate only)")
     lines.append(f"       amil/mamul / i'rab           = none")
     lines.append(f"       opened priors                = "
-                 f"{', '.join(p7_priors) if p7_priors else '—'}")
-    lines.append("   SCG-P8+ :")
-    lines.append(f"       AmilMamulCandidate           = not_introduced")
+                 f"{', '.join(p7_priors) if p7_priors else '—'} (ACCEPT only)")
+    p8_priors, _ = _opened_priors_and_types(steps, _AMIL)
+    p8_types = sorted({t.split(":", 1)[1] for s in steps if s.candidate_type == _AMIL
+                       for t in s.trace_ids if t.startswith("amil_mamul_prior_type:")})
+    p8_acc, p8_dfr, p8_blk, p8_res = _layer_status_breakdown(reports, "AmilMamulQiyas")
+    counts["_P8_DEFER"] = p8_dfr
+    counts["_P8_BLOCK"] = p8_blk
+    lines.append("   SCG-P8 amil/mamul (information-gain) :")
+    lines.append(f"       AmilMamulCandidate (accept)  = {counts[_AMIL]} (candidate-only)")
+    lines.append(f"       structural verdict           = "
+                 f"accept:{p8_acc} defer:{p8_dfr} block:{p8_blk}")
+    lines.append(f"       amil_mamul_prior_type        = "
+                 f"{', '.join(p8_types) if p8_types else '—'} (structural, input-dependent)")
+    lines.append(f"       residuals                    = "
+                 f"{', '.join(p8_res) if p8_res else 'none'}")
+    lines.append(f"       actual i'rab / case / amil   = none (relation-possibility only)")
+    lines.append(f"       opened priors                = "
+                 f"{', '.join(p8_priors) if p8_priors else '—'} (ACCEPT only)")
+    lines.append(f"       IrabCandidate                = not_introduced")
+    lines.append(f"       MeaningCandidate             = not_introduced")
+    lines.append(f"       HukmCandidate                = not_introduced")
+    lines.append("   SCG-P9+ :")
     lines.append(f"       SentenceGeometryCandidate    = not_introduced")
     lines.append(f"       IrabGeometryCandidate        = not_introduced")
     lines.append(f"   higher-layer candidates present : "
@@ -211,20 +324,21 @@ def render_token(token: str) -> tuple[str, dict, set]:
 
 
 def render_registry_state() -> str:
-    reg = build_p7_implemented_registry()
+    reg = build_p8_implemented_registry()
     by_phase: dict[str, list] = {}
     for s in reg.all_layers():
         by_phase.setdefault(s.phase, []).append(s.status)
     kp = lambda p: int(p.split("P")[1])
     impl = lambda ph: all(st is LayerStatus.IMPLEMENTED for st in by_phase.get(ph, []))
-    p8_p12_spec = all(
+    p9_p12_spec = all(
         st is LayerStatus.SPECIFIED
         for ph, sts in by_phase.items()
-        if ph not in ("SCG-P0", "SCG-P1", "SCG-P2", "SCG-P3", "SCG-P4", "SCG-P5", "SCG-P6", "SCG-P7")
+        if ph not in ("SCG-P0", "SCG-P1", "SCG-P2", "SCG-P3", "SCG-P4",
+                      "SCG-P5", "SCG-P6", "SCG-P7", "SCG-P8")
         for st in sts
     )
     count = sum(len(v) for v in by_phase.values())
-    lines = ["── registry state (build_p7_implemented_registry)"]
+    lines = ["── registry state (build_p8_implemented_registry)"]
     for ph in sorted(by_phase, key=kp):
         vals = sorted({st.value for st in by_phase[ph]})
         lines.append(f"   {ph:8} {','.join(vals)} ({len(by_phase[ph])})")
@@ -236,10 +350,11 @@ def render_registry_state() -> str:
     lines.append(f"   P5 MufradWord IMPL            : {impl('SCG-P5')}")
     lines.append(f"   P6 VerbalSignified IMPL       : {impl('SCG-P6')}")
     lines.append(f"   P7 CompositionReadiness IMPL  : {impl('SCG-P7')}")
-    lines.append(f"   P8-P12 SPECIFIED              : {p8_p12_spec}")
+    lines.append(f"   P8 AmilMamul IMPL             : {impl('SCG-P8')}")
+    lines.append(f"   P9-P12 SPECIFIED              : {p9_p12_spec}")
     lines.append(f"   layer count                   : {count}")
-    lines.append(f"   freeze ACTIVE for P8-P12      : {p8_p12_spec} "
-                 f"(no P8+ layer is IMPLEMENTED)")
+    lines.append(f"   freeze ACTIVE for P9-P12      : {p9_p12_spec} "
+                 f"(no P9+ layer is IMPLEMENTED)")
     return "\n".join(lines)
 
 
@@ -249,17 +364,30 @@ def main(argv: list[str] | None = None) -> int:
     tokens = text.split()
 
     print("=" * 72)
-    print("SCG LADDER STATE — up to SCG-P7 (structural, potential-only)")
+    print("SCG LADDER STATE — up to SCG-P8 (structural, potential-only)")
     print("=" * 72)
 
     all_higher: set = set()
     total_slots = 0
     total_projections = 0
     total_rootstems = 0
+    total_rootstem_defer = 0
+    total_rootstem_block = 0
     total_jamid = 0
+    total_jamid_defer = 0
+    total_jamid_block = 0
     total_mufrad = 0
+    total_mufrad_defer = 0
+    total_mufrad_block = 0
     total_verbal = 0
+    total_verbal_defer = 0
+    total_verbal_block = 0
     total_compready = 0
+    total_compready_defer = 0
+    total_compready_block = 0
+    total_amil = 0
+    total_amil_defer = 0
+    total_amil_block = 0
     residual_tokens = []
     for tok in tokens:
         block, counts, higher = render_token(tok)
@@ -269,10 +397,23 @@ def main(argv: list[str] | None = None) -> int:
         total_slots += counts[_SLOT]
         total_projections += counts[_PROJECTION]
         total_rootstems += counts[_ROOTSTEM]
+        total_rootstem_defer += counts.get("_P3_DEFER", 0)
+        total_rootstem_block += counts.get("_P3_BLOCK", 0)
         total_jamid += counts[_JAMID]
+        total_jamid_defer += counts.get("_P4_DEFER", 0)
+        total_jamid_block += counts.get("_P4_BLOCK", 0)
         total_mufrad += counts[_MUFRAD]
+        total_mufrad_defer += counts.get("_P5_DEFER", 0)
+        total_mufrad_block += counts.get("_P5_BLOCK", 0)
         total_verbal += counts[_VERBAL]
+        total_verbal_defer += counts.get("_P6_DEFER", 0)
+        total_verbal_block += counts.get("_P6_BLOCK", 0)
         total_compready += counts[_COMPREADY]
+        total_compready_defer += counts.get("_P7_DEFER", 0)
+        total_compready_block += counts.get("_P7_BLOCK", 0)
+        total_amil += counts[_AMIL]
+        total_amil_defer += counts.get("_P8_DEFER", 0)
+        total_amil_block += counts.get("_P8_BLOCK", 0)
         if counts[_SLOT] == 0:
             residual_tokens.append(tok)
 
@@ -281,13 +422,26 @@ def main(argv: list[str] | None = None) -> int:
     print("── aggregate")
     print(f"   total SlotCandidate count          : {total_slots}")
     print(f"   total RegistryProjectionCandidate  : {total_projections}")
-    print(f"   total RootStemCandidate            : {total_rootstems} (candidate-only)")
-    print(f"   total JamidMushtaqCandidate        : {total_jamid} (candidate-only)")
-    print(f"   total MufradWordCandidate          : {total_mufrad} (candidate-only)")
-    print(f"   total VerbalSignifiedCandidate     : {total_verbal} (candidate-only)")
-    print(f"   total CompositionReadinessCandidate: {total_compready} (candidate-only)")
+    print(f"   total RootStemCandidate (accepted) : {total_rootstems} (candidate-only)")
+    print(f"   total RootStem deferred/blocked    : "
+          f"defer={total_rootstem_defer} block={total_rootstem_block} (P3 discrimination)")
+    print(f"   total JamidMushtaqCandidate (accept): {total_jamid} (candidate-only)")
+    print(f"   total JamidMushtaq deferred/blocked: "
+          f"defer={total_jamid_defer} block={total_jamid_block} (P4 discrimination)")
+    print(f"   total MufradWordCandidate (accept) : {total_mufrad} (candidate-only)")
+    print(f"   total MufradWord deferred/blocked  : "
+          f"defer={total_mufrad_defer} block={total_mufrad_block} (P5 discrimination)")
+    print(f"   total VerbalSignifiedCandidate(acc): {total_verbal} (candidate-only)")
+    print(f"   total VerbalSignified def/blocked  : "
+          f"defer={total_verbal_defer} block={total_verbal_block} (P6 discrimination)")
+    print(f"   total CompositionReadinessCand(acc): {total_compready} (candidate-only)")
+    print(f"   total CompositionReadiness def/blk : "
+          f"defer={total_compready_defer} block={total_compready_block} (P7 discrimination)")
+    print(f"   total AmilMamulCandidate (accept)  : {total_amil} (candidate-only)")
+    print(f"   total AmilMamul deferred/blocked   : "
+          f"defer={total_amil_defer} block={total_amil_block} (P8 discrimination)")
     print(f"   tokens with no SlotCandidate       : {residual_tokens or 'none'}")
-    print(f"   P8+/semantic candidates seen       : {sorted(all_higher) if all_higher else 'none'}")
+    print(f"   P9+/semantic candidates seen       : {sorted(all_higher) if all_higher else 'none'}")
     print(f"   higher semantic statuses           : not_introduced "
           f"(constant: {NOT_INTRODUCED})")
     return 0
