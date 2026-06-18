@@ -138,13 +138,13 @@ def test_P1_IMPL_GATE_02_position_origin_is_cts_intra():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_P1_IMPL_NOFULL_01_no_full_p1_or_p3_implemented_builders():
-    # The slot-only partial (PR-3) and build_p2_implemented_registry (SCG-P2,
-    # 2026-06-18) are authorized; only the FULL build_p1_implemented_registry and
-    # any P3+ implemented builder remain forbidden.
+def test_P1_IMPL_NOFULL_01_no_full_p1_or_p4_implemented_builders():
+    # Partial slot builder (PR-3), build_p2_implemented_registry (SCG-P2) and
+    # build_p3_implemented_registry (SCG-P3, 2026-06-18) are authorized; only the
+    # FULL build_p1_implemented_registry and any P4+ implemented builder remain forbidden.
     for name in (
         "build_p1_implemented_registry",
-        "build_p3_implemented_registry",
+        "build_p4_implemented_registry",
     ):
         assert not hasattr(MRS, name), name
 

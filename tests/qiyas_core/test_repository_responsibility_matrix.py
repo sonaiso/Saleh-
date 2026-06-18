@@ -221,6 +221,8 @@ class TestRec1FreezeEnforcedInWorkingTree:
             # SCG-P2 builds on the full P1 chain, so all five P1 layers are
             # IMPLEMENTED under it (P2 itself is not a P1 layer; freeze for P3+ holds).
             "build_p2_implemented_registry": {LETTER, HARAKA, CTS, POSITION, SLOT},
+            # SCG-P3 builds on P2 (and thus the full P1 chain) — same P1 set.
+            "build_p3_implemented_registry": {LETTER, HARAKA, CTS, POSITION, SLOT},
         }
         builders = [
             (name, value)

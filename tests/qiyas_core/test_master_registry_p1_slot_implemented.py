@@ -118,10 +118,10 @@ def test_P1_IMPL_NOFULL_01_no_full_p1_implemented_builder():
     assert not hasattr(MRS, "build_p1_implemented_registry")
 
 
-def test_P1_IMPL_NOFULL_02_no_full_p1_or_p3_implemented_builder():
-    # build_p2_implemented_registry is authorized as of SCG-P2 (2026-06-18).
+def test_P1_IMPL_NOFULL_02_no_full_p1_or_p4_implemented_builder():
+    # build_p2/build_p3_implemented_registry are authorized as of SCG-P2/P3.
     assert not hasattr(MRS, "build_p1_implemented_registry")
-    assert not hasattr(MRS, "build_p3_implemented_registry")
+    assert not hasattr(MRS, "build_p4_implemented_registry")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
