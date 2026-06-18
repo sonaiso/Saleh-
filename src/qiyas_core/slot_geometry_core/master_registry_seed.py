@@ -1785,6 +1785,41 @@ def build_p7_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرّف طبقة العامل/المعمول في SCG-P8 (AmilMamul)
+_P8_AMIL_MAMUL_IDS: tuple[str, ...] = (LAYER_ID_P8_AMIL_MAMUL,)
+
+
+def build_p8_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P8 (AmilMamul) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P8 فقط (2026-06-18): يُقدِّم **فقط**
+    P8_AMIL_MAMUL من SPECIFIED إلى IMPLEMENTED، فوق P7 المُنفَّذة. بوابة التبعية
+    تتحقق: أصل P8 هو CompositionReadinessCandidate (CROSS من مرحلة P7 المُنفَّذة
+    بالكامل) → التقدم مرخّص.
+
+    P8 = طبقة **إمكان** علاقة العامل/المعمول البنيوية (candidate-only). تجيب فقط
+    عن العلاقات البنيوية المقبولة بين المرشّحات؛ ليست حكمًا إعرابيًا ولا نحويًا ولا
+    معنى ولا حكمًا ولا تفسيرًا. تفتح grammatical-relation + i'rab **priors** فقط؛
+    لا تُنتج IrabCandidate ولا أي مخرج لاحق.
+
+    Non-Goals (P8):
+        لا تُنفِّذ P9 (SentenceGeometryCandidate تبقى SPECIFIED).
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P9-P12 (تبقى SPECIFIED).
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0-P7 IMPLEMENTED؛ P8 IMPLEMENTED؛ P9-P12
+        SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p7_implemented_registry()
+    for layer_id in _P8_AMIL_MAMUL_IDS:
+        # SPECIFIED → IMPLEMENTED — P8 وحدها (CROSS من مرحلة P7 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.
