@@ -251,6 +251,34 @@ FORBIDDEN_ROOT_STEM: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# JamidMushtaq layer (SCG-P4) — opens a structural derivation-class POSSIBILITY
+# only. It is NOT the final judgment that the word IS jamid or mushtaq
+# (WordTypeJudgment forbidden), NOT wazn, NOT morphology, NOT meaning.
+FORBIDDEN_JAMID_MUSHTAQ: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Exact downstream canonical output types (SCG-P5..P12) — no-jump.
+    "MufradWordCandidate",          # SCG-P5
+    "VerbalSignifiedCandidate",     # SCG-P6
+    "CompositionReadinessCandidate",  # SCG-P7
+    "AmilMamulCandidate",           # SCG-P8
+    "SentenceGeometryCandidate",    # SCG-P9
+    "RelationGeometryCandidate",    # SCG-P10
+    "IrabGeometryCandidate",        # SCG-P11
+    "IfadahCandidate",              # SCG-P12
+    # Final جامد/مشتق judgment + morphology + wazn + word + meaning (never produced).
+    "WordTypeJudgment",             # final jamid/mushtaq judgment
+    "RootCandidate",
+    "WeightCandidate",              # wazn
+    "FormCandidate",
+    "WordCandidate",
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "IrabCandidate",
+    "CaseEffect",
+    "Irab",
+    "SlotGeometry",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -260,6 +288,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "SlotQiyas": FORBIDDEN_SLOT,
     "RegistryProjectionQiyas": FORBIDDEN_REGISTRY_PROJECTION,
     "RootStemQiyas": FORBIDDEN_ROOT_STEM,
+    "JamidMushtaqQiyas": FORBIDDEN_JAMID_MUSHTAQ,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,
