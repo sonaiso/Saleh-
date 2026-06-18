@@ -223,6 +223,34 @@ FORBIDDEN_REGISTRY_PROJECTION: tuple[str, ...] = (
     "Irab",
 )
 
+# RootStem layer (SCG-P3) — closes a structural root/stem POSSIBILITY only.
+# Forbids every downstream canonical type (no-jump) AND every final-root / wazn /
+# morphology / word / meaning output (RootStemCandidate is a structural candidate,
+# NOT a final root: RootCandidate/WeightCandidate are therefore forbidden).
+FORBIDDEN_ROOT_STEM: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Exact downstream canonical output types (SCG-P4..P12) — no-jump.
+    "JamidMushtaqCandidate",        # SCG-P4
+    "MufradWordCandidate",          # SCG-P5
+    "VerbalSignifiedCandidate",     # SCG-P6
+    "CompositionReadinessCandidate",  # SCG-P7
+    "AmilMamulCandidate",           # SCG-P8
+    "SentenceGeometryCandidate",    # SCG-P9
+    "RelationGeometryCandidate",    # SCG-P10
+    "IrabGeometryCandidate",        # SCG-P11
+    "IfadahCandidate",              # SCG-P12
+    # Final-root / wazn / morphology / word / meaning (never produced).
+    "RootCandidate",                # final root judgment (≠ structural RootStemCandidate)
+    "WeightCandidate",              # wazn
+    "FormCandidate",
+    "WordCandidate",
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "CaseEffect",
+    "Irab",
+    "SlotGeometry",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -231,6 +259,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "ConditionedTypedSequenceQiyas": FORBIDDEN_CONDITIONED_TYPED_SEQUENCE,
     "SlotQiyas": FORBIDDEN_SLOT,
     "RegistryProjectionQiyas": FORBIDDEN_REGISTRY_PROJECTION,
+    "RootStemQiyas": FORBIDDEN_ROOT_STEM,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,

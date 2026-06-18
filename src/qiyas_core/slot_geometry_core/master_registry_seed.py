@@ -1611,6 +1611,41 @@ def build_p2_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرّف طبقة إغلاق الجذر/الساق في SCG-P3 (RootStemClosure)
+_P3_ROOT_STEM_IDS: tuple[str, ...] = (LAYER_ID_P3_ROOT_STEM_CLOSURE,)
+
+
+def build_p3_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P3 (RootStemClosure) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P3 فقط (2026-06-18): يُقدِّم **فقط**
+    P3_ROOT_STEM_CLOSURE من SPECIFIED إلى IMPLEMENTED، فوق P2 المُنفَّذة. بوابة
+    التبعية تتحقق: أصل P3 هو RegistryProjectionCandidate (CROSS من مرحلة P2
+    المُنفَّذة بالكامل) → التقدم مرخّص.
+
+    P3 = إغلاق **إمكان** جذر/ساق بنيوي من إسقاط هندسة الـ Slots — candidate-only.
+    ليس استخراج جذر نهائي، ليس وزنًا، ليس صرفًا، ليس كلمة، ليس معنى. يفتح
+    jamid/mushtaq + word-pattern **priors** فقط؛ لا يُنتج JamidMushtaqCandidate.
+
+    Non-Goals (P3):
+        لا تُنفِّذ P4 (JamidMushtaqCandidate تبقى SPECIFIED).
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P4-P12 (تبقى SPECIFIED).
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+        لا جذر نهائي/وزن/صرف/كلمة/معنى/حكم/إعراب/دلالة.
+
+    Returns:
+        MasterLayerRegistry مع P0/P1/P2 IMPLEMENTED؛ P3_ROOT_STEM_CLOSURE
+        IMPLEMENTED؛ P4-P12 SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p2_implemented_registry()
+    for layer_id in _P3_ROOT_STEM_IDS:
+        # SPECIFIED → IMPLEMENTED — P3 وحدها (CROSS من مرحلة P2 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.

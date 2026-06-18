@@ -64,6 +64,7 @@ from qiyas_core.kernel import QiyasKernel
 from qiyas_core.letter_identity_adapter import LetterIdentityLayerAdapter
 from qiyas_core.position_adapter import PositionLayerAdapter
 from qiyas_core.registry_projection_adapter import RegistryProjectionLayerAdapter
+from qiyas_core.root_stem_adapter import RootStemLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -103,6 +104,7 @@ class PipelineLayers:
     cts_layer: ConditionedTypedSequenceLayerAdapter
     slot_layer: SlotLayerAdapter
     registry_projection_layer: RegistryProjectionLayerAdapter
+    root_stem_layer: RootStemLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -117,6 +119,7 @@ class PipelineLayers:
             cts_layer=ConditionedTypedSequenceLayerAdapter(kernel=kernel),
             slot_layer=SlotLayerAdapter(kernel=kernel),
             registry_projection_layer=RegistryProjectionLayerAdapter(kernel=kernel),
+            root_stem_layer=RootStemLayerAdapter(kernel=kernel),
         )
 
 
@@ -475,6 +478,19 @@ def process_text(
                         report.steps.append(
                             LayerStep.from_set("RegistryProjectionQiyas", rp_set)
                         )
+
+                        # SCG-P3 — RootStemQiyas: close a structural root/stem
+                        # POSSIBILITY from the projection (candidate-only; opens
+                        # jamid/mushtaq + word-pattern priors; never produces a
+                        # final root, wazn, word, or any P4+ candidate).
+                        rp_cand = _accepted(rp_set)
+                        if rp_cand is not None:
+                            rs_set = layers.root_stem_layer.close(
+                                rp_cand, trace_prefix=f"text[{i}]:rs:{cp:04x}"
+                            )
+                            report.steps.append(
+                                LayerStep.from_set("RootStemQiyas", rs_set)
+                            )
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).
