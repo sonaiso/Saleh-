@@ -218,6 +218,9 @@ class TestRec1FreezeEnforcedInWorkingTree:
             "build_p1_sequence_position_implemented_registry": {LETTER, HARAKA, CTS, POSITION},
             # PR-3 completes P1: SlotCandidate joins the carriers (all five P1 IMPLEMENTED).
             "build_p1_slot_implemented_registry": {LETTER, HARAKA, CTS, POSITION, SLOT},
+            # SCG-P2 builds on the full P1 chain, so all five P1 layers are
+            # IMPLEMENTED under it (P2 itself is not a P1 layer; freeze for P3+ holds).
+            "build_p2_implemented_registry": {LETTER, HARAKA, CTS, POSITION, SLOT},
         }
         builders = [
             (name, value)

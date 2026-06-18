@@ -1576,6 +1576,41 @@ def build_p1_slot_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرّف طبقة الإسقاط في SCG-P2 (RegistryProjection)
+_P2_PROJECTION_IDS: tuple[str, ...] = (LAYER_ID_P2_REGISTRY_PROJECTION,)
+
+
+def build_p2_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P2 فقط (2026-06-18): يُقدِّم **فقط**
+    P2_REGISTRY_PROJECTION من SPECIFIED إلى IMPLEMENTED، فوق مرحلة P1 المكتملة
+    التنفيذ (الطبقات الخمس). بوابة التبعية تتحقق: أصل P2 هو SlotCandidate (CROSS
+    من مرحلة P1 المُنفَّذة بالكامل) → التقدم مرخّص.
+
+    P2 = إسقاط هندسة الـ Slots على أصناف عضوية بنيوية مسجّلة (registry membership
+    classes) — لا جذر، لا وزن، لا كلمة، لا معنى. candidate-only؛ يفتح
+    root/stem + word-type **priors** فقط؛ لا يُنتج RootStemCandidate.
+
+    Non-Goals (P2):
+        لا تُنفِّذ P3 (RootStemCandidate تبقى SPECIFIED).
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P3-P12 (تبقى SPECIFIED).
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+        لا جذر/وزن/صرف/كلمة/معنى/حكم/إعراب/دلالة.
+
+    Returns:
+        MasterLayerRegistry مع P0 IMPLEMENTED؛ P1 (الخمس) IMPLEMENTED؛
+        P2_REGISTRY_PROJECTION IMPLEMENTED؛ P3-P12 SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p1_slot_implemented_registry()
+    for layer_id in _P2_PROJECTION_IDS:
+        # SPECIFIED → IMPLEMENTED — P2 وحدها (CROSS من مرحلة P1 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.

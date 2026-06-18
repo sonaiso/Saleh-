@@ -127,10 +127,11 @@ def test_P1_IMPL_NOFULL_01_no_full_p1_implemented_builder():
 def test_P1_IMPL_NOFULL_02_no_downstream_implemented_builders():
     # NOTE: build_p1_slot_implemented_registry is authorized as of SCG-P1 PR-3
     # (slot-only partial); it is intentionally NOT listed as forbidden here.
+    # build_p2_implemented_registry is authorized as of SCG-P2 (2026-06-18).
     for name in (
         "build_p1_conditioned_typed_sequence_implemented_registry",
         "build_p1_position_implemented_registry",
-        "build_p2_implemented_registry",
+        "build_p3_implemented_registry",
     ):
         assert not hasattr(MRS, name), name
 

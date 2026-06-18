@@ -197,6 +197,32 @@ FORBIDDEN_HARAKA_ROLE_SPECTRUM: tuple[str, ...] = (
 # Registry mapping layer name → forbidden tuple
 # ---------------------------------------------------------------------------
 
+# RegistryProjection layer (SCG-P2) — projects slot geometry onto registry
+# membership classes only. Forbids every downstream canonical type (no-jump) and
+# every morphological / lexical / semantic output (no early الأصل-الثالث leak).
+FORBIDDEN_REGISTRY_PROJECTION: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Exact downstream canonical output types (SCG-P3..P12) — no-jump.
+    "RootStemCandidate",            # SCG-P3
+    "JamidMushtaqCandidate",        # SCG-P4
+    "MufradWordCandidate",          # SCG-P5
+    "VerbalSignifiedCandidate",     # SCG-P6
+    "CompositionReadinessCandidate",  # SCG-P7
+    "AmilMamulCandidate",           # SCG-P8
+    "SentenceGeometryCandidate",    # SCG-P9
+    "RelationGeometryCandidate",    # SCG-P10
+    "IrabGeometryCandidate",        # SCG-P11
+    "IfadahCandidate",              # SCG-P12
+    # Morphological / lexical / grammatical / semantic outputs (never produced).
+    "SlotGeometry",
+    "RootCandidate",
+    "WeightCandidate",
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "CaseEffect",
+    "Irab",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -204,6 +230,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "PositionQiyas": FORBIDDEN_POSITION,
     "ConditionedTypedSequenceQiyas": FORBIDDEN_CONDITIONED_TYPED_SEQUENCE,
     "SlotQiyas": FORBIDDEN_SLOT,
+    "RegistryProjectionQiyas": FORBIDDEN_REGISTRY_PROJECTION,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,
