@@ -2,8 +2,8 @@
 
 > **Paper-facing draft.** Publication-oriented prose distilled from the landed
 > runtime. **Not a constitution and not a new theory/name** — descriptive of
-> behavior already on `main`. Internal reference:
-> `docs/qiyas_core/SCG_P3_P8_INFORMATION_GAIN_CASCADE.md`.
+> behavior already on `main`, and subordinate to the existing layer constitutions.
+> Internal reference: `docs/qiyas_core/SCG_P3_P8_INFORMATION_GAIN_CASCADE.md`.
 
 ## Abstract
 
@@ -100,51 +100,141 @@ end.
    admissibility from semantic interpretation, with an explicit specification of
    what the cascade refuses to do.
 
-**Outline.** Section 2 defines forwarding vs information-gain layers and the
-cascade. Section 3 details the six stages and their verdict rules. Section 4
-presents the behavioral evidence and per-token trace. Section 5 states the safety
-boundary and its enforcement. Section 6 discusses limitations and the bridge to
-the first multi-unit, sentence-geometry stage, which we leave to future work.
+**Outline.** Section 2 situates the work. Section 3 distinguishes forwarding from
+information-gain layers, and Section 4 formalizes the cascade. Section 5 details
+the six stages and their verdict rules. Section 6 presents the behavioral evidence
+and per-token trace. Section 7 states the safety boundary and its enforcement.
+Section 8 discusses limitations and the bridge to the first multi-unit,
+sentence-geometry stage, which we leave to future work.
 
-## 2. Forwarding versus information-gain layers
+## 2. Related work
+
+We situate the cascade against broad families of prior approaches rather than an
+exhaustive bibliography; the intended contribution is narrow.
+
+*Traditional Arabic morphological analysis and root/pattern pipelines*
+[ArabicMorphology] recover a root and a pattern (*wazn*) and commit to them as the
+backbone of subsequent analysis. *Finite-state and rule-based morphology*
+[FiniteStateMorphology] compile such analyses into transducers that are efficient
+and inspectable, but typically emit committed analyses rather than graded,
+deferrable structural licenses. *Dependency and syntactic pipelines*
+[DependencyParsing] assign labels (heads, relations, cases) and propagate them
+downstream, so an early label becomes a hard commitment carried by later stages.
+*Neural and LLM approaches* [NeuralArabicNLP] produce fluent interpretations and
+strong end-task performance, but their intermediate computations are not
+proof-relevant: the boundary between structural admissibility and asserted meaning
+is not explicit, and per-step evidence and refusals are not first-class. In a
+different tradition, *type-theoretic and proof-relevant systems*
+[ProofRelevantSystems] keep judgments and their evidence explicit, so that each
+step records what was proved and what remains open; and *algebraic or structured
+representations of linguistic form* [AlgebraicLinguisticStructure] model
+form-level composition as operations on structured objects.
+
+Our contribution is positioned narrowly and without a claim of superiority over
+any of these. SCG-P3…P8 contributes a *proof-relevant, identity-preserving,
+potential-only structural front end* whose intermediate layers are *falsifiable
+decision procedures* — they can refuse and defer, and their discrimination is
+observable as candidate-set contraction — rather than forwarding stages that
+re-label a fixed candidate set. It does not attempt the morphological,
+syntactic, or semantic commitments those other approaches target; it conditions
+them while keeping the structural/semantic boundary explicit.
+
+## 3. Forwarding versus information-gain layers
 
 The distinction between a forwarding stage and an information-gain stage is
 operational and falsifiable. A forwarding stage maps every accepted input to one
 accepted output, contributing provenance but no discrimination; an information-gain
 stage *partitions* its candidate set — it can refuse inputs — and that partition is
-what changes the candidate distribution.
+what changes the candidate distribution. The next section makes this precise.
 
-> **Definition — Information-Gain Layer.**
-> A layer $L_n$ is an *information-gain layer*, relative to its upstream layer
-> $L_{n-1}$, iff:
-> 1. it reads the structural evidence emitted by $L_{n-1}$;
-> 2. it returns one of ACCEPT / DEFER / BLOCK through the kernel; and
-> 3. there exists at least one admissible upstream input that $L_n$ does **not** ACCEPT.
->
-> A *forwarding layer* is the degenerate case in which every accepted upstream
-> input is mapped to an accepted downstream candidate, with no partition of the
-> candidate set (condition 3 fails).
+## 4. Formal model
 
-## 3. The cascade: six graded stages
+We model the pipeline as a sequence of layers over typed candidates. The model is
+deliberately minimal; it formalizes the distinctions used in the rest of the paper.
 
-Each stage $P_n$ reads the structural evidence emitted by $P_{n-1}$ directly off
+**Candidate identity.** A candidate `c` carries two disjoint components: a
+preserved *source identity* `I(c)` and a *trace* `T(c)`, with `I(c) ∩ T(c) = ∅`.
+Identity records what the candidate *is* (its inherited source references); trace
+records *how* it came to be (evidence, signatures, opened priors). Layers may add
+trace but must preserve identity: for a downstream candidate `c_n` derived from
+`c_{n-1}`, `I(c_{n-1}) ⊆ I(c_n)`.
+
+**Verdict.** Each layer returns one of three values:
+
+```
+Verdict = ACCEPT | DEFER | BLOCK
+```
+
+**Layer.** A layer `L_n` maps an upstream candidate to a verdict, an *optional*
+downstream candidate (present only on ACCEPT, written `⊥` when absent), and a
+residual set:
+
+```
+L_n : C_{n-1}  →  Verdict × (C_n ∪ {⊥}) × Residual
+```
+
+ACCEPT yields a downstream candidate in `C_n` and may attach licensed priors; DEFER
+and BLOCK yield `⊥` (no downstream candidate) and a non-empty residual recording,
+respectively, under-determination or structural contradiction.
+
+**Forwarding layer.** `L_n` is a *forwarding* layer iff, for every admissible
+upstream candidate `c ∈ C_{n-1}`, `L_n(c)` returns `ACCEPT` and exactly one
+downstream candidate — i.e. it never returns DEFER or BLOCK and induces no
+partition of the admissible set.
+
+**Information-gain layer.** `L_n` is an *information-gain* layer, relative to
+`L_{n-1}`, iff:
+
+1. it reads the structural evidence emitted by `L_{n-1}` (it is a function of
+   `T(c)`/`I(c)` of its input, not a constant);
+2. it returns `ACCEPT | DEFER | BLOCK` through the kernel; and
+3. there exists at least one admissible upstream input `c` with
+   `L_n(c) ≠ ACCEPT`.
+
+Condition (3) is exactly what a forwarding layer lacks; it is the falsifiable core
+of the definition.
+
+**Potential-only safety.** Let `Forbidden` be the set of final semantic,
+syntactic, i'rab, hukm, reality, and final-meaning object types. For every layer
+and every verdict, the emitted candidate type is required to lie outside
+`Forbidden`: an `ACCEPT` may *open licensed priors* toward downstream questions,
+but it must not emit any object in `Forbidden`. This is checked per layer, so the
+property holds regardless of input — even an erroneous verdict can at most open a
+prior, never assert a final judgment.
+
+**Monotone accepted-count contraction.** Fix a probe and let `A_n` be the number
+of *accepted* candidates produced at stage `n`. Across the cascade we observe
+
+```
+A_3 → A_4 → A_5 → A_6 → A_7 → A_8  =  10 → 9 → 9 → 7 → 5 → 3
+```
+
+A strict drop `A_n < A_{n-1}` is behavioral evidence that `L_n` partitioned its
+input (a forwarding layer would force `A_n = A_{n-1}`). The converse does not
+hold: `A_n = A_{n-1}` on a *single* probe (here `A_5 = A_4 = 9`) does **not** refute
+information gain, because the property is function-level — it suffices that *some*
+admissible input is not accepted. P5's discrimination is witnessed on a separately
+constructed thin input, a function-level counterexample, even though it drops no
+candidate on this particular probe.
+
+## 5. The cascade: six graded stages
+
+Each stage `P_n` reads the structural evidence emitted by `P_{n-1}` directly off
 the candidate it receives — a CV signature and derived geometric features
 (consonant count, vowel count, gemination, short-vowel cadence, boundary/ending) —
 and computes a small stage-specific sub-profile. It then returns one of three
 verdicts through the proof kernel: **ACCEPT** (the geometry licenses this stage's
 structural opening), **DEFER** (admissible but under-determined; residual
 preserved, no downstream opening), or **BLOCK** (a structural contradiction;
-residual preserved). DEFER and BLOCK are not cosmetic: they separate "not yet
-warranted" from "impossible," a distinction a proof-relevant pipeline must keep.
-The six questions are strictly graded — root/stem closure (P3) → derivation
-skeleton (P4) → isolated word-unit body (P5) → verbal-signification carrier (P6)
-→ composition boundary (P7) → operator–operand relation possibility (P8) — so the
-cascade computes a *graded structural license*, each stage presupposing and
-refining the one below. (The exact per-stage verdict thresholds and
-input-dependent structural `prior_type` selections are given in the internal
-reference note `docs/qiyas_core/SCG_P3_P8_INFORMATION_GAIN_CASCADE.md`.)
+residual preserved). The six questions are strictly graded — root/stem closure
+(P3) → derivation skeleton (P4) → isolated word-unit body (P5) →
+verbal-signification carrier (P6) → composition boundary (P7) → operator–operand
+relation possibility (P8) — so the cascade computes a *graded structural license*,
+each stage presupposing and refining the one below. (The exact per-stage verdict
+thresholds and input-dependent structural `prior_type` selections are given in the
+internal reference note `docs/qiyas_core/SCG_P3_P8_INFORMATION_GAIN_CASCADE.md`.)
 
-## 4. Behavioral evidence
+## 6. Behavioral evidence
 
 On a fixed probe the accepted-candidate count contracts monotonically across the
 cascade: **10 → 9 → 9 → 7 → 5 → 3** (P3 → P8). This contraction is the central
@@ -170,11 +260,10 @@ triliteral, short-vowel-cadence geometry passes all eight gates.
 
 Each token is eliminated at a *different* structural criterion, and only `ضَرَبَ`
 traverses all six stages — the qualitative outcome the cascade is designed to
-produce. (A stage that shows no drop on a given probe, e.g. P5 here, still
-exhibits discrimination on a constructed thin input, since information gain is a
-property of the decision function, not of any single sample.)
+produce. (As noted in Section 4, P5 shows no drop on this probe yet remains
+information-gain by a function-level counterexample.)
 
-## 5. Safety boundary
+## 7. Safety boundary
 
 Every feature consumed is structural CV-geometry, and every category emitted is a
 *structural* class, never a linguistic one (no noun/verb, jāmid/mushtaq, tense,
@@ -186,7 +275,7 @@ including the standing prohibition on final-judgment, reality, and final-meaning
 objects. Even an erroneous verdict therefore cannot cross the boundary: at worst
 it opens a prior; it can never assert a final reading.
 
-## 6. Limitations and the bridge to P9
+## 8. Limitations and the bridge to P9
 
 The cascade is single-unit and pre-relational. Its thresholds are structural
 heuristics over CV geometry, not learned parameters, and they are intentionally
