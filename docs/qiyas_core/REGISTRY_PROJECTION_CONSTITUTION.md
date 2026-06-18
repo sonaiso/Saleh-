@@ -5,6 +5,12 @@
 > (2026-06-15)**. SPEC ONLY — **no runtime, no adapter, no IMPLEMENTED status.**
 > Transition authored: `PLANNED → SPECIFIED` via `build_p2_specified_registry`.
 >
+> **SCG-P2 Semantic Fixation (2026-06-17, documentation only).** §§9–12 below fix
+> the *structural* meaning of `registry_entry_ref` and `membership_prior_type`
+> BEFORE any P2 runtime, so P2 is a real algebraic layer — "projection of slot
+> geometry onto registry membership classes" — and not a name wrapper. Still
+> SPEC/doc-only: no runtime, no `build_p2_implemented_registry`, no status change.
+>
 > **Authority:** `PROJECT_RECOVERY_CANONICAL_MAP.md` §4 (canonical phases) / §7
 > (REC queue) / §8 (supreme law); `LAYER_REGISTRY.md`; the SCG-P2-only
 > authorization. Canonical registry track only — **not** the runtime syllable
@@ -110,3 +116,129 @@ assign_root / assign_meaning / assign_irab`).
   a separate, explicit, narrow authorization (and P1 IMPLEMENTED first).
 
 Enforced by `tests/qiyas_core/test_master_registry_p2_specified.py` (`P2-SPEC-*`).
+
+---
+
+## 9. Structural semantics of `registry_entry_ref` and `membership_prior_type` (Semantic Fixation)
+
+SCG-P2 answers exactly **one** question:
+
+> **"To which registered *structural* membership class(es) could this geometry of
+> `SlotCandidate`s belong?"**
+
+It is a **projection of slot geometry onto registry membership classes** — nothing
+more. The two carried fields are defined **structurally**, never linguistically:
+
+### 9.1 `registry_entry_ref`
+A reference to a **registered structural-class entry** whose membership
+conditions the slot-sequence geometry satisfies. The match is computed **purely
+from structure carried up through `SlotCandidate`** — never from a lexicon,
+root table, or morphological pattern. A structural class is characterised by
+**property dimensions only** (not by a coined name):
+
+| Property dimension | Structural source (P0/P1) |
+| --- | --- |
+| **Slot count** | number of `SlotCandidate`s in the sequence |
+| **CV signature** | the licensed cell shapes (CV / CVV / CVC / CVVC / CVCC / CVVCC) |
+| **Boundary profile** | open vs closed final, tokenizer-segment framing |
+| **Gemination profile** | shadda (U+0651) present / absent (trace-level if expanded) |
+| **Long-vowel profile** | presence/position of long vowels (alif/waw/yaa as madd) |
+| **Alignment profile** | carrier-binding evidence pattern across the sequence |
+
+> **No registry of structural classes is established yet.** Therefore this
+> document **coins NO class names** (no `CLASS_X`, no `CLASS_Y`). A `registry_entry_ref`
+> points to *one or more registered structural classes whose membership
+> conditions are stated as the property combination above* — the concrete
+> registry is a later, separately-authorized artifact.
+
+### 9.2 `membership_prior_type`
+The **type/label of the structural-membership *prior*** opened by the projection
+— a prior that *licenses* downstream root/stem and word-type **hypotheses**, never
+a decision.
+
+> **Hard constraint:** `membership_prior_type` **is NOT a linguistic category.
+> It is a structural registry category.**
+>
+> - **Forbidden values:** `Verb`, `Noun`, `Particle`, `Derived`, `Jamid`,
+>   `Root`, `Wazn`, or any morphological/lexical/grammatical label — these would
+>   leak الأصل الثالث (root/word/meaning) into P2 prematurely.
+> - **Allowed value-shapes (structural only):** e.g.
+>   `StructuralMembershipClass`, `StructuralMembershipPrior`,
+>   `GeometryMembershipClass` — labels that name a *geometry membership*, not a
+>   linguistic identity.
+
+## 10. Worked structural examples (conditions only — no class names, no root/wazn/meaning)
+
+Each example states **only** the structural membership *conditions*; it assigns
+no class name, no root, no wazn, no word, no meaning.
+
+- **شَاذّ** → projects onto one or more registered structural classes whose
+  membership conditions include: **gemination present** (U+0651, trace
+  `شَاذّ → شَاذْذ`), **long-vowel present** (alif), **final closed boundary**
+  (covering shape `CVVCC`), **slot count = 2**.
+- **ضَرَبَ** → projects onto one or more registered structural classes whose
+  membership conditions include: **no gemination**, **no long vowel**, **all-open
+  CV cells** (`CV/CV/CV`), **slot count = 3**.
+- **بَاب** → projects onto one or more registered structural classes whose
+  membership conditions include: **no gemination**, **long-vowel present** (medial
+  alif), **final closed boundary** (covering shape `CVVC`), **slot count = 1**.
+
+In every case the output is a `RegistryProjectionCandidate` (candidate-only),
+preserving `slot_candidate_identity`, opening `root_stem_candidates` /
+`word_type_priors` as **priors**, and emitting **no** downstream candidate.
+
+## 11. Non-goals of P2 (mandatory)
+
+SCG-P2 does **NOT** answer any of the following:
+
+```text
+ما الجذر؟              (what is the root?)
+ما الوزن؟              (what is the wazn / morphological pattern?)
+هل الكلمة جامدة أم مشتقة؟ (is the word jamid or mushtaq?)
+هل هي اسم أم فعل؟       (is it a noun or a verb?)
+ما المعنى؟             (what is the meaning / dalalah?)
+ما الإعراب؟            (what is the i'rab?)
+ما الحكم؟              (what is the hukm?)
+```
+
+It answers **only**:
+
+```text
+ما هي العضويات البنيوية المحتملة التي يمكن أن تنتمي إليها
+هذه الهندسة المكوّنة من SlotCandidates؟
+(which potential STRUCTURAL memberships could this geometry of SlotCandidates belong to?)
+```
+
+Any value or output that answers a non-goal question is a constitutional
+violation, regardless of tests.
+
+## 12. Target tool output after P2 (`tools/qiyas_scg_ladder_state.py`)
+
+When P2 is later implemented, the ladder tool must show (for شَاذّ):
+
+```text
+شَاذّ
+
+LetterIdentityCarrier .......... 3
+HarakaMarkIdentityCarrier ...... 2
+ConditionedTypedSequence ....... OK
+PositionCarrier ................ 3
+SlotCandidate .................. 2
+
+RegistryProjectionCandidate .... 1
+
+Opened priors:
+- root_stem_candidates
+- word_type_priors
+
+RootStemCandidate .............. not_introduced
+JamidMushtaqCandidate .......... not_introduced
+MufradWordCandidate ............ not_introduced
+Meaning ........................ not_introduced
+Hukm ........................... not_introduced
+```
+
+That is: P1 ladder counts, then **`RegistryProjectionCandidate` count + the
+opened structural priors**, with `RootStemCandidate` and everything above still
+**`not_introduced`** — the rising SCG candidate ladder, layer after layer,
+without any early semantic/morphological leak.
