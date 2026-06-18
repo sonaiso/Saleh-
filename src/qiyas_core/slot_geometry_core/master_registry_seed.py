@@ -1751,6 +1751,40 @@ def build_p6_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+# معرّف طبقة استعداد التركيب في SCG-P7 (CompositionReadiness)
+_P7_COMPOSITION_READINESS_IDS: tuple[str, ...] = (LAYER_ID_P7_COMPOSITION_READINESS,)
+
+
+def build_p7_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P7 (CompositionReadiness) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P7 فقط (2026-06-18): يُقدِّم **فقط**
+    P7_COMPOSITION_READINESS من SPECIFIED إلى IMPLEMENTED، فوق P6 المُنفَّذة.
+    بوابة التبعية تتحقق: أصل P7 هو VerbalSignifiedCandidate (CROSS من مرحلة P6
+    المُنفَّذة بالكامل) → التقدم مرخّص.
+
+    P7 = بوابة **استعداد** التركيب (candidate-only). تُثبت الاستعداد فقط؛ لا تُجري
+    تركيبًا فعليًا ولا نحوًا ولا علاقة عامل/معمول ولا إعرابًا ولا معنى ولا حكمًا.
+    تفتح amil/mamul + sentence-geometry **priors** فقط؛ لا تُنتج AmilMamulCandidate.
+
+    Non-Goals (P7):
+        لا تُنفِّذ P8 (AmilMamulCandidate تبقى SPECIFIED).
+        ليست build_p1_implemented_registry الكاملة.
+        لا تُنفِّذ P8-P12 (تبقى SPECIFIED).
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0-P6 IMPLEMENTED؛ P7 IMPLEMENTED؛ P8-P12
+        SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p6_implemented_registry()
+    for layer_id in _P7_COMPOSITION_READINESS_IDS:
+        # SPECIFIED → IMPLEMENTED — P7 وحدها (CROSS من مرحلة P6 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.

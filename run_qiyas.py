@@ -68,6 +68,7 @@ from qiyas_core.root_stem_adapter import RootStemLayerAdapter
 from qiyas_core.jamid_mushtaq_adapter import JamidMushtaqLayerAdapter
 from qiyas_core.mufrad_word_adapter import MufradWordLayerAdapter
 from qiyas_core.verbal_signified_adapter import VerbalSignifiedLayerAdapter
+from qiyas_core.composition_readiness_adapter import CompositionReadinessLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -111,6 +112,7 @@ class PipelineLayers:
     jamid_mushtaq_layer: JamidMushtaqLayerAdapter
     mufrad_word_layer: MufradWordLayerAdapter
     verbal_signified_layer: VerbalSignifiedLayerAdapter
+    composition_readiness_layer: CompositionReadinessLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -129,6 +131,7 @@ class PipelineLayers:
             jamid_mushtaq_layer=JamidMushtaqLayerAdapter(kernel=kernel),
             mufrad_word_layer=MufradWordLayerAdapter(kernel=kernel),
             verbal_signified_layer=VerbalSignifiedLayerAdapter(kernel=kernel),
+            composition_readiness_layer=CompositionReadinessLayerAdapter(kernel=kernel),
         )
 
 
@@ -539,6 +542,20 @@ def process_text(
                                         report.steps.append(
                                             LayerStep.from_set("VerbalSignifiedQiyas", vs_set)
                                         )
+
+                                        # SCG-P7 — CompositionReadinessQiyas:
+                                        # attest readiness to enter composition
+                                        # (opens amil/mamul + sentence-geometry
+                                        # priors; never composition, syntax,
+                                        # i'rab, meaning, or a P8+ candidate).
+                                        vs_cand = _accepted(vs_set)
+                                        if vs_cand is not None:
+                                            cr_set = layers.composition_readiness_layer.attest(
+                                                vs_cand, trace_prefix=f"text[{i}]:cr:{cp:04x}"
+                                            )
+                                            report.steps.append(
+                                                LayerStep.from_set("CompositionReadinessQiyas", cr_set)
+                                            )
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).
