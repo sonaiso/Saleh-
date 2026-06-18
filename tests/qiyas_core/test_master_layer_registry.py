@@ -173,9 +173,12 @@ def test_GATE_PREMATURE_08_p2_premature_implemented_blocked():
         reg.update_status(LAYER_ID_P2_REGISTRY_PROJECTION, LayerStatus.IMPLEMENTED)
 
 
-def test_GATE_PREMATURE_09_no_p1_or_p2_implemented_builders_exist():
+def test_GATE_PREMATURE_09_no_full_p1_implemented_builder_exists():
+    # The FULL build_p1_implemented_registry remains forbidden (P1 is completed
+    # via slot-only partials). build_p2_implemented_registry is authorized as of
+    # SCG-P2 (2026-06-18) and is intentionally NOT asserted absent here.
     assert not hasattr(MRS, "build_p1_implemented_registry")
-    assert not hasattr(MRS, "build_p2_implemented_registry")
+    assert not hasattr(MRS, "build_p3_implemented_registry")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

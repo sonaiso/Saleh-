@@ -63,6 +63,7 @@ from qiyas_core.haraka_function_adapter import HarakaFunctionLayerAdapter
 from qiyas_core.kernel import QiyasKernel
 from qiyas_core.letter_identity_adapter import LetterIdentityLayerAdapter
 from qiyas_core.position_adapter import PositionLayerAdapter
+from qiyas_core.registry_projection_adapter import RegistryProjectionLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -101,6 +102,7 @@ class PipelineLayers:
     position_layer: PositionLayerAdapter
     cts_layer: ConditionedTypedSequenceLayerAdapter
     slot_layer: SlotLayerAdapter
+    registry_projection_layer: RegistryProjectionLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -114,6 +116,7 @@ class PipelineLayers:
             position_layer=PositionLayerAdapter(kernel=kernel),
             cts_layer=ConditionedTypedSequenceLayerAdapter(kernel=kernel),
             slot_layer=SlotLayerAdapter(kernel=kernel),
+            registry_projection_layer=RegistryProjectionLayerAdapter(kernel=kernel),
         )
 
 
@@ -459,6 +462,19 @@ def process_text(
                         trace_prefix=f"text[{i}]:slot:{cp:04x}+{ord(text[i+1]):04x}",
                     )
                     report.slot_step = LayerStep.from_set("SlotQiyas", s_set)
+
+                    # SCG-P2 — RegistryProjectionQiyas: project the licensed
+                    # SlotCandidate onto registry membership classes
+                    # (candidate-only; opens root/stem + word-type priors;
+                    # never produces RootStemCandidate or any downstream type).
+                    s_cand = _accepted(s_set)
+                    if s_cand is not None:
+                        rp_set = layers.registry_projection_layer.project(
+                            s_cand, trace_prefix=f"text[{i}]:rp:{cp:04x}"
+                        )
+                        report.steps.append(
+                            LayerStep.from_set("RegistryProjectionQiyas", rp_set)
+                        )
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).

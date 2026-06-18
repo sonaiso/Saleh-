@@ -39,23 +39,24 @@ from qiyas_core.qiyas_structural_verification import (
 )
 from qiyas_core.slot_geometry_core import (
     LayerStatus,
-    build_p1_slot_implemented_registry,
+    build_p2_implemented_registry,
 )
 
 import run_qiyas  # official Phase-1 driver (repo-root module; needs `.` on path)
 
-# Canonical SCG-P1 ladder candidate types (the only candidate types this state
-# may surface). Anything outside this set in the P1 driver output is a defect.
+# Canonical SCG ladder candidate types surfaced now (P1 + P2 implemented).
 _LETTER = "LetterIdentityCarrier"
 _HARAKA = "HarakaMarkIdentityCarrier"
 _CTS_FAMILY = ("CarrierBindingCandidate", "PositionEvidence",
                "BoundaryEvidence", "ResidualPreservationEvidence")
 _POSITION = "PositionCarrier"
 _SLOT = "SlotCandidate"
+_PROJECTION = "RegistryProjectionCandidate"  # SCG-P2 (now implemented)
 
-# Higher-layer / semantic outputs that MUST NOT appear (no-jump guard).
+# Higher-layer / semantic outputs that MUST NOT appear yet (no-jump guard).
+# RegistryProjectionCandidate (SCG-P2) is now IMPLEMENTED, so it is expected,
+# not forbidden. RootStemCandidate (SCG-P3) and above remain not_introduced.
 _FORBIDDEN_HIGHER = (
-    "RegistryProjectionCandidate",  # SCG-P2
     "RootStemCandidate",            # SCG-P3
     "JamidMushtaqCandidate",        # SCG-P4
     "MufradWordCandidate",          # SCG-P5
@@ -95,7 +96,23 @@ def _ladder_counts(steps):
         "CTS(PositionEvidence)": types.count("PositionEvidence"),
         _POSITION: types.count(_POSITION),
         _SLOT: types.count(_SLOT),
+        _PROJECTION: types.count(_PROJECTION),
     }
+
+
+def _projection_info(steps):
+    """Opened priors + membership_prior_type(s) carried by RegistryProjection steps."""
+    priors: set = set()
+    prior_types: set = set()
+    for s in steps:
+        if s.candidate_type != _PROJECTION:
+            continue
+        for t in s.trace_ids:
+            if t.startswith("opens_prior:"):
+                priors.add(t.split(":", 1)[1])
+            elif t.startswith("membership_prior_type:"):
+                prior_types.add(t.split(":", 1)[1])
+    return sorted(priors), sorted(prior_types)
 
 
 def render_token(token: str) -> tuple[str, dict, set]:
@@ -131,6 +148,17 @@ def render_token(token: str) -> tuple[str, dict, set]:
                  f"PositionEvidence:{counts['CTS(PositionEvidence)']}")
     lines.append(f"       PositionCarrier              = {counts[_POSITION]}")
     lines.append(f"       SlotCandidate                = {counts[_SLOT]}")
+    priors, prior_types = _projection_info(steps)
+    lines.append("   SCG-P2 projection :")
+    lines.append(f"       RegistryProjectionCandidate  = {counts[_PROJECTION]}")
+    lines.append(f"       membership_prior_type        = "
+                 f"{', '.join(prior_types) if prior_types else '—'} (structural)")
+    lines.append(f"       opened priors                = "
+                 f"{', '.join(priors) if priors else '—'}")
+    lines.append("   SCG-P3+ :")
+    lines.append(f"       RootStemCandidate            = not_introduced")
+    lines.append(f"       JamidMushtaqCandidate        = not_introduced")
+    lines.append(f"       MufradWordCandidate          = not_introduced")
     lines.append(f"   higher-layer candidates present : "
                  f"{sorted(higher) if higher else 'none'}")
     lines.append(f"   semantic statuses      : meaning={v.meaning_status} hukm={v.hukm_status} "
@@ -139,29 +167,31 @@ def render_token(token: str) -> tuple[str, dict, set]:
 
 
 def render_registry_state() -> str:
-    reg = build_p1_slot_implemented_registry()
+    reg = build_p2_implemented_registry()
     by_phase: dict[str, list] = {}
     for s in reg.all_layers():
         by_phase.setdefault(s.phase, []).append(s.status)
     kp = lambda p: int(p.split("P")[1])
     p0_impl = all(st is LayerStatus.IMPLEMENTED for st in by_phase.get("SCG-P0", []))
     p1_impl = all(st is LayerStatus.IMPLEMENTED for st in by_phase.get("SCG-P1", []))
-    p2_p12_spec = all(
+    p2_impl = all(st is LayerStatus.IMPLEMENTED for st in by_phase.get("SCG-P2", []))
+    p3_p12_spec = all(
         st is LayerStatus.SPECIFIED
-        for ph, sts in by_phase.items() if ph not in ("SCG-P0", "SCG-P1")
+        for ph, sts in by_phase.items() if ph not in ("SCG-P0", "SCG-P1", "SCG-P2")
         for st in sts
     )
     count = sum(len(v) for v in by_phase.values())
-    lines = ["── registry state (build_p1_slot_implemented_registry)"]
+    lines = ["── registry state (build_p2_implemented_registry)"]
     for ph in sorted(by_phase, key=kp):
         vals = sorted({st.value for st in by_phase[ph]})
         lines.append(f"   {ph:8} {','.join(vals)} ({len(by_phase[ph])})")
     lines.append(f"   P0 IMPLEMENTED               : {p0_impl}")
     lines.append(f"   P1 all five IMPLEMENTED       : {p1_impl}")
-    lines.append(f"   P2-P12 SPECIFIED              : {p2_p12_spec}")
+    lines.append(f"   P2 RegistryProjection IMPL    : {p2_impl}")
+    lines.append(f"   P3-P12 SPECIFIED              : {p3_p12_spec}")
     lines.append(f"   layer count                   : {count}")
-    lines.append(f"   freeze ACTIVE for P2-P12      : {p2_p12_spec} "
-                 f"(no P2+ layer is IMPLEMENTED)")
+    lines.append(f"   freeze ACTIVE for P3-P12      : {p3_p12_spec} "
+                 f"(no P3+ layer is IMPLEMENTED)")
     return "\n".join(lines)
 
 
@@ -171,11 +201,12 @@ def main(argv: list[str] | None = None) -> int:
     tokens = text.split()
 
     print("=" * 72)
-    print("SCG LADDER STATE — up to SCG-P1 (structural, potential-only)")
+    print("SCG LADDER STATE — up to SCG-P2 (structural, potential-only)")
     print("=" * 72)
 
     all_higher: set = set()
     total_slots = 0
+    total_projections = 0
     residual_tokens = []
     for tok in tokens:
         block, counts, higher = render_token(tok)
@@ -183,16 +214,18 @@ def main(argv: list[str] | None = None) -> int:
         print()
         all_higher |= higher
         total_slots += counts[_SLOT]
+        total_projections += counts[_PROJECTION]
         if counts[_SLOT] == 0:
             residual_tokens.append(tok)
 
     print(render_registry_state())
     print()
     print("── aggregate")
-    print(f"   total SlotCandidate count     : {total_slots}")
-    print(f"   tokens with no SlotCandidate  : {residual_tokens or 'none'}")
-    print(f"   P2+/semantic candidates seen  : {sorted(all_higher) if all_higher else 'none'}")
-    print(f"   higher semantic statuses      : not_introduced "
+    print(f"   total SlotCandidate count          : {total_slots}")
+    print(f"   total RegistryProjectionCandidate  : {total_projections}")
+    print(f"   tokens with no SlotCandidate       : {residual_tokens or 'none'}")
+    print(f"   P3+/semantic candidates seen       : {sorted(all_higher) if all_higher else 'none'}")
+    print(f"   higher semantic statuses           : not_introduced "
           f"(constant: {NOT_INTRODUCED})")
     return 0
 
