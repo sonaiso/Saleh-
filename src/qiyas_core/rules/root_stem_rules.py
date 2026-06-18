@@ -38,6 +38,17 @@ _ALL_WADI = (
 # Structural priors P3 OPENS (as priors for SCG-P4), never produces.
 OPENED_PRIORS = ("jamid_mushtaq_candidates", "word_pattern_candidates")
 
+# Structural-closure verdict reasons (SCG-P3 strengthening, 2026-06-18). P3 is no
+# longer a forwarding stamp: it discriminates the slot-sequence geometry into one
+# of three structural verdicts, routed through the kernel's existing
+# `فارق:` (block) / `defer:` (defer) machinery — never hardcoded all-pass.
+#   ACCEPT : sequence geometry is sufficient to open a root/stem closure possibility.
+#   DEFER  : geometry is too small / underspecified but not impossible.
+#   BLOCK  : geometry structurally contradicts closure (no consonantal anchor).
+ROOT_PATTERN_CONFLICT = "root_pattern_conflict"            # BLOCK reason (فارق)
+ROOT_PATTERN_BLOCKED = "root_pattern_blocked"              # BLOCK reason (فارق)
+ROOT_PATTERN_UNDERSPECIFIED = "root_pattern_underspecified"  # DEFER reason (defer)
+
 ROOT_STEM_RULE = QiyasRule(
     rule_id="root_stem.close",
     layer="RootStemQiyas",
@@ -58,8 +69,8 @@ ROOT_STEM_RULE = QiyasRule(
     ),
     required_wadi_gates=_ALL_WADI,
     invalidating_differences=(
-        "root_pattern_conflict",
-        "root_pattern_blocked",
+        ROOT_PATTERN_CONFLICT,
+        ROOT_PATTERN_BLOCKED,
     ),
     neutral_identity_domain="root_stem_identity",
     output_candidate_type="RootStemCandidate",

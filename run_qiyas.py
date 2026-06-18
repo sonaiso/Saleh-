@@ -64,7 +64,11 @@ from qiyas_core.kernel import QiyasKernel
 from qiyas_core.letter_identity_adapter import LetterIdentityLayerAdapter
 from qiyas_core.position_adapter import PositionLayerAdapter
 from qiyas_core.registry_projection_adapter import RegistryProjectionLayerAdapter
-from qiyas_core.root_stem_adapter import RootStemLayerAdapter
+from qiyas_core.root_stem_adapter import (
+    RootStemLayerAdapter,
+    RootStemSequenceProfile,
+    build_sequence_profile,
+)
 from qiyas_core.jamid_mushtaq_adapter import JamidMushtaqLayerAdapter
 from qiyas_core.mufrad_word_adapter import MufradWordLayerAdapter
 from qiyas_core.verbal_signified_adapter import VerbalSignifiedLayerAdapter
@@ -214,6 +218,30 @@ def _same_segment(
     return m_left.segment_id == m_right.segment_id
 
 
+def _segment_root_stem_profiles(
+    text: str,
+    markers_by_index: dict[int, SequenceMarker],
+) -> dict[Any, RootStemSequenceProfile]:
+    """Per-tokenizer-segment structural slot-sequence profiles for SCG-P3.
+
+    Groups each segment's ordered Arabic codepoints (letters + harakat) and
+    distils them into a ``RootStemSequenceProfile`` (CV signature, slot_count,
+    gemination / long-vowel / ending geometry). This is the constitutional
+    ``slot_sequence_consistent`` evidence (ROOT_STEM_CLOSURE_CONSTITUTION §3)
+    that drives P3's ACCEPT / DEFER / BLOCK verdict. Purely structural — no
+    morphology, no lexicon.
+    """
+    by_segment: dict[Any, list[int]] = {}
+    for i, ch in enumerate(text):
+        cp = ord(ch)
+        if not (is_arabic_letter(cp) or is_arabic_haraka(cp)):
+            continue
+        marker = markers_by_index.get(i)
+        seg = marker.segment_id if marker is not None else None
+        by_segment.setdefault(seg, []).append(cp)
+    return {seg: build_sequence_profile(cps) for seg, cps in by_segment.items()}
+
+
 def _tokenizer_marker_dict(marker: SequenceMarker | None) -> dict[str, Any] | None:
     """Serialize a tokenizer marker for audit output (never a Candidate)."""
     if marker is None:
@@ -306,6 +334,11 @@ def process_text(
     markers_by_index: dict[int, SequenceMarker] = {
         m.index: m for m in tokenized.markers
     }
+
+    # SCG-P3 (strengthened): per-segment structural slot-sequence profiles drive
+    # the root/stem closure verdict (ACCEPT / DEFER / BLOCK). Computed once over
+    # the whole text so each P3 call sees its token's full sequence geometry.
+    root_stem_profiles = _segment_root_stem_profiles(text, markers_by_index)
 
     reports: list[CharacterReport] = []
 
@@ -497,8 +530,11 @@ def process_text(
                         # final root, wazn, word, or any P4+ candidate).
                         rp_cand = _accepted(rp_set)
                         if rp_cand is not None:
+                            seg_id = marker.segment_id if marker is not None else None
                             rs_set = layers.root_stem_layer.close(
-                                rp_cand, trace_prefix=f"text[{i}]:rs:{cp:04x}"
+                                rp_cand,
+                                sequence_profile=root_stem_profiles.get(seg_id),
+                                trace_prefix=f"text[{i}]:rs:{cp:04x}",
                             )
                             report.steps.append(
                                 LayerStep.from_set("RootStemQiyas", rs_set)
@@ -556,6 +592,7 @@ def process_text(
                                             report.steps.append(
                                                 LayerStep.from_set("CompositionReadinessQiyas", cr_set)
                                             )
+
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).
