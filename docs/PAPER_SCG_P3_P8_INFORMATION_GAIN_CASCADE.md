@@ -294,3 +294,33 @@ documented before it is approached. Extending the cascade to P9 requires lifting
 the pipeline to multi-unit input while preserving the same potential-only,
 three-valued, kernel-enforced discipline established here, and is left to future
 work.
+
+## 9. Conclusion and future work
+
+**Conclusion.** We have converted six consecutive stages, SCG-P3 through SCG-P8,
+from forwarding stages — which re-label a fixed candidate set — into a structural
+information-gain cascade. The contribution is operational and falsifiable: each
+stage partitions its candidate set through a three-valued ACCEPT / DEFER / BLOCK
+verdict over purely structural geometry, so a stage that adds no discrimination is
+detectable rather than hidden. The observed accepted-count cascade, 10→9→9→7→5→3,
+is direct behavioral evidence of that discrimination — representative inputs are
+eliminated at distinct stages, and only the richest geometry traverses the full
+ladder. Throughout, the system remains proof-relevant, identity-preserving,
+candidate-only, and potential-only: every output preserves its source identities,
+every non-acceptance preserves an inspectable residual, and a kernel-enforced
+boundary keeps the cascade strictly below interpretation. We make no claim to
+final morphology, syntax, semantics, i'rab, hukm, reality, or final meaning; the
+result is a verified structural front end, not an interpretation engine.
+
+**Future work.** The natural next stage is SCG-P9 (sentence geometry), but it
+remains future work and must be authorized separately, because P9 is the first
+multi-unit, sentence-level stage — the point at which structural geometry begins
+to border syntactic and i'rab-adjacent territory. Any P9 extension must preserve
+the discipline established here: structural admissibility only; the three-valued
+ACCEPT / DEFER / BLOCK verdict; residual preservation on every non-acceptance;
+candidate-only outputs; and no leakage of semantic, i'rab, hukm, or reality
+judgments. Beyond P9, future work may also include richer multi-token probes that
+stress the cascade more thoroughly; stronger per-token trace figures; replacing
+the placeholder related-work markers with full citations; and formalizing the
+per-stage structural thresholds as explicit proof obligations rather than
+documented heuristics.
