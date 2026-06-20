@@ -80,6 +80,7 @@ from qiyas_core.sentence_geometry_adapter import (
 )
 from qiyas_core.relation_geometry_adapter import RelationGeometryLayerAdapter
 from qiyas_core.irab_geometry_adapter import IrabGeometryLayerAdapter
+from qiyas_core.ifadah_adapter import IfadahSpeechForceLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -128,6 +129,7 @@ class PipelineLayers:
     sentence_geometry_layer: SentenceGeometryLayerAdapter
     relation_geometry_layer: RelationGeometryLayerAdapter
     irab_geometry_layer: IrabGeometryLayerAdapter
+    ifadah_layer: IfadahSpeechForceLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -151,6 +153,7 @@ class PipelineLayers:
             sentence_geometry_layer=SentenceGeometryLayerAdapter(kernel=kernel),
             relation_geometry_layer=RelationGeometryLayerAdapter(kernel=kernel),
             irab_geometry_layer=IrabGeometryLayerAdapter(kernel=kernel),
+            ifadah_layer=IfadahSpeechForceLayerAdapter(kernel=kernel),
         )
 
 
@@ -719,6 +722,20 @@ def process_text(
                 reports[0].steps.append(
                     LayerStep.from_set("IrabGeometryQiyas", ig_set)
                 )
+
+                # SCG-P12 — IfadahSpeechForceQiyas: build a candidate-only ifadah
+                # (speech-force) possibility from the accepted P11 i'rab geometry.
+                # TERMINAL: P12 appears ONLY behind an accepted P11, opens NOTHING,
+                # and only closes ifadah_candidates. It is the end of the structural
+                # spine — never a hukm / reality / truth / final-meaning claim.
+                ig_accepted = _accepted(ig_set)
+                if ig_accepted is not None:
+                    if_set = layers.ifadah_layer.compose(
+                        ig_accepted, trace_prefix="ifadah:text"
+                    )
+                    reports[0].steps.append(
+                        LayerStep.from_set("IfadahSpeechForceQiyas", if_set)
+                    )
 
     return reports
 

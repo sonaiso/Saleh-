@@ -306,8 +306,11 @@ def _types(text):
     return {s.candidate_type for r in rq.process_text(text) for s in r.steps}
 
 
+# IfadahCandidate (SCG-P12, terminal) is now licensed behind accepted P11, so it is
+# no longer forbidden in the full pipeline; every case/verdict/meaning/hukm/reality/
+# final object remains forbidden.
 _PROBE_FORBIDDEN = (
-    "IfadahCandidate", "CaseJudgment", "IrabFinalDecision", "IrabCandidate",
+    "CaseJudgment", "IrabFinalDecision", "IrabCandidate",
     "MeaningCandidate", "DalalahCandidate", "HukmCandidate", "RealityClaim", "FinalMeaning",
 )
 

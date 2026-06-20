@@ -1929,6 +1929,43 @@ def build_p11_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+_P12_IFADAH_IDS: tuple[str, ...] = (LAYER_ID_P12_IFADAH_SPEECH_FORCE,)
+
+
+def build_p12_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P12 (IfadahSpeechForce) إلى حالة IMPLEMENTED — الطبقة
+    **النهائية** في العمود الفقري الـ19 طبقة.
+
+    تفويض ضيق لتنفيذ SCG-P12 فقط (2026-06-20): يُقدِّم **فقط**
+    P12_IFADAH_SPEECH_FORCE من SPECIFIED إلى IMPLEMENTED، فوق P11 المُنفَّذة. بوابة
+    التبعية تتحقق: أصل P12 هو IrabGeometryCandidate (CROSS من مرحلة P11 المُنفَّذة
+    بالكامل) → التقدم مرخّص.
+
+    P12 تبني **إمكان إفادة كلامية** (قوة كلامية: خبر/إنشاء/طلب) من هندسة إعراب
+    مقبولة (P11) كـ candidate-only. هي **نهاية العمود الفقري البنيوي** على حدّ
+    الحُكم/الواقع — ليست حكمًا، ولا ادعاء واقع، ولا قيمة صدق، ولا معنى نهائيًا، ولا
+    تفسيرًا، ولا قرار إعراب نهائيًا، ولا قوة كلامية مكتملة كحكم. لا تفتح أي طبقة
+    لاحقة (terminal: target_boundary_opens فارغة) وتُغلق ifadah_candidates؛ لا
+    تُنتج حُكمًا ولا ادعاء واقع ولا قيمة صدق ولا أي مخرج نهائي. لا يوجد P13.
+
+    Non-Goals (P12):
+        لا تُنشئ P13 ولا أي طبقة بعد P12.
+        لا تُنشئ build_p13_implemented_registry.
+        لا تتجاوز إلى الحُكم/الواقع/المعنى النهائي.
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0-P11 IMPLEMENTED؛ P12 IMPLEMENTED. العدد يبقى 19،
+        والعمود الفقري البنيوي مكتمل التنفيذ. لا طبقة بعد P12.
+    """
+    registry = build_p11_implemented_registry()
+    for layer_id in _P12_IFADAH_IDS:
+        # SPECIFIED → IMPLEMENTED — P12 وحدها (CROSS من مرحلة P11 المُنفَّذة). نهائية.
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.
