@@ -175,7 +175,10 @@ def test_P10_SPEC_RESIDUAL_01_blockers_and_invalidating_differences_explicit():
 
 
 def test_P10_SPEC_NORUNTIME_01_no_p10_implemented_builder():
-    assert not hasattr(MRS, "build_p10_implemented_registry")
+    # P10 is now IMPLEMENTED via build_p10_implemented_registry; the SPECIFIED
+    # builder must still stop P10 at SPECIFIED (no runtime advance from the spec).
+    assert hasattr(MRS, "build_p10_implemented_registry")
+    assert _p10(build_p10_specified_registry()).status is LayerStatus.SPECIFIED
 
 
 def test_P10_SPEC_NORUNTIME_02_builder_stops_at_specified():

@@ -1856,6 +1856,42 @@ def build_p9_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+_P10_RELATION_GEOMETRY_IDS: tuple[str, ...] = (LAYER_ID_P10_RELATION_GEOMETRY,)
+
+
+def build_p10_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P10 (RelationGeometry) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P10 فقط (2026-06-20): يُقدِّم **فقط**
+    P10_RELATION_GEOMETRY من SPECIFIED إلى IMPLEMENTED، فوق P9 المُنفَّذة. بوابة
+    التبعية تتحقق: أصل P10 هو SentenceGeometryCandidate (CROSS من مرحلة P9
+    المُنفَّذة بالكامل) → التقدم مرخّص.
+
+    P10 تَرسم العلاقات الداخلية بين مكونات جملة هندسية مقبولة (P9) — تبعية، عطف،
+    إبدال، توكيد — كإمكان هندسة علاقات candidate-only. ليست حكمًا إعرابيًا ولا
+    حالة، ولا إفادة، ولا معنى، ولا دلالة، ولا حكمًا، ولا واقعًا، ولا تفسيرًا
+    نهائيًا، ولا أي مرشّح P11+. تفتح prior واحدًا فقط (irab_geometry_candidates)
+    وتُغلق relation_geometry_candidates؛ لا تُنتج IrabGeometryCandidate ولا أي
+    مخرج لاحق. لا تُعيد إثبات الجُملية — شرط ≥2 وحدة متمايزة محسوم في P9؛ يكفي
+    P10 جملة هندسية مقبولة واحدة.
+
+    Non-Goals (P10):
+        لا تُنفِّذ P11-P12 (تبقى SPECIFIED).
+        لا تُنشئ build_p11_implemented_registry.
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0-P9 IMPLEMENTED؛ P10 IMPLEMENTED؛ P11-P12
+        SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p9_implemented_registry()
+    for layer_id in _P10_RELATION_GEOMETRY_IDS:
+        # SPECIFIED → IMPLEMENTED — P10 وحدها (CROSS من مرحلة P9 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.

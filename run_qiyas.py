@@ -78,6 +78,7 @@ from qiyas_core.sentence_geometry_adapter import (
     SentenceGeometryLayerAdapter,
     SentenceUnit,
 )
+from qiyas_core.relation_geometry_adapter import RelationGeometryLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -124,6 +125,7 @@ class PipelineLayers:
     composition_readiness_layer: CompositionReadinessLayerAdapter
     amil_mamul_layer: AmilMamulLayerAdapter
     sentence_geometry_layer: SentenceGeometryLayerAdapter
+    relation_geometry_layer: RelationGeometryLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -145,6 +147,7 @@ class PipelineLayers:
             composition_readiness_layer=CompositionReadinessLayerAdapter(kernel=kernel),
             amil_mamul_layer=AmilMamulLayerAdapter(kernel=kernel),
             sentence_geometry_layer=SentenceGeometryLayerAdapter(kernel=kernel),
+            relation_geometry_layer=RelationGeometryLayerAdapter(kernel=kernel),
         )
 
 
@@ -683,6 +686,20 @@ def process_text(
         if reports:
             reports[0].steps.append(
                 LayerStep.from_set("SentenceGeometryQiyas", sg_set)
+            )
+
+        # SCG-P10 — RelationGeometryQiyas: refine a candidate-only relation geometry
+        # from the accepted P9 sentence geometry. P10 appears ONLY behind an accepted
+        # P9 (it does not re-prove sentencehood); on ACCEPT it opens only
+        # irab_geometry_candidates and closes relation_geometry_candidates. It never
+        # emits IrabGeometryCandidate or any P11+ object.
+        sg_accepted = _accepted(sg_set)
+        if sg_accepted is not None and reports:
+            rg_set = layers.relation_geometry_layer.compose(
+                sg_accepted, trace_prefix="relation_geometry:text"
+            )
+            reports[0].steps.append(
+                LayerStep.from_set("RelationGeometryQiyas", rg_set)
             )
 
     return reports

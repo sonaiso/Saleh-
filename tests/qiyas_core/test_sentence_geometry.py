@@ -260,14 +260,16 @@ def test_P9_FORBIDDEN_03_output_always_sentence_geometry():
 # ── run_qiyas integration ─────────────────────────────────────────────────────
 
 
-def test_P9_PIPELINE_01_two_words_accept_open_no_p10():
+def test_P9_PIPELINE_01_two_words_accept_open_relation_prior():
     reps = rq.process_text("ضَرَبَ كَتَبَ")
     p9 = [s for r in reps for s in r.steps if s.layer == "SentenceGeometryQiyas"]
     assert len(p9) == 1 and p9[0].status == "accepted"
-    # opens only relation_geometry_candidates; never emits a P10 candidate
-    types = {s.candidate_type for r in reps for s in r.steps}
-    assert "RelationGeometryCandidate" not in types
-    assert "SentenceGeometryCandidate" in types
+    # P9 ITSELF emits SentenceGeometryCandidate and opens only the P10 prior; the
+    # P10 RelationGeometryCandidate is produced by the separate RelationGeometryQiyas
+    # step, never by P9 directly.
+    assert p9[0].candidate_type == "SentenceGeometryCandidate"
+    opened = {t.split(":", 1)[1] for t in p9[0].trace_ids if t.startswith("opens_prior:")}
+    assert opened == {"relation_geometry_candidates"}
 
 
 def test_P9_PIPELINE_02_single_word_is_one_unit_blocks():
@@ -276,9 +278,11 @@ def test_P9_PIPELINE_02_single_word_is_one_unit_blocks():
     assert len(p9) == 1 and p9[0].status == "blocked"
 
 
-def test_P9_PIPELINE_03_no_semantic_or_p10_leakage_anywhere():
+def test_P9_PIPELINE_03_no_p11_or_semantic_leakage_anywhere():
     types = {s.candidate_type for r in rq.process_text("ضَرَبَ كَتَبَ") for s in r.steps}
-    leak = types & {"RelationGeometryCandidate", "IrabGeometryCandidate", "IfadahCandidate",
+    # P10 RelationGeometryCandidate is now licensed (behind accepted P9); P11+ and
+    # every i'rab/case/meaning/dalalah/hukm/reality/final object must still not leak.
+    leak = types & {"IrabGeometryCandidate", "IfadahCandidate",
                     "IrabCandidate", "MeaningCandidate", "DalalahCandidate", "HukmCandidate",
                     "RealityClaim", "FinalMeaning"}
     assert not leak, leak
