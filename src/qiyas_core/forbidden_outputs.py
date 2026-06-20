@@ -411,6 +411,27 @@ FORBIDDEN_SENTENCE_GEOMETRY: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# RelationGeometryQiyas (SCG-P10) produces only RelationGeometryCandidate.
+# RelationGeometryCandidate is its OWN output, so it is NOT in this forbidden list;
+# everything downstream (P11/P12) and every i'rab/case/meaning/dalalah/final object is.
+FORBIDDEN_RELATION_GEOMETRY: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Exact downstream canonical output types (SCG-P11..P12) — no-jump.
+    "IrabGeometryCandidate",        # SCG-P11
+    "IfadahCandidate",              # SCG-P12
+    # i'rab / case — never judged (only irab-geometry priors are opened).
+    "IrabCandidate",
+    "CaseJudgment",
+    "CaseEffect",
+    "Irab",
+    # Defense-in-depth hardening: meaning / dalalah / final syntax labels.
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "DalalahJudgment",
+    "SyntaxLabelJudgment",
+    "SlotGeometry",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -426,6 +447,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "CompositionReadinessQiyas": FORBIDDEN_COMPOSITION_READINESS,
     "AmilMamulQiyas": FORBIDDEN_AMIL_MAMUL,
     "SentenceGeometryQiyas": FORBIDDEN_SENTENCE_GEOMETRY,
+    "RelationGeometryQiyas": FORBIDDEN_RELATION_GEOMETRY,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,

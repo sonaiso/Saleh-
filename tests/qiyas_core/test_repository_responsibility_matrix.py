@@ -235,6 +235,8 @@ class TestRec1FreezeEnforcedInWorkingTree:
             "build_p8_implemented_registry": {LETTER, HARAKA, CTS, POSITION, SLOT},
             # SCG-P9 builds on P8 (and thus the full P1 chain) — same P1 set.
             "build_p9_implemented_registry": {LETTER, HARAKA, CTS, POSITION, SLOT},
+            # SCG-P10 builds on P9 (and thus the full P1 chain) — same P1 set.
+            "build_p10_implemented_registry": {LETTER, HARAKA, CTS, POSITION, SLOT},
         }
         builders = [
             (name, value)

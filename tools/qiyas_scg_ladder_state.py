@@ -39,7 +39,7 @@ from qiyas_core.qiyas_structural_verification import (
 )
 from qiyas_core.slot_geometry_core import (
     LayerStatus,
-    build_p9_implemented_registry,
+    build_p10_implemented_registry,
 )
 
 import run_qiyas  # official Phase-1 driver (repo-root module; needs `.` on path)
@@ -59,12 +59,13 @@ _VERBAL = "VerbalSignifiedCandidate"         # SCG-P6 (implemented)
 _COMPREADY = "CompositionReadinessCandidate"  # SCG-P7 (implemented)
 _AMIL = "AmilMamulCandidate"                 # SCG-P8 (now implemented)
 _SG_EVIDENCE_PREFIX = "sentence_geometry_evidence:"  # SCG-P9 evidence trace marker
+_RG_EVIDENCE_PREFIX = "relation_geometry_evidence:"  # SCG-P10 evidence trace marker
 
 # Higher-layer / semantic outputs that MUST NOT appear yet (no-jump guard).
-# P2..P9 are now IMPLEMENTED, so they are expected. SCG-P10 (RelationGeometryCandidate)
+# P2..P10 are now IMPLEMENTED, so they are expected. SCG-P11 (IrabGeometryCandidate)
 # and above remain not_introduced.
 _FORBIDDEN_HIGHER = (
-    "RelationGeometryCandidate", "IrabGeometryCandidate", "IfadahCandidate",
+    "IrabGeometryCandidate", "IfadahCandidate",
     "SlotGeometry", "HukmCandidate", "RealityClaim", "FinalMeaning",
 )
 
@@ -316,8 +317,10 @@ def render_token(token: str) -> tuple[str, dict, set]:
     lines.append("   SCG-P9 :")
     lines.append(f"       SentenceGeometryCandidate    = sentence-level "
                  f"(single word is one unit → see P9 section)")
-    lines.append("   SCG-P10+ :")
-    lines.append(f"       RelationGeometryCandidate    = not_introduced")
+    lines.append("   SCG-P10 :")
+    lines.append(f"       RelationGeometryCandidate    = sentence-level "
+                 f"(behind accepted P9 → see P10 section)")
+    lines.append("   SCG-P11+ :")
     lines.append(f"       IrabGeometryCandidate        = not_introduced")
     lines.append(f"   higher-layer candidates present : "
                  f"{sorted(higher) if higher else 'none'}")
@@ -327,21 +330,21 @@ def render_token(token: str) -> tuple[str, dict, set]:
 
 
 def render_registry_state() -> str:
-    reg = build_p9_implemented_registry()
+    reg = build_p10_implemented_registry()
     by_phase: dict[str, list] = {}
     for s in reg.all_layers():
         by_phase.setdefault(s.phase, []).append(s.status)
     kp = lambda p: int(p.split("P")[1])
     impl = lambda ph: all(st is LayerStatus.IMPLEMENTED for st in by_phase.get(ph, []))
-    p10_p12_spec = all(
+    p11_p12_spec = all(
         st is LayerStatus.SPECIFIED
         for ph, sts in by_phase.items()
         if ph not in ("SCG-P0", "SCG-P1", "SCG-P2", "SCG-P3", "SCG-P4",
-                      "SCG-P5", "SCG-P6", "SCG-P7", "SCG-P8", "SCG-P9")
+                      "SCG-P5", "SCG-P6", "SCG-P7", "SCG-P8", "SCG-P9", "SCG-P10")
         for st in sts
     )
     count = sum(len(v) for v in by_phase.values())
-    lines = ["── registry state (build_p9_implemented_registry)"]
+    lines = ["── registry state (build_p10_implemented_registry)"]
     for ph in sorted(by_phase, key=kp):
         vals = sorted({st.value for st in by_phase[ph]})
         lines.append(f"   {ph:8} {','.join(vals)} ({len(by_phase[ph])})")
@@ -355,10 +358,55 @@ def render_registry_state() -> str:
     lines.append(f"   P7 CompositionReadiness IMPL  : {impl('SCG-P7')}")
     lines.append(f"   P8 AmilMamul IMPL             : {impl('SCG-P8')}")
     lines.append(f"   P9 SentenceGeometry IMPL      : {impl('SCG-P9')}")
-    lines.append(f"   P10-P12 SPECIFIED             : {p10_p12_spec}")
+    lines.append(f"   P10 RelationGeometry IMPL     : {impl('SCG-P10')}")
+    lines.append(f"   P11-P12 SPECIFIED            : {p11_p12_spec}")
     lines.append(f"   layer count                   : {count}")
-    lines.append(f"   freeze ACTIVE for P10-P12     : {p10_p12_spec} "
-                 f"(no P10+ layer is IMPLEMENTED)")
+    lines.append(f"   freeze ACTIVE for P11-P12     : {p11_p12_spec} "
+                 f"(no P11+ layer is IMPLEMENTED)")
+    return "\n".join(lines)
+
+
+def render_relation_geometry(text: str) -> str:
+    """SCG-P10 refines a relation geometry from an accepted P9 sentence geometry.
+    It appears ONLY behind an accepted P9 step; on ACCEPT it opens only
+    irab_geometry_candidates and closes relation_geometry_candidates."""
+    reports = run_qiyas.process_text(text)
+    rg_steps = [
+        s for r in reports for s in r.steps if s.layer == "RelationGeometryQiyas"
+    ]
+    lines = ["── SCG-P10 relation geometry (behind accepted P9 only)"]
+    if not rg_steps:
+        lines.append("   RelationGeometryCandidate    = not_introduced "
+                     "(no accepted P9 sentence geometry to refine)")
+        return "\n".join(lines)
+    for s in rg_steps:
+        scope = rtype = dep = verdict = "?"
+        opened: list[str] = []
+        closed: list[str] = []
+        for t in s.trace_ids:
+            if t.startswith(_RG_EVIDENCE_PREFIX):
+                for kv in t.split(":", 1)[1].split(";"):
+                    if kv.startswith("relation_scope_closed="):
+                        scope = kv.split("=", 1)[1]
+                    elif kv.startswith("relation_type="):
+                        rtype = kv.split("=", 1)[1]
+                    elif kv.startswith("dependency_scope="):
+                        dep = kv.split("=", 1)[1]
+                    elif kv.startswith("verdict="):
+                        verdict = kv.split("=", 1)[1]
+            elif t.startswith("opens_prior:"):
+                opened.append(t.split(":", 1)[1])
+            elif t.startswith("closes_prior:"):
+                closed.append(t.split(":", 1)[1])
+        residuals = sorted({res["type"] for res in s.residuals})
+        lines.append(f"   RelationGeometryCandidate    = {s.status} "
+                     f"(verdict={verdict})")
+        lines.append(f"   relation scope closed        = {scope}")
+        lines.append(f"   relation-type / dependency   = {rtype} / {dep}")
+        lines.append(f"   opened priors                = {opened or 'none'} "
+                     f"(P10 opens ONLY irab_geometry_candidates)")
+        lines.append(f"   closed priors                = {closed or 'none'}")
+        lines.append(f"   residual reasons             = {residuals or 'none'}")
     return "\n".join(lines)
 
 
@@ -413,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
     tokens = text.split()
 
     print("=" * 72)
-    print("SCG LADDER STATE — up to SCG-P9 (structural, potential-only)")
+    print("SCG LADDER STATE — up to SCG-P10 (structural, potential-only)")
     print("=" * 72)
 
     all_higher: set = set()
@@ -470,6 +518,8 @@ def main(argv: list[str] | None = None) -> int:
     print()
     print(render_sentence_geometry(text))
     print()
+    print(render_relation_geometry(text))
+    print()
     print("── aggregate")
     print(f"   total SlotCandidate count          : {total_slots}")
     print(f"   total RegistryProjectionCandidate  : {total_projections}")
@@ -492,7 +542,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"   total AmilMamul deferred/blocked   : "
           f"defer={total_amil_defer} block={total_amil_block} (P8 discrimination)")
     print(f"   tokens with no SlotCandidate       : {residual_tokens or 'none'}")
-    print(f"   P10+/semantic candidates seen      : {sorted(all_higher) if all_higher else 'none'}")
+    print(f"   P11+/semantic candidates seen      : {sorted(all_higher) if all_higher else 'none'}")
     print(f"   higher semantic statuses           : not_introduced "
           f"(constant: {NOT_INTRODUCED})")
     return 0
