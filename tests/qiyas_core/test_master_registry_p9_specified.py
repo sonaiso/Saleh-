@@ -175,8 +175,11 @@ def test_P9_SPEC_RESIDUAL_01_blockers_and_invalidating_differences_explicit():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_P9_SPEC_NORUNTIME_01_no_p9_implemented_builder():
-    assert not hasattr(MRS, "build_p9_implemented_registry")
+def test_P9_SPEC_NORUNTIME_01_spec_builder_keeps_p9_specified_not_implemented():
+    # P9 is now IMPLEMENTED via build_p9_implemented_registry; the SPECIFIED
+    # builder must still stop P9 at SPECIFIED (no runtime advance from the spec).
+    assert hasattr(MRS, "build_p9_implemented_registry")
+    assert _p9(build_p9_specified_registry()).status is LayerStatus.SPECIFIED
 
 
 def test_P9_SPEC_NORUNTIME_02_builder_stops_at_specified():

@@ -386,6 +386,31 @@ FORBIDDEN_AMIL_MAMUL: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# SentenceGeometry layer (SCG-P9) — the first multi-unit layer. Organizes ≥2
+# accepted P8 AmilMamulCandidate word/segment units into a candidate-only sentence
+# geometry. It opens grammatical relation-geometry PRIORS only; it is NOT an i'rab/
+# case judgment, NOT ifadah, NOT meaning/dalalah/final-syntax/hukm/reality, and
+# never a P10+ candidate. Keeps the exact canonical P9 forbidden list + defense-in-
+# depth hardening (meaning/dalalah/final-syntax labels).
+FORBIDDEN_SENTENCE_GEOMETRY: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Exact downstream canonical output types (SCG-P10..P12) — no-jump.
+    "RelationGeometryCandidate",    # SCG-P10
+    "IrabGeometryCandidate",        # SCG-P11
+    "IfadahCandidate",              # SCG-P12
+    # i'rab / case — never judged (only relation-geometry priors are opened).
+    "IrabCandidate",
+    "CaseJudgment",
+    "CaseEffect",
+    "Irab",
+    # Defense-in-depth hardening: meaning / dalalah / final syntax labels.
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "DalalahJudgment",
+    "SyntaxLabelJudgment",
+    "SlotGeometry",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -400,6 +425,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "VerbalSignifiedQiyas": FORBIDDEN_VERBAL_SIGNIFIED,
     "CompositionReadinessQiyas": FORBIDDEN_COMPOSITION_READINESS,
     "AmilMamulQiyas": FORBIDDEN_AMIL_MAMUL,
+    "SentenceGeometryQiyas": FORBIDDEN_SENTENCE_GEOMETRY,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,

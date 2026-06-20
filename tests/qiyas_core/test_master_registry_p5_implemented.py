@@ -4,7 +4,7 @@ Narrow SCG-P5 implementation (2026-06-18). Advances ONLY P5_MUFRAD_WORD_CONTRACT
 to IMPLEMENTED via `build_p5_implemented_registry`, atop the implemented P4 phase.
 
 P6–P12 remain SPECIFIED; freeze stays ACTIVE for P6+; no P6 runtime;
-`build_p9_implemented_registry` remains absent.
+`build_p10_implemented_registry` remains absent.
 """
 
 from __future__ import annotations
@@ -76,7 +76,7 @@ def test_P5_IMPL_NOFULL_01_no_full_p1_implemented_builder():
 
 
 def test_P5_IMPL_NOFULL_02_no_p6_implemented_builder():
-    assert not hasattr(MRS, "build_p9_implemented_registry")
+    assert not hasattr(MRS, "build_p10_implemented_registry")
 
 
 def test_P5_IMPL_NORUNTIME_01_direct_planned_to_implemented_blocked_in_seed():

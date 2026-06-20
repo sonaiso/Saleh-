@@ -144,7 +144,7 @@ def test_P1_IMPL_NOFULL_01_no_full_p1_or_p4_implemented_builders():
     # FULL build_p1_implemented_registry and any P4+ implemented builder remain forbidden.
     for name in (
         "build_p1_implemented_registry",
-        "build_p9_implemented_registry",
+        "build_p10_implemented_registry",
     ):
         assert not hasattr(MRS, name), name
 
