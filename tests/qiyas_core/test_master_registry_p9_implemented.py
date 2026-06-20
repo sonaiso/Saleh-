@@ -4,7 +4,7 @@ Narrow SCG-P9 implementation (2026-06-20). Advances ONLY P9_SENTENCE_GEOMETRY to
 IMPLEMENTED via `build_p9_implemented_registry`, atop the implemented P8 phase.
 
 P10–P12 remain SPECIFIED; freeze stays ACTIVE above P9; no P10 runtime;
-`build_p11_implemented_registry` remains absent.
+`build_p12_implemented_registry` remains absent.
 """
 
 from __future__ import annotations
@@ -70,7 +70,7 @@ def test_P9_IMPL_GATE_01_origin_is_amil_mamul_candidate():
 
 
 def test_P9_IMPL_NOFULL_01_no_p10_implemented_builder():
-    assert not hasattr(MRS, "build_p11_implemented_registry")
+    assert not hasattr(MRS, "build_p12_implemented_registry")
 
 
 def test_P9_IMPL_FREEZE_01_freeze_active_above_p9():

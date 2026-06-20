@@ -76,7 +76,7 @@ def test_P2_IMPL_NOFULL_01_no_full_p1_implemented_builder():
 
 def test_P2_IMPL_NOFULL_02_no_p5_implemented_builder():
     # build_p3/build_p4_implemented_registry are authorized as of SCG-P3/P4.
-    assert not hasattr(MRS, "build_p11_implemented_registry")
+    assert not hasattr(MRS, "build_p12_implemented_registry")
 
 
 def test_P2_IMPL_NORUNTIME_01_direct_planned_to_implemented_blocked_in_seed():

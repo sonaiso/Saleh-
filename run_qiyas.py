@@ -79,6 +79,7 @@ from qiyas_core.sentence_geometry_adapter import (
     SentenceUnit,
 )
 from qiyas_core.relation_geometry_adapter import RelationGeometryLayerAdapter
+from qiyas_core.irab_geometry_adapter import IrabGeometryLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -126,6 +127,7 @@ class PipelineLayers:
     amil_mamul_layer: AmilMamulLayerAdapter
     sentence_geometry_layer: SentenceGeometryLayerAdapter
     relation_geometry_layer: RelationGeometryLayerAdapter
+    irab_geometry_layer: IrabGeometryLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -148,6 +150,7 @@ class PipelineLayers:
             amil_mamul_layer=AmilMamulLayerAdapter(kernel=kernel),
             sentence_geometry_layer=SentenceGeometryLayerAdapter(kernel=kernel),
             relation_geometry_layer=RelationGeometryLayerAdapter(kernel=kernel),
+            irab_geometry_layer=IrabGeometryLayerAdapter(kernel=kernel),
         )
 
 
@@ -701,6 +704,21 @@ def process_text(
             reports[0].steps.append(
                 LayerStep.from_set("RelationGeometryQiyas", rg_set)
             )
+
+            # SCG-P11 — IrabGeometryQiyas: refine a candidate-only i'rab-position
+            # geometry from the accepted P10 relation geometry. P11 appears ONLY
+            # behind an accepted P10; on ACCEPT it opens only
+            # ifadah_speech_force_candidates and closes irab_geometry_candidates. It
+            # maps i'rab POSITIONS — never an i'rab verdict — and never emits
+            # IfadahCandidate or any P12 object.
+            rg_accepted = _accepted(rg_set)
+            if rg_accepted is not None:
+                ig_set = layers.irab_geometry_layer.compose(
+                    rg_accepted, trace_prefix="irab_geometry:text"
+                )
+                reports[0].steps.append(
+                    LayerStep.from_set("IrabGeometryQiyas", ig_set)
+                )
 
     return reports
 

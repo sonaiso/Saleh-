@@ -278,11 +278,12 @@ def test_P9_PIPELINE_02_single_word_is_one_unit_blocks():
     assert len(p9) == 1 and p9[0].status == "blocked"
 
 
-def test_P9_PIPELINE_03_no_p11_or_semantic_leakage_anywhere():
+def test_P9_PIPELINE_03_no_p12_or_semantic_leakage_anywhere():
     types = {s.candidate_type for r in rq.process_text("ضَرَبَ كَتَبَ") for s in r.steps}
-    # P10 RelationGeometryCandidate is now licensed (behind accepted P9); P11+ and
-    # every i'rab/case/meaning/dalalah/hukm/reality/final object must still not leak.
-    leak = types & {"IrabGeometryCandidate", "IfadahCandidate",
+    # P10 RelationGeometryCandidate and P11 IrabGeometryCandidate are now licensed
+    # (behind accepted upstream); P12 (IfadahCandidate) and every
+    # case/verdict/meaning/dalalah/hukm/reality/final object must still not leak.
+    leak = types & {"IfadahCandidate", "CaseJudgment", "IrabFinalDecision",
                     "IrabCandidate", "MeaningCandidate", "DalalahCandidate", "HukmCandidate",
                     "RealityClaim", "FinalMeaning"}
     assert not leak, leak
