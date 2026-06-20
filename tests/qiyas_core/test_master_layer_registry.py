@@ -178,7 +178,7 @@ def test_GATE_PREMATURE_09_no_full_p1_implemented_builder_exists():
     # via slot-only partials). build_p2_implemented_registry is authorized as of
     # SCG-P2 (2026-06-18) and is intentionally NOT asserted absent here.
     assert not hasattr(MRS, "build_p1_implemented_registry")
-    assert not hasattr(MRS, "build_p9_implemented_registry")
+    assert not hasattr(MRS, "build_p10_implemented_registry")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

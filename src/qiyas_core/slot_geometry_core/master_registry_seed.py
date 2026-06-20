@@ -1820,6 +1820,42 @@ def build_p8_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+_P9_SENTENCE_GEOMETRY_IDS: tuple[str, ...] = (LAYER_ID_P9_SENTENCE_GEOMETRY,)
+
+
+def build_p9_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P9 (SentenceGeometry) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P9 فقط (2026-06-20): يُقدِّم **فقط**
+    P9_SENTENCE_GEOMETRY من SPECIFIED إلى IMPLEMENTED، فوق P8 المُنفَّذة. بوابة
+    التبعية تتحقق: أصل P9 هو AmilMamulCandidate (CROSS من مرحلة P8 المُنفَّذة
+    بالكامل) → التقدم مرخّص.
+
+    P9 = أول طبقة **متعددة الوحدات** (multi-unit). تنظّم ≥2 وحدة على مستوى
+    الكلمة/المقطع، كل منها له إمكان علاقة عامل/معمول مقبول، في **هندسة جملية**
+    candidate-only. ليست حكمًا إعرابيًا ولا نحويًا، ولا إفادة، ولا معنى، ولا
+    دلالة، ولا حكمًا، ولا واقعًا، ولا تفسيرًا نهائيًا. تفتح prior واحدًا فقط
+    (relation_geometry_candidates)؛ لا تُنتج RelationGeometryCandidate ولا أي
+    مخرج لاحق. الكلمة الواحدة وحدة واحدة وإن أعطت عدّة آثار P8 داخلية؛ القبول
+    يتطلب وحدتين متمايزتين على الأقل.
+
+    Non-Goals (P9):
+        لا تُنفِّذ P10-P12 (تبقى SPECIFIED).
+        لا تُنشئ build_p10_implemented_registry.
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0-P8 IMPLEMENTED؛ P9 IMPLEMENTED؛ P10-P12
+        SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p8_implemented_registry()
+    for layer_id in _P9_SENTENCE_GEOMETRY_IDS:
+        # SPECIFIED → IMPLEMENTED — P9 وحدها (CROSS من مرحلة P8 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.

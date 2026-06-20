@@ -74,6 +74,10 @@ from qiyas_core.mufrad_word_adapter import MufradWordLayerAdapter
 from qiyas_core.verbal_signified_adapter import VerbalSignifiedLayerAdapter
 from qiyas_core.composition_readiness_adapter import CompositionReadinessLayerAdapter
 from qiyas_core.amil_mamul_adapter import AmilMamulLayerAdapter
+from qiyas_core.sentence_geometry_adapter import (
+    SentenceGeometryLayerAdapter,
+    SentenceUnit,
+)
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -119,6 +123,7 @@ class PipelineLayers:
     verbal_signified_layer: VerbalSignifiedLayerAdapter
     composition_readiness_layer: CompositionReadinessLayerAdapter
     amil_mamul_layer: AmilMamulLayerAdapter
+    sentence_geometry_layer: SentenceGeometryLayerAdapter
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -139,6 +144,7 @@ class PipelineLayers:
             verbal_signified_layer=VerbalSignifiedLayerAdapter(kernel=kernel),
             composition_readiness_layer=CompositionReadinessLayerAdapter(kernel=kernel),
             amil_mamul_layer=AmilMamulLayerAdapter(kernel=kernel),
+            sentence_geometry_layer=SentenceGeometryLayerAdapter(kernel=kernel),
         )
 
 
@@ -342,6 +348,11 @@ def process_text(
     # the root/stem closure verdict (ACCEPT / DEFER / BLOCK). Computed once over
     # the whole text so each P3 call sees its token's full sequence geometry.
     root_stem_profiles = _segment_root_stem_profiles(text, markers_by_index)
+
+    # SCG-P9 (multi-unit): accepted P8 AmilMamulCandidate traces grouped by
+    # tokenizer segment. A word/segment = one P9 *unit* regardless of how many
+    # accepted P8 traces it produced internally (a single word is one unit).
+    accepted_p8_by_segment: dict[Any, Candidate] = {}
 
     reports: list[CharacterReport] = []
 
@@ -610,6 +621,15 @@ def process_text(
                                                 report.steps.append(
                                                     LayerStep.from_set("AmilMamulQiyas", am_set)
                                                 )
+                                                # Group accepted P8 by segment for
+                                                # SCG-P9: keep ONE representative per
+                                                # word/segment unit (a single word is
+                                                # one unit, not several P9 units).
+                                                am_cand = _accepted(am_set)
+                                                if am_cand is not None and marker is not None:
+                                                    accepted_p8_by_segment.setdefault(
+                                                        marker.segment_id, am_cand
+                                                    )
             elif haraka_adjacent and not _same_segment(markers_by_index, i, i + 1):
                 # Letter and following haraka are in different tokenizer
                 # segments (whitespace / punctuation framing between them).
@@ -643,6 +663,27 @@ def process_text(
             )
 
         reports.append(report)
+
+    # SCG-P9 — SentenceGeometryQiyas: compose a candidate-only sentence geometry
+    # from the word/segment-level units that produced accepted P8 evidence. P9 is
+    # the FIRST multi-unit layer: it requires >=2 DISTINCT word/segment units and
+    # opens only relation_geometry_candidates (never RelationGeometryCandidate or
+    # any P10+ object). A single word is one unit even with multiple internal P8
+    # accepts, so a lone word does not P9-ACCEPT.
+    if accepted_p8_by_segment:
+        sentence_units = [
+            SentenceUnit(candidate=cand, position=pos)
+            for pos, (_seg, cand) in enumerate(sorted(accepted_p8_by_segment.items(), key=lambda kv: str(kv[0])))
+        ]
+        sg_set = layers.sentence_geometry_layer.compose(
+            sentence_units, trace_prefix="sentence_geometry:text"
+        )
+        # Attach the single sentence-level P9 step to the first report (sentence-
+        # level, not per-character); audit/aggregate scans see it there.
+        if reports:
+            reports[0].steps.append(
+                LayerStep.from_set("SentenceGeometryQiyas", sg_set)
+            )
 
     return reports
 
