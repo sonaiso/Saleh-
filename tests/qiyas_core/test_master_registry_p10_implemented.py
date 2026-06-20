@@ -4,7 +4,7 @@ Narrow SCG-P10 implementation (2026-06-20). Advances ONLY P10_RELATION_GEOMETRY 
 IMPLEMENTED via `build_p10_implemented_registry`, atop the implemented P9 phase.
 
 P11–P12 remain SPECIFIED; freeze stays ACTIVE above P10; no P11 runtime;
-`build_p11_implemented_registry` remains absent.
+`build_p12_implemented_registry` remains absent.
 """
 
 from __future__ import annotations
@@ -70,7 +70,7 @@ def test_P10_IMPL_GATE_01_origin_is_sentence_geometry_candidate():
 
 
 def test_P10_IMPL_NOFULL_01_no_p11_implemented_builder():
-    assert not hasattr(MRS, "build_p11_implemented_registry")
+    assert not hasattr(MRS, "build_p12_implemented_registry")
 
 
 def test_P10_IMPL_FREEZE_01_freeze_active_above_p10():

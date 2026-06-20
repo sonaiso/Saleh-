@@ -173,7 +173,10 @@ def test_P11_SPEC_RESIDUAL_01_blockers_and_invalidating_differences_explicit():
 
 
 def test_P11_SPEC_NORUNTIME_01_no_p11_implemented_builder():
-    assert not hasattr(MRS, "build_p11_implemented_registry")
+    # P11 is now IMPLEMENTED via build_p11_implemented_registry; the SPECIFIED
+    # builder must still stop P11 at SPECIFIED (no runtime advance from the spec).
+    assert hasattr(MRS, "build_p11_implemented_registry")
+    assert _p11(build_p11_specified_registry()).status is LayerStatus.SPECIFIED
 
 
 def test_P11_SPEC_NORUNTIME_02_builder_stops_at_specified():

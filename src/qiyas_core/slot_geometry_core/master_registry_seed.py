@@ -1892,6 +1892,43 @@ def build_p10_implemented_registry() -> MasterLayerRegistry:
     return registry
 
 
+_P11_IRAB_GEOMETRY_IDS: tuple[str, ...] = (LAYER_ID_P11_IRAB_GEOMETRY,)
+
+
+def build_p11_implemented_registry() -> MasterLayerRegistry:
+    """
+    بناء السجل مع تقدم SCG-P11 (IrabGeometry) إلى حالة IMPLEMENTED.
+
+    تفويض ضيق لتنفيذ SCG-P11 فقط (2026-06-20): يُقدِّم **فقط**
+    P11_IRAB_GEOMETRY من SPECIFIED إلى IMPLEMENTED، فوق P10 المُنفَّذة. بوابة
+    التبعية تتحقق: أصل P11 هو RelationGeometryCandidate (CROSS من مرحلة P10
+    المُنفَّذة بالكامل) → التقدم مرخّص.
+
+    P11 تَرسم هندسة الإعراب — المواضع الإعرابية وإمكاناتها — من هندسة علاقات
+    مقبولة (P10) كإمكان موضع إعرابي candidate-only. هي **أكثر الطبقات قربًا من
+    الحكم**، لكنها ليست حكمًا إعرابيًا ولا قرار حالة، ولا إفادة، ولا حكمًا، ولا
+    واقعًا، ولا معنى، ولا دلالة، ولا تفسيرًا نهائيًا، ولا أي مرشّح P12. لا تقول
+    إنّ الكلمة مرفوعة/منصوبة/مجرورة/مجزومة كحكم؛ تَرسم المواضع كإمكانات. تفتح
+    prior واحدًا فقط (ifadah_speech_force_candidates) وتُغلق irab_geometry_candidates؛
+    لا تُنتج IfadahCandidate ولا أي مخرج لاحق. لا تُعيد إثبات هندسة العلاقات؛
+    تكفيها هندسة علاقات مقبولة واحدة.
+
+    Non-Goals (P11):
+        لا تُنفِّذ P12 (تبقى SPECIFIED).
+        لا تُنشئ build_p12_implemented_registry.
+        لا تُغيّر بيانات البذرة (seed) ولا schema.
+
+    Returns:
+        MasterLayerRegistry مع P0-P10 IMPLEMENTED؛ P11 IMPLEMENTED؛ P12
+        SPECIFIED. العدد يبقى 19.
+    """
+    registry = build_p10_implemented_registry()
+    for layer_id in _P11_IRAB_GEOMETRY_IDS:
+        # SPECIFIED → IMPLEMENTED — P11 وحدها (CROSS من مرحلة P10 المُنفَّذة)
+        registry.update_status(layer_id, LayerStatus.IMPLEMENTED)
+    return registry
+
+
 def build_p2_specified_registry() -> MasterLayerRegistry:
     """
     بناء السجل مع تقدم SCG-P2 (RegistryProjection) إلى حالة SPECIFIED.
