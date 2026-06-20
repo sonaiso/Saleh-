@@ -303,11 +303,11 @@ def test_P10_PIPELINE_03_opens_only_irab_prior_not_p11():
 # P10 step. These probes lock in BOTH the genuine multi-unit P10 ACCEPT path and
 # the honest no-fabrication path. (Runtime is unchanged; tests only.)
 
-# IrabGeometryCandidate (SCG-P11) is now licensed behind accepted P10, so it is no
-# longer forbidden in the full pipeline; P12 (IfadahCandidate) + semantic/verdict
-# objects remain forbidden.
+# IrabGeometryCandidate (SCG-P11) and IfadahCandidate (SCG-P12, terminal) are now
+# licensed behind accepted upstream, so they are no longer forbidden in the full
+# pipeline; every case/verdict/meaning/hukm/reality/final object remains forbidden.
 _PROBE_FORBIDDEN = (
-    "IfadahCandidate", "CaseJudgment", "IrabFinalDecision", "IrabCandidate",
+    "CaseJudgment", "IrabFinalDecision", "IrabCandidate",
     "MeaningCandidate", "DalalahCandidate", "DalalahJudgment", "HukmCandidate",
     "RealityClaim", "FinalMeaning", "SyntaxLabelJudgment",
 )

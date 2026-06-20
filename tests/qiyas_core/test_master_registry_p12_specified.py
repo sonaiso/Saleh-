@@ -156,7 +156,11 @@ def test_P12_SPEC_RESIDUAL_01_blockers_and_invalidating_differences_explicit():
 
 
 def test_P12_SPEC_NORUNTIME_01_no_p12_implemented_builder():
-    assert not hasattr(MRS, "build_p12_implemented_registry")
+    # P12 is now IMPLEMENTED via build_p12_implemented_registry (the terminal layer);
+    # the SPECIFIED builder must still stop P12 at SPECIFIED (no runtime advance from
+    # the spec).
+    assert hasattr(MRS, "build_p12_implemented_registry")
+    assert _p12(build_p12_specified_registry()).status is LayerStatus.SPECIFIED
 
 
 def test_P12_SPEC_NORUNTIME_02_builder_stops_at_specified():

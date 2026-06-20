@@ -4,7 +4,7 @@ Narrow SCG-P11 implementation (2026-06-20). Advances ONLY P11_IRAB_GEOMETRY to
 IMPLEMENTED via `build_p11_implemented_registry`, atop the implemented P10 phase.
 
 P12 remains SPECIFIED; freeze stays ACTIVE above P11; no P12 runtime;
-`build_p12_implemented_registry` remains absent.
+`build_p13_implemented_registry` remains absent.
 """
 
 from __future__ import annotations
@@ -70,7 +70,7 @@ def test_P11_IMPL_GATE_01_origin_is_relation_geometry_candidate():
 
 
 def test_P11_IMPL_NOFULL_01_no_p12_implemented_builder():
-    assert not hasattr(MRS, "build_p12_implemented_registry")
+    assert not hasattr(MRS, "build_p13_implemented_registry")
 
 
 def test_P11_IMPL_FREEZE_01_freeze_active_above_p11():

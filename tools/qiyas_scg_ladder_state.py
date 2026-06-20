@@ -39,7 +39,7 @@ from qiyas_core.qiyas_structural_verification import (
 )
 from qiyas_core.slot_geometry_core import (
     LayerStatus,
-    build_p11_implemented_registry,
+    build_p12_implemented_registry,
 )
 
 import run_qiyas  # official Phase-1 driver (repo-root module; needs `.` on path)
@@ -61,12 +61,14 @@ _AMIL = "AmilMamulCandidate"                 # SCG-P8 (now implemented)
 _SG_EVIDENCE_PREFIX = "sentence_geometry_evidence:"  # SCG-P9 evidence trace marker
 _RG_EVIDENCE_PREFIX = "relation_geometry_evidence:"  # SCG-P10 evidence trace marker
 _IG_EVIDENCE_PREFIX = "irab_geometry_evidence:"      # SCG-P11 evidence trace marker
+_IF_EVIDENCE_PREFIX = "ifadah_evidence:"             # SCG-P12 evidence trace marker
 
-# Higher-layer / semantic outputs that MUST NOT appear yet (no-jump guard).
-# P2..P11 are now IMPLEMENTED, so they are expected. SCG-P12 (IfadahCandidate)
-# and above remain not_introduced.
+# Final / reality / hukm / semantic outputs that MUST NEVER appear (the frontier
+# beyond the structural spine). P2..P12 are now IMPLEMENTED, so the structural spine
+# is complete; P12 is TERMINAL (there is no P13). These names are the hukm/reality
+# frontier the spine never crosses.
 _FORBIDDEN_HIGHER = (
-    "IfadahCandidate", "CaseJudgment", "IrabFinalDecision",
+    "CaseJudgment", "IrabFinalDecision", "RealityMapping", "TruthJudgment",
     "SlotGeometry", "HukmCandidate", "RealityClaim", "FinalMeaning",
 )
 
@@ -324,8 +326,11 @@ def render_token(token: str) -> tuple[str, dict, set]:
     lines.append("   SCG-P11 :")
     lines.append(f"       IrabGeometryCandidate        = sentence-level "
                  f"(behind accepted P10 → see P11 section)")
-    lines.append("   SCG-P12+ :")
-    lines.append(f"       IfadahCandidate              = not_introduced")
+    lines.append("   SCG-P12 (terminal) :")
+    lines.append(f"       IfadahCandidate              = sentence-level "
+                 f"(behind accepted P11 → see P12 section)")
+    lines.append("   beyond P12 (frontier — never) :")
+    lines.append(f"       Hukm/Reality/Truth/FinalMeaning = not_introduced")
     lines.append(f"   higher-layer candidates present : "
                  f"{sorted(higher) if higher else 'none'}")
     lines.append(f"   semantic statuses      : meaning={v.meaning_status} hukm={v.hukm_status} "
@@ -334,22 +339,19 @@ def render_token(token: str) -> tuple[str, dict, set]:
 
 
 def render_registry_state() -> str:
-    reg = build_p11_implemented_registry()
+    reg = build_p12_implemented_registry()
     by_phase: dict[str, list] = {}
     for s in reg.all_layers():
         by_phase.setdefault(s.phase, []).append(s.status)
     kp = lambda p: int(p.split("P")[1])
     impl = lambda ph: all(st is LayerStatus.IMPLEMENTED for st in by_phase.get(ph, []))
-    p12_spec = all(
-        st is LayerStatus.SPECIFIED
-        for ph, sts in by_phase.items()
-        if ph not in ("SCG-P0", "SCG-P1", "SCG-P2", "SCG-P3", "SCG-P4",
-                      "SCG-P5", "SCG-P6", "SCG-P7", "SCG-P8", "SCG-P9", "SCG-P10",
-                      "SCG-P11")
+    spine_complete = all(
+        st is LayerStatus.IMPLEMENTED
+        for sts in by_phase.values()
         for st in sts
     )
     count = sum(len(v) for v in by_phase.values())
-    lines = ["── registry state (build_p11_implemented_registry)"]
+    lines = ["── registry state (build_p12_implemented_registry)"]
     for ph in sorted(by_phase, key=kp):
         vals = sorted({st.value for st in by_phase[ph]})
         lines.append(f"   {ph:8} {','.join(vals)} ({len(by_phase[ph])})")
@@ -365,10 +367,10 @@ def render_registry_state() -> str:
     lines.append(f"   P9 SentenceGeometry IMPL      : {impl('SCG-P9')}")
     lines.append(f"   P10 RelationGeometry IMPL     : {impl('SCG-P10')}")
     lines.append(f"   P11 IrabGeometry IMPL         : {impl('SCG-P11')}")
-    lines.append(f"   P12 SPECIFIED                : {p12_spec}")
+    lines.append(f"   P12 IfadahSpeechForce IMPL    : {impl('SCG-P12')} (terminal)")
     lines.append(f"   layer count                   : {count}")
-    lines.append(f"   freeze ACTIVE for P12         : {p12_spec} "
-                 f"(no P12+ layer is IMPLEMENTED)")
+    lines.append(f"   structural spine COMPLETE     : {spine_complete} "
+                 f"(P0-P12 all IMPLEMENTED; no P13)")
     return "\n".join(lines)
 
 
@@ -464,6 +466,53 @@ def render_irab_geometry(text: str) -> str:
     return "\n".join(lines)
 
 
+def render_ifadah(text: str) -> str:
+    """SCG-P12 (TERMINAL) builds an ifadah (speech-force) possibility from an
+    accepted P11 i'rab geometry. It appears ONLY behind an accepted P11 step; it
+    opens NOTHING (terminal — there is no P13) and only closes ifadah_candidates.
+    Ifadah is a structural POSSIBILITY of speech force — never a hukm/reality/truth/
+    final-meaning claim (the frontier the spine never crosses)."""
+    reports = run_qiyas.process_text(text)
+    if_steps = [
+        s for r in reports for s in r.steps if s.layer == "IfadahSpeechForceQiyas"
+    ]
+    lines = ["── SCG-P12 ifadah speech-force (TERMINAL; possibility, not hukm/reality; behind accepted P11 only)"]
+    if not if_steps:
+        lines.append("   IfadahCandidate              = not_introduced "
+                     "(no accepted P11 i'rab geometry to build on)")
+        return "\n".join(lines)
+    for s in if_steps:
+        ctx = speech = boundary = verdict = "?"
+        opened: list[str] = []
+        closed: list[str] = []
+        for t in s.trace_ids:
+            if t.startswith(_IF_EVIDENCE_PREFIX):
+                for kv in t.split(":", 1)[1].split(";"):
+                    if kv.startswith("ifadah_context_closed="):
+                        ctx = kv.split("=", 1)[1]
+                    elif kv.startswith("speech_force="):
+                        speech = kv.split("=", 1)[1]
+                    elif kv.startswith("completion_boundary="):
+                        boundary = kv.split("=", 1)[1]
+                    elif kv.startswith("verdict="):
+                        verdict = kv.split("=", 1)[1]
+            elif t.startswith("opens_prior:"):
+                opened.append(t.split(":", 1)[1])
+            elif t.startswith("closes_prior:"):
+                closed.append(t.split(":", 1)[1])
+        residuals = sorted({res["type"] for res in s.residuals})
+        lines.append(f"   IfadahCandidate              = {s.status} "
+                     f"(verdict={verdict})")
+        lines.append(f"   ifadah context closed        = {ctx}")
+        lines.append(f"   speech-force / completion    = {speech} / {boundary} "
+                     f"(possibility, NOT a hukm/reality/truth claim)")
+        lines.append(f"   opened priors                = {opened or 'none'} "
+                     f"(TERMINAL — opens nothing; no P13)")
+        lines.append(f"   closed priors                = {closed or 'none'}")
+        lines.append(f"   residual reasons             = {residuals or 'none'}")
+    return "\n".join(lines)
+
+
 def render_sentence_geometry(text: str) -> str:
     """SCG-P9 is a SENTENCE-level layer: it composes ≥2 distinct word/segment
     units, each carrying accepted P8 evidence. A single word is ONE unit and
@@ -515,7 +564,7 @@ def main(argv: list[str] | None = None) -> int:
     tokens = text.split()
 
     print("=" * 72)
-    print("SCG LADDER STATE — up to SCG-P11 (structural, potential-only)")
+    print("SCG LADDER STATE — full spine SCG-P0..P12 (structural, potential-only)")
     print("=" * 72)
 
     all_higher: set = set()
@@ -576,6 +625,8 @@ def main(argv: list[str] | None = None) -> int:
     print()
     print(render_irab_geometry(text))
     print()
+    print(render_ifadah(text))
+    print()
     print("── aggregate")
     print(f"   total SlotCandidate count          : {total_slots}")
     print(f"   total RegistryProjectionCandidate  : {total_projections}")
@@ -598,7 +649,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"   total AmilMamul deferred/blocked   : "
           f"defer={total_amil_defer} block={total_amil_block} (P8 discrimination)")
     print(f"   tokens with no SlotCandidate       : {residual_tokens or 'none'}")
-    print(f"   P12+/semantic candidates seen      : {sorted(all_higher) if all_higher else 'none'}")
+    print(f"   final/reality/hukm candidates seen : {sorted(all_higher) if all_higher else 'none'}")
     print(f"   higher semantic statuses           : not_introduced "
           f"(constant: {NOT_INTRODUCED})")
     return 0

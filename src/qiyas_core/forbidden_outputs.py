@@ -455,6 +455,30 @@ FORBIDDEN_IRAB_GEOMETRY: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# IfadahSpeechForceQiyas (SCG-P12, TERMINAL) produces only IfadahCandidate.
+# IfadahCandidate is its OWN output, so it is NOT in this forbidden list. P12 is the
+# END of the structural spine — it opens nothing and must never cross into reality,
+# truth, hukm, or final meaning (the hukm/reality frontier). Every reality / truth /
+# hukm / final-meaning / final-decision artifact is forbidden.
+FORBIDDEN_IFADAH: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Canonical P12 finality guards (LayerSpec forbidden_outputs).
+    "IrabFinalDecision",
+    "RealityMapping",
+    "TruthJudgment",
+    # i'rab verdict / case decision — never judged.
+    "CaseJudgment",
+    "IrabCandidate",
+    "CaseEffect",
+    "Irab",
+    # Defense-in-depth hardening: meaning / dalalah / final syntax labels.
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "DalalahJudgment",
+    "SyntaxLabelJudgment",
+    "SlotGeometry",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -472,6 +496,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "SentenceGeometryQiyas": FORBIDDEN_SENTENCE_GEOMETRY,
     "RelationGeometryQiyas": FORBIDDEN_RELATION_GEOMETRY,
     "IrabGeometryQiyas": FORBIDDEN_IRAB_GEOMETRY,
+    "IfadahSpeechForceQiyas": FORBIDDEN_IFADAH,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,
