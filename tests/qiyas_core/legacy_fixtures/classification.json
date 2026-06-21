@@ -1,0 +1,448 @@
+{
+  "provenance": "captured from /Users/husseinhiyassat/fractal/hussein/clean_code/analyze_verse_v3.py --morph --i3rab (read-only, verbatim)",
+  "stage": "A",
+  "consumed_by_qiyas_runtime": false,
+  "rows": [
+    {
+      "token": "كَتَبَ",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل ماضٍ",
+      "legacy_root": "كتب",
+      "legacy_wazn": "فعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "كَاتِب",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم مجرور",
+      "legacy_root": "كتب",
+      "legacy_wazn": "فَأَعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "مَكْتُوب",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "مبتدأ مرفوع",
+      "legacy_root": "كتب",
+      "legacy_wazn": "مَفْعُول",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "مَكْتَب",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم منصوب",
+      "legacy_root": "كتب",
+      "legacy_wazn": "مَفْعَل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "مُسْلِم",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم مجرور",
+      "legacy_root": "سلم",
+      "legacy_wazn": "مُفْعِل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "قَالَ",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل ماضٍ",
+      "legacy_root": "قول",
+      "legacy_wazn": "فعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "weak/hollow/hamza/shadda/madd → normalization required → DEFER; L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "بَاعَ",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم منصوب",
+      "legacy_root": "بوع",
+      "legacy_wazn": "فَالَ",
+      "family_reliability": {
+        "word_class": "suspicious_defer",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "legacy word-class is a known misclassification (preserved verbatim); weak/hollow/hamza/shadda/madd → normalization required → DEFER; L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "خَافَ",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل ماضٍ",
+      "legacy_root": "خوف",
+      "legacy_wazn": "فعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "weak/hollow/hamza/shadda/madd → normalization required → DEFER; L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "صَامَ",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم منصوب",
+      "legacy_root": "صوم",
+      "legacy_wazn": "فَالَ",
+      "family_reliability": {
+        "word_class": "suspicious_defer",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "legacy word-class is a known misclassification (preserved verbatim); weak/hollow/hamza/shadda/madd → normalization required → DEFER; L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "قِيلَ",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل ماضٍ",
+      "legacy_root": "قيل",
+      "legacy_wazn": "فعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "legacy root/wazn looks wrong (weak/unvocalized; preserved verbatim); L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "يَقُولُ",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل مضارع",
+      "legacy_root": "قول",
+      "legacy_wazn": "فعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "يَبِيعُ",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل مضارع",
+      "legacy_root": "يبع",
+      "legacy_wazn": "فَعِيل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "legacy root/wazn looks wrong (weak/unvocalized; preserved verbatim); L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "مَدَّ",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل ماضٍ",
+      "legacy_root": "مدد",
+      "legacy_wazn": "فعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "weak/hollow/hamza/shadda/madd → normalization required → DEFER; L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "آمَنَ",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل ماضٍ",
+      "legacy_root": "ءمن",
+      "legacy_wazn": "فاعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "weak/hollow/hamza/shadda/madd → normalization required → DEFER; L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "مِن",
+      "legacy_class": "HARF",
+      "legacy_role": "حرف جر",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "إلى",
+      "legacy_class": "HARF",
+      "legacy_role": "حرف جر",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "على",
+      "legacy_class": "HARF",
+      "legacy_role": "حرف",
+      "legacy_root": "—",
+      "legacy_wazn": "حرف",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "هذا",
+      "legacy_class": "ISM_MABNI",
+      "legacy_role": "اسم مبني",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "ذلكم",
+      "legacy_class": "ISM_MABNI",
+      "legacy_role": "اسم مبني",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "الذي",
+      "legacy_class": "ISM_MAWSOOL",
+      "legacy_role": "اسم",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "الذين",
+      "legacy_class": "ISM_MAWSOOL",
+      "legacy_role": "اسم مجرور",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "هو",
+      "legacy_class": "ISM_MABNI",
+      "legacy_role": "اسم مبني",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "عليه",
+      "legacy_class": "HARF",
+      "legacy_role": "حرف",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "منه",
+      "legacy_class": "HARF",
+      "legacy_role": "حرف",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "بكم",
+      "legacy_class": "HARF",
+      "legacy_role": "حرف",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "رجل",
+      "legacy_class": "JAMID",
+      "legacy_role": "اسم",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "كتاب",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم",
+      "legacy_root": "كتب",
+      "legacy_wazn": "فُعَال",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "كاتب",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم",
+      "legacy_root": "كتب",
+      "legacy_wazn": "فَأَعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "مكتوب",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم",
+      "legacy_root": "متوب",
+      "legacy_wazn": "فَكَفَعَل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "suspicious_defer",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "legacy root/wazn looks wrong (weak/unvocalized; preserved verbatim); L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "يكتب",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل مضارع",
+      "legacy_root": "كتب",
+      "legacy_wazn": "فعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "اضرب",
+      "legacy_class": "FIIL",
+      "legacy_role": "فعل أمر",
+      "legacy_root": "ضرب",
+      "legacy_wazn": "فعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "الله",
+      "legacy_class": "SINGULAR_TERM",
+      "legacy_role": "—",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence"
+      },
+      "note": ""
+    },
+    {
+      "token": "تجارة",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم",
+      "legacy_root": "—",
+      "legacy_wazn": "—",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    },
+    {
+      "token": "شيء",
+      "legacy_class": "ISM_MUARAB",
+      "legacy_role": "اسم",
+      "legacy_root": "شيء",
+      "legacy_wazn": "فَعل",
+      "family_reliability": {
+        "word_class": "proposal_evidence",
+        "root_wazn": "proposal_evidence",
+        "role_case": "unsafe_final_looking"
+      },
+      "note": "L3 role/case is a committed i'rab decision — Qiyas must downgrade, never trust"
+    }
+  ]
+}
