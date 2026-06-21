@@ -81,6 +81,7 @@ from qiyas_core.sentence_geometry_adapter import (
 from qiyas_core.relation_geometry_adapter import RelationGeometryLayerAdapter
 from qiyas_core.irab_geometry_adapter import IrabGeometryLayerAdapter
 from qiyas_core.ifadah_adapter import IfadahSpeechForceLayerAdapter
+from qiyas_core.inflectional_closure_adapter import InflectionalClosureLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -126,6 +127,7 @@ class PipelineLayers:
     verbal_signified_layer: VerbalSignifiedLayerAdapter
     composition_readiness_layer: CompositionReadinessLayerAdapter
     amil_mamul_layer: AmilMamulLayerAdapter
+    inflectional_closure_layer: InflectionalClosureLayerAdapter
     sentence_geometry_layer: SentenceGeometryLayerAdapter
     relation_geometry_layer: RelationGeometryLayerAdapter
     irab_geometry_layer: IrabGeometryLayerAdapter
@@ -150,6 +152,7 @@ class PipelineLayers:
             verbal_signified_layer=VerbalSignifiedLayerAdapter(kernel=kernel),
             composition_readiness_layer=CompositionReadinessLayerAdapter(kernel=kernel),
             amil_mamul_layer=AmilMamulLayerAdapter(kernel=kernel),
+            inflectional_closure_layer=InflectionalClosureLayerAdapter(kernel=kernel),
             sentence_geometry_layer=SentenceGeometryLayerAdapter(kernel=kernel),
             relation_geometry_layer=RelationGeometryLayerAdapter(kernel=kernel),
             irab_geometry_layer=IrabGeometryLayerAdapter(kernel=kernel),
@@ -589,11 +592,27 @@ def process_text(
                                         LayerStep.from_set("MufradWordQiyas", mw_set)
                                     )
 
+                                    mw_cand = _accepted(mw_set)
+                                    if mw_cand is not None:
+                                        # P5.1 — InflectionalClosureQiyas (AUXILIARY,
+                                        # non-registry): classify the accepted P5
+                                        # mufrad word into mabni / mu'rab READINESS as
+                                        # candidate-only evidence, AFTER P5 and BEFORE
+                                        # P6. It reads word-kind / closed-category
+                                        # evidence and DEFERs when absent (never guesses,
+                                        # never a grammatical judgment). It does not gate
+                                        # P6+ and does not touch the 19-count registry.
+                                        ic_set = layers.inflectional_closure_layer.classify(
+                                            mw_cand, trace_prefix=f"text[{i}]:ic:{cp:04x}"
+                                        )
+                                        report.steps.append(
+                                            LayerStep.from_set("InflectionalClosureQiyas", ic_set)
+                                        )
+
                                     # SCG-P6 — VerbalSignifiedQiyas: open verbal-
                                     # signified semantic POSSIBILITIES (meaning +
                                     # dalalah priors only; never actual meaning,
                                     # dalalah, tafsir, hukm, or P7+ candidate).
-                                    mw_cand = _accepted(mw_set)
                                     if mw_cand is not None:
                                         vs_set = layers.verbal_signified_layer.open(
                                             mw_cand, trace_prefix=f"text[{i}]:vs:{cp:04x}"
