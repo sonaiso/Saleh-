@@ -82,6 +82,7 @@ from qiyas_core.relation_geometry_adapter import RelationGeometryLayerAdapter
 from qiyas_core.irab_geometry_adapter import IrabGeometryLayerAdapter
 from qiyas_core.ifadah_adapter import IfadahSpeechForceLayerAdapter
 from qiyas_core.inflectional_closure_adapter import InflectionalClosureLayerAdapter
+from qiyas_core.weight_pattern_adapter import WeightPatternLayerAdapter
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -122,6 +123,7 @@ class PipelineLayers:
     slot_layer: SlotLayerAdapter
     registry_projection_layer: RegistryProjectionLayerAdapter
     root_stem_layer: RootStemLayerAdapter
+    weight_pattern_layer: WeightPatternLayerAdapter
     jamid_mushtaq_layer: JamidMushtaqLayerAdapter
     mufrad_word_layer: MufradWordLayerAdapter
     verbal_signified_layer: VerbalSignifiedLayerAdapter
@@ -147,6 +149,7 @@ class PipelineLayers:
             slot_layer=SlotLayerAdapter(kernel=kernel),
             registry_projection_layer=RegistryProjectionLayerAdapter(kernel=kernel),
             root_stem_layer=RootStemLayerAdapter(kernel=kernel),
+            weight_pattern_layer=WeightPatternLayerAdapter(kernel=kernel),
             jamid_mushtaq_layer=JamidMushtaqLayerAdapter(kernel=kernel),
             mufrad_word_layer=MufradWordLayerAdapter(kernel=kernel),
             verbal_signified_layer=VerbalSignifiedLayerAdapter(kernel=kernel),
@@ -572,6 +575,21 @@ def process_text(
                             # final jamid/mushtaq judgment, wazn, or P5+ candidate).
                             rs_cand = _accepted(rs_set)
                             if rs_cand is not None:
+                                # P3.1 — WeightPatternQiyas (AUXILIARY, non-registry):
+                                # extract candidate-only Arabic wazn(s) from the accepted
+                                # P3 root/stem, AFTER syllable/stem-matter evidence and
+                                # BEFORE P4/P5/word-kind/mabni-mu'rab. Candidate-only:
+                                # may emit multiple licensed weights; DEFERs on shadda/
+                                # madd/hamza/weak ambiguity (never guesses, never a final
+                                # weight/root/word-kind judgment). Does not gate P4+ and
+                                # does not touch the 19-count registry.
+                                wp_set = layers.weight_pattern_layer.extract(
+                                    rs_cand, trace_prefix=f"text[{i}]:wp:{cp:04x}"
+                                )
+                                report.steps.append(
+                                    LayerStep.from_set("WeightPatternQiyas", wp_set)
+                                )
+
                                 jm_set = layers.jamid_mushtaq_layer.classify(
                                     rs_cand, trace_prefix=f"text[{i}]:jm:{cp:04x}"
                                 )
