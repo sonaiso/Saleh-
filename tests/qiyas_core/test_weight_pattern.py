@@ -265,3 +265,95 @@ def test_WP_GOV_01_not_a_registered_layerspec_count_19_no_p13():
 def test_WP_GOV_02_registered_via_auxiliary_forbidden_pattern():
     from qiyas_core.forbidden_outputs import LAYER_FORBIDDEN_OUTPUTS
     assert "WeightPatternQiyas" in LAYER_FORBIDDEN_OUTPUTS
+
+
+# ── RUNTIME SURFACE BINDING (fix/p3-1-runtime-surface-binding) ─────────────────
+# Regression: live run_qiyas must hand P3.1 the full preserved token surface, not a
+# single reconstructed letter, so sound words ACCEPT and weak/ambiguous words DEFER.
+
+
+def _wp_steps(token):
+    return [s for r in rq.process_text(token) for s in r.steps
+            if s.layer == "WeightPatternQiyas"]
+
+
+def _patterns(step):
+    return {t.split(":", 1)[1] for t in step.trace_ids
+            if t.startswith("candidate_weight_pattern:")}
+
+
+def test_WP_SURFACE_01_segment_surfaces_carries_full_preserved_surface():
+    # The helper groups each segment's letters+harakat in order (identity preserved).
+    from qiyas_core.sequence_context_tokenizer import SequenceContextTokenizer
+    text = "كَتَبَ"
+    tok = SequenceContextTokenizer().tokenize(text)
+    mbi = {m.index: m for m in tok.markers}
+    surfaces = rq._segment_surfaces(text, mbi)
+    assert "كَتَبَ" in surfaces.values()           # full vocalized word, not one letter
+    assert rq._segment_surfaces("", {}) == {}      # empty/no-arabic → empty (safe)
+
+
+def test_WP_SURFACE_02_sound_words_accept_full_surface_pattern():
+    # BEFORE the fix these blocked with blocking_fariq_present (single-letter surface).
+    expected = {"كَتَبَ": "فَعَلَ", "كَاتِب": "فَاعِل", "مَكْتُوب": "مَفْعُول"}
+    for token, pat in expected.items():
+        steps = _wp_steps(token)
+        assert steps, f"P3.1 step must appear for {token}"
+        assert all(s.status == "accepted" for s in steps), \
+            f"{token}: expected ACCEPT, got {[s.status for s in steps]}"
+        assert any(pat in _patterns(s) for s in steps), f"{token}: expected {pat}"
+        # candidate-only — never a final root/weight judgment
+        assert {s.candidate_type for s in steps} <= {"WeightPatternCandidate"}
+
+
+def test_WP_SURFACE_03_weak_hollow_hamza_shadda_defer_not_fabricate():
+    reasons = {
+        "قَالَ": "weak_letter", "آمَنَ": "hamza", "مَدَّ": "shadda",
+    }
+    for token, frag in reasons.items():
+        steps = _wp_steps(token)
+        assert steps, f"P3.1 step must appear for {token}"
+        assert all(s.status == "deferred" for s in steps), \
+            f"{token}: expected DEFER, got {[s.status for s in steps]}"
+        # the defer reason names the morphological ambiguity (no fabricated root/weight)
+        assert any(frag in r["type"] for s in steps for r in s.residuals), \
+            f"{token}: expected a {frag} defer reason"
+        assert {s.candidate_type for s in steps} <= {"WeightPatternCandidate"}
+
+
+def test_WP_SURFACE_04_p31_still_does_not_gate_p4():
+    # P4 JamidMushtaqQiyas must still follow P3.1 whether it ACCEPTs or DEFERs.
+    for token in ("كَتَبَ", "قَالَ"):
+        layers = []
+        for r in rq.process_text(token):
+            for s in r.steps:
+                if s.layer not in layers:
+                    layers.append(s.layer)
+        assert "WeightPatternQiyas" in layers and "JamidMushtaqQiyas" in layers, token
+        assert layers.index("JamidMushtaqQiyas") > layers.index("WeightPatternQiyas"), token
+
+
+def test_WP_SURFACE_05_unavailable_surface_keeps_safe_fallback():
+    # surface=None → adapter reconstructs from identity (single letter) and must NOT
+    # fabricate a sound multi-slot ACCEPT; it stays safe (no ACCEPT of a bogus weight).
+    from qiyas_core.weight_pattern_adapter import WeightPatternLayerAdapter
+    rs = Candidate(
+        candidate_id="accepted:RootStemQiyas:ك", candidate_type="RootStemCandidate",
+        status=CandidateStatus.ACCEPTED, layer="RootStemQiyas",
+        source_rule_id="root_stem.close", asl_id="اصل:root_stem_domain",
+        far_id="فرع:x", identity_ids=("identity:codepoint:0643",),
+        rank=EvidenceRank.FORMAL_STRUCTURE, residuals=(), trace_ids=(),
+        output_flags=frozenset({"CandidateOnly"}),
+    )
+    cs = WeightPatternLayerAdapter(kernel=QiyasKernel()).extract(rs, surface=None)
+    assert not cs.accepted, "single-letter fallback must not ACCEPT a fabricated weight"
+
+
+def test_WP_SURFACE_06_no_legacy_source_in_runtime_p31():
+    legacy = ("legacy", "stage_a", "legacy_weight_pattern_feed",
+              "legacy_inflectional_closure_feed", "fixture")
+    for token in ("كَتَبَ", "كَاتِب", "مَكْتُوب", "قَالَ", "آمَنَ", "مِن", "هُوَ"):
+        for s in _wp_steps(token):
+            blobs = (s.rule_id, *s.trace_ids, *(r["type"] for r in s.residuals))
+            assert not any(m in (b or "") for b in blobs for m in legacy), \
+                f"{token}: no legacy source may appear in the live P3.1 trace"
