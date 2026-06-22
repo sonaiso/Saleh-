@@ -479,6 +479,35 @@ FORBIDDEN_IFADAH: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# InflectionalClosureQiyas (P5.1 — AUXILIARY non-registry sub-pass) produces only
+# MabniReadinessCandidate / Mu'rabReadinessCandidate (umbrella InflectionalClosureCandidate).
+# Those readiness candidates are its OWN outputs, so they are NOT in this list. P5.1 is
+# candidate-only structural classification evidence — it must NEVER emit a grammatical
+# JUDGMENT, an i'rab position/sign/decision, dalalah, ifadah, hukm, reality, or final
+# meaning. Registered here via the same auxiliary pattern as HarakaRoleSpectrumQiyas /
+# SyllableQiyas (present in this map, absent from the 19-count master_registry_seed).
+FORBIDDEN_INFLECTIONAL_CLOSURE: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Explicit naming guard — readiness is a candidate, NEVER a judgment.
+    "MabniJudgment",
+    "MurabJudgment",
+    # No detailed i'rab position / sign / decision (raf'/nasb/jarr/jazm finalization).
+    "IrabFinalDecision",
+    "IrabGeometryCandidate",
+    "CaseJudgment",
+    "CaseEffect",
+    "Irab",
+    "IrabCandidate",
+    # No downstream / speech-force / dalalah / meaning / final objects.
+    "IfadahCandidate",
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "DalalahJudgment",
+    "SyntaxLabelJudgment",
+    "RealityMapping",
+    "TruthJudgment",
+)
+
 LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "TypedCodePointClassificationQiyas": FORBIDDEN_TYPED_CODEPOINT,
     "LetterIdentityQiyas": FORBIDDEN_LETTER_IDENTITY,
@@ -497,6 +526,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "RelationGeometryQiyas": FORBIDDEN_RELATION_GEOMETRY,
     "IrabGeometryQiyas": FORBIDDEN_IRAB_GEOMETRY,
     "IfadahSpeechForceQiyas": FORBIDDEN_IFADAH,
+    "InflectionalClosureQiyas": FORBIDDEN_INFLECTIONAL_CLOSURE,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
     "SyllableQiyas": FORBIDDEN_SYLLABLE,
