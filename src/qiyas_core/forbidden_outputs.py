@@ -479,6 +479,40 @@ FORBIDDEN_IFADAH: tuple[str, ...] = (
     "SlotGeometry",
 )
 
+# WeightPatternQiyas (P3.1 — AUXILIARY non-registry sub-pass) produces only
+# WeightPatternCandidate (مرشّح الوزن الصرفي). That is its OWN candidate-only output
+# (multiple licensed weights may co-exist as candidates), so it is NOT in this list.
+# P3.1 must NEVER assert a FINAL weight, a final root, a final word-kind, a final
+# i'rab, dalalah, ifadah, hukm, reality, truth, or intended meaning — every finality
+# form below is forbidden. Registered via the same auxiliary pattern as
+# HarakaRoleSpectrumQiyas / SyllableQiyas / InflectionalClosureQiyas.
+FORBIDDEN_WEIGHT_PATTERN: tuple[str, ...] = (
+    *CONSTITUTIONAL_BASE,
+    # Finality forms of weight / root / pattern — never a judgment.
+    "WeightFinalJudgment",
+    "WeightCandidate",
+    "WeightJudgment",
+    "RootFinalJudgment",
+    "RootCandidate",
+    "PatternCandidate",
+    "MorphemeCandidate",
+    # No final word-kind / mabni-mu'rab / part-of-speech judgment.
+    "WordKindFinalJudgment",
+    "MabniJudgment",
+    "MurabJudgment",
+    # No i'rab / case / dalalah / ifadah / meaning / reality / truth.
+    "IrabFinalDecision",
+    "CaseJudgment",
+    "IrabCandidate",
+    "MeaningCandidate",
+    "DalalahCandidate",
+    "DalalahJudgment",
+    "IfadahCandidate",
+    "RealityMapping",
+    "TruthJudgment",
+    "SyntaxLabelJudgment",
+)
+
 # InflectionalClosureQiyas (P5.1 — AUXILIARY non-registry sub-pass) produces only
 # MabniReadinessCandidate / Mu'rabReadinessCandidate (umbrella InflectionalClosureCandidate).
 # Those readiness candidates are its OWN outputs, so they are NOT in this list. P5.1 is
@@ -526,6 +560,7 @@ LAYER_FORBIDDEN_OUTPUTS: dict[str, tuple[str, ...]] = {
     "RelationGeometryQiyas": FORBIDDEN_RELATION_GEOMETRY,
     "IrabGeometryQiyas": FORBIDDEN_IRAB_GEOMETRY,
     "IfadahSpeechForceQiyas": FORBIDDEN_IFADAH,
+    "WeightPatternQiyas": FORBIDDEN_WEIGHT_PATTERN,
     "InflectionalClosureQiyas": FORBIDDEN_INFLECTIONAL_CLOSURE,
     "SlotGeometryQiyas": FORBIDDEN_SLOT_GEOMETRY,
     "HarakaRoleSpectrumQiyas": FORBIDDEN_HARAKA_ROLE_SPECTRUM,
