@@ -266,6 +266,29 @@ def _segment_root_stem_profiles(
     return {seg: build_sequence_profile(cps) for seg, cps in by_segment.items()}
 
 
+def _segment_surfaces(
+    text: str,
+    markers_by_index: dict[int, SequenceMarker],
+) -> dict[Any, str]:
+    """Per-tokenizer-segment full preserved surface (letters + harakat, in order).
+
+    The identity-preserving word/token surface for each segment, grouped exactly as
+    ``_segment_root_stem_profiles`` groups codepoints (same Arabic letter+haraka
+    membership, same source order, never rewritten). Supplied to the auxiliary P3.1
+    WeightPatternQiyas pass so it aligns the whole word (e.g. كَتَبَ → فَعَلَ) instead of a
+    single reconstructed letter. Purely a surface carrier — no morphology, no lexicon.
+    """
+    by_segment: dict[Any, list[str]] = {}
+    for i, ch in enumerate(text):
+        cp = ord(ch)
+        if not (is_arabic_letter(cp) or is_arabic_haraka(cp)):
+            continue
+        marker = markers_by_index.get(i)
+        seg = marker.segment_id if marker is not None else None
+        by_segment.setdefault(seg, []).append(ch)
+    return {seg: "".join(chars) for seg, chars in by_segment.items()}
+
+
 def _tokenizer_marker_dict(marker: SequenceMarker | None) -> dict[str, Any] | None:
     """Serialize a tokenizer marker for audit output (never a Candidate)."""
     if marker is None:
@@ -363,6 +386,11 @@ def process_text(
     # the root/stem closure verdict (ACCEPT / DEFER / BLOCK). Computed once over
     # the whole text so each P3 call sees its token's full sequence geometry.
     root_stem_profiles = _segment_root_stem_profiles(text, markers_by_index)
+
+    # Full preserved per-segment surfaces (letters + harakat) for the auxiliary P3.1
+    # WeightPatternQiyas pass, so it aligns the whole word rather than a single
+    # reconstructed letter. Falls back to identity reconstruction when unavailable.
+    segment_surfaces = _segment_surfaces(text, markers_by_index)
 
     # SCG-P9 (multi-unit): accepted P8 AmilMamulCandidate traces grouped by
     # tokenizer segment. A word/segment = one P9 *unit* regardless of how many
@@ -583,8 +611,14 @@ def process_text(
                                 # madd/hamza/weak ambiguity (never guesses, never a final
                                 # weight/root/word-kind judgment). Does not gate P4+ and
                                 # does not touch the 19-count registry.
+                                # Pass the full preserved token surface when available
+                                # (e.g. كَتَبَ) so P3.1 aligns the whole word; when absent,
+                                # surface=None keeps the safe identity-reconstruction
+                                # fallback (DEFER/BLOCK on identity safety, never a guess).
                                 wp_set = layers.weight_pattern_layer.extract(
-                                    rs_cand, trace_prefix=f"text[{i}]:wp:{cp:04x}"
+                                    rs_cand,
+                                    surface=segment_surfaces.get(seg_id),
+                                    trace_prefix=f"text[{i}]:wp:{cp:04x}",
                                 )
                                 report.steps.append(
                                     LayerStep.from_set("WeightPatternQiyas", wp_set)
