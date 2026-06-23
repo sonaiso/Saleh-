@@ -1,0 +1,47 @@
+{
+  "snapshot_version": "v1",
+  "analyzer_name": "hussein",
+  "analyzer_version_or_commit": "analyze_verse_v3.py (commit unknown; offline --morph --i3rab capture)",
+  "offline_run_id": "stage_a_capture/words_morph_i3rab",
+  "source_provenance": "captured from /Users/husseinhiyassat/fractal/hussein/clean_code/analyze_verse_v3.py --morph --i3rab (read-only, verbatim)",
+  "source_text_id": "stage_a/words_morph_i3rab.raw.txt",
+  "produced_by": "offline transform of the Stage A reviewed capture (no live analyzer call)",
+  "reviewed_at": "2026-06-24",
+  "reviewer": "maintainer (Stage A verbatim review)",
+  "snapshot_file": "hussein_legacy_proposals_v1.csv",
+  "sha256": "e50498d20290537fee1fb92414bde691fb16aa065676a84c81d09b7e5e58ec97",
+  "row_counts": {
+    "rows": 26,
+    "manually_reviewed": 23,
+    "quarantined": 3,
+    "rejected": 0,
+    "pending_review": 0,
+    "p5_1_target": 23,
+    "p3_1_target": 12,
+    "suspicious_defer": 9,
+    "unsafe_final_looking": 26
+  },
+  "consumable_columns_by_target": {
+    "P5_1_INFLECTIONAL_CLOSURE": [
+      "legacy_class",
+      "legacy_subclass",
+      "legacy_verb_kind",
+      "legacy_verb_tense",
+      "reliability_tag",
+      "certainty_class",
+      "unsafe_final_looking"
+    ],
+    "P3_1_WEIGHT_PATTERN": [
+      "legacy_root",
+      "legacy_wazn",
+      "morphology_ambiguity_tags",
+      "reliability_tag",
+      "certainty_class",
+      "unsafe_final_looking"
+    ]
+  },
+  "legacy_root_is_audit_metadata_only": true,
+  "runtime_consumed": false,
+  "stage_a_read_at_runtime": false,
+  "list_cell_separator": "|"
+}
