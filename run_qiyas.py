@@ -832,6 +832,43 @@ def process_text(
                         LayerStep.from_set("IfadahSpeechForceQiyas", if_set)
                     )
 
+    # Step C2 — closed-category reachability (AUXILIARY, structural only). Single-token
+    # closed-category units (حروف / ضمائر / أسماء موصولة) do NOT form an accepted P5
+    # MufradWord, so P5.1 never fires for them through the normal chain. When the
+    # committed v1 Hussein snapshot supplies a SAFE manually_reviewed closed-category
+    # P5.1 proposal, synthesize a narrow ClosedCategoryMufradCarrier so P5.1 can classify
+    # mabni-readiness. No registry change, no LayerSpec, no meaning / i'rab / role; the
+    # P5.1 rule still decides; non-gating; quarantined/suspicious rows create no reach.
+    _ccr_provider = layers.inflectional_closure_snapshot_provider
+    _segs_with_p51 = {
+        markers_by_index[r.index].segment_id
+        for r in reports
+        for s in r.steps
+        if s.layer == "InflectionalClosureQiyas" and r.index in markers_by_index
+    }
+    for seg_id, surface in segment_surfaces.items():
+        if seg_id is None or seg_id in _segs_with_p51:
+            continue
+        bridge = _ccr_provider.closed_category_reachability(surface)
+        if bridge is None:
+            continue
+        carrier_set, cc_kwargs = bridge
+        seg_indices = [idx for idx, m in markers_by_index.items()
+                       if m.segment_id == seg_id]
+        if not seg_indices:
+            continue
+        target = reports[min(seg_indices)]
+        target.steps.append(
+            LayerStep.from_set("ClosedCategoryReachabilityQiyas", carrier_set)
+        )
+        ic_set = layers.inflectional_closure_layer.classify(
+            carrier_set.candidates[0],
+            token_surface=surface,
+            trace_prefix=f"seg[{seg_id}]:ccr:src=hussein_snapshot_v1",
+            **cc_kwargs,
+        )
+        target.steps.append(LayerStep.from_set("InflectionalClosureQiyas", ic_set))
+
     return reports
 
 

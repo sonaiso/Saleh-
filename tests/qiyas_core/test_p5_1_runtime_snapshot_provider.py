@@ -205,11 +205,13 @@ def test_PC_17_registry_19_no_p13_p12_terminal_p5_1_auxiliary():
     assert not any("P13" in n for n in dir(MRS) if n.startswith("LAYER_ID_"))
 
 
-def test_PC_18_function_words_do_not_reach_p5_1_runtime_honest_limit():
-    # Honest limit: single ḥarf / pronoun / relative tokens never form an accepted P5
-    # MufradWord, so P5.1 does not fire for them — the rich closed-category proposals
-    # exist in the snapshot but are not exercised at runtime yet.
-    for tok in ("مِن", "إلى", "على", "هُوَ", "هذا", "الذي", "الذين"):
+def test_PC_18_residual_unreached_tokens_honest_limit():
+    # Step C2 closed the closed-category reachability gap for v1 rows (مِن/إلى/على/هو/
+    # هذا/الذي/الذين now reach P5.1 via the reachability bridge — see the C2 suite).
+    # The residual honest limit is tokens that are NOT an exact v1 surface (the fully
+    # vocalized هُوَ ≠ committed هو) or are quarantined (unvocalized مكتوب): they still
+    # do not reach P5.1. No fuzzy harakat-stripping is done (مَكْتُوب≠مكتوب safety).
+    for tok in ("هُوَ", "مكتوب"):
         assert _p5_1_step(tok) is None, tok
 
 
