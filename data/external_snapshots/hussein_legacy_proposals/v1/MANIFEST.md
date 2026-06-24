@@ -1,9 +1,11 @@
 # Hussein Legacy Proposal Snapshot — v1 (MANIFEST)
 
-> **Data-only governed artifact** under `docs/qiyas_core/LEGACY_PROPOSAL_SNAPSHOT_CONTRACT.md`.
-> **NOT read at runtime. NOT wired into `run_qiyas`. NOT a Qiyas authority.** Distinct
-> from Stage A fixtures (`tests/qiyas_core/legacy_fixtures/`), which stay capture-only.
-> The Hussein analyzer is a **proposer only**; Qiyas P3.1/P5.1 rules decide
+> **Governed artifact** under `docs/qiyas_core/LEGACY_PROPOSAL_SNAPSHOT_CONTRACT.md`.
+> As of **Step C** it is read at runtime **only** by the authorized
+> `hussein_snapshot_provider` and **only** to feed P5.1 InflectionalClosure. It is **NOT
+> a Qiyas authority** and is distinct from Stage A fixtures
+> (`tests/qiyas_core/legacy_fixtures/`), which stay capture-only and are never read at
+> runtime. The Hussein analyzer is a **proposer only**; Qiyas P3.1/P5.1 rules decide
 > ACCEPT/DEFER/BLOCK. This snapshot is **proposal evidence only**.
 
 ## Provenance & reproducibility
@@ -58,6 +60,9 @@
 - **list cells** use `|` as separator.
 
 ## Status
-Data-only. No runtime provider, no `run_qiyas` change, no LayerSpec, no registry/schema
-change. Registry count 19; no P13; P12 terminal; P3.1/P5.1 auxiliary non-registry.
-Next step (separate authorization): **C — P5.1 runtime provider PR against this snapshot**.
+The CSV rows are immutable and byte-identical to the Step B (PR #192) commit (sha256
+above unchanged). As of **Step C**, the snapshot is consumed at runtime by the authorized
+`hussein_snapshot_provider` for **P5.1 only** (no LayerSpec, no `run_qiyas` registry/schema
+change, no P3.1 wiring). Registry count 19; no P13; P12 terminal; P3.1/P5.1 auxiliary
+non-registry. Stage A is never read at runtime.
+Next step (separate authorization): **D — P3.1 runtime provider PR against this snapshot**.

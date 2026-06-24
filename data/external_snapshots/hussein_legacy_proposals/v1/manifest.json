@@ -41,7 +41,8 @@
     ]
   },
   "legacy_root_is_audit_metadata_only": true,
-  "runtime_consumed": false,
+  "runtime_consumed": true,
+  "runtime_consumer": "hussein_snapshot_provider (P5.1 InflectionalClosure only; Step C)",
   "stage_a_read_at_runtime": false,
   "list_cell_separator": "|"
 }
