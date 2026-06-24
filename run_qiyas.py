@@ -42,7 +42,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -83,6 +83,7 @@ from qiyas_core.irab_geometry_adapter import IrabGeometryLayerAdapter
 from qiyas_core.ifadah_adapter import IfadahSpeechForceLayerAdapter
 from qiyas_core.inflectional_closure_adapter import InflectionalClosureLayerAdapter
 from qiyas_core.weight_pattern_adapter import WeightPatternLayerAdapter
+from qiyas_core.hussein_snapshot_provider import HusseinSnapshotProvider
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -134,6 +135,13 @@ class PipelineLayers:
     relation_geometry_layer: RelationGeometryLayerAdapter
     irab_geometry_layer: IrabGeometryLayerAdapter
     ifadah_layer: IfadahSpeechForceLayerAdapter
+    # Step C: narrow runtime provider supplying P5.1-safe closed-category / verb-kind
+    # hints from the committed v1 Hussein snapshot (proposer only; P5.1 decides). The
+    # provider owns the snapshot path; it never reads the capture-only fixtures and
+    # never invokes the analyzer.
+    inflectional_closure_snapshot_provider: HusseinSnapshotProvider = field(
+        default_factory=HusseinSnapshotProvider
+    )
 
     @classmethod
     def build(cls) -> "PipelineLayers":
@@ -654,8 +662,24 @@ def process_text(
                                         # evidence and DEFERs when absent (never guesses,
                                         # never a grammatical judgment). It does not gate
                                         # P6+ and does not touch the 19-count registry.
+                                        # Step C: supply ONLY P5.1-safe closed-category /
+                                        # verb-kind hints from the committed v1 Hussein
+                                        # snapshot (no root/wazn, no role/case). The
+                                        # provider returns {} for missing / quarantined /
+                                        # suspicious / non-P5.1-target rows → P5.1 DEFERs
+                                        # (never guesses). The snapshot proposes; the P5.1
+                                        # rule decides ACCEPT / DEFER / BLOCK.
+                                        ic_surface = segment_surfaces.get(seg_id)
+                                        ic_kwargs = layers.inflectional_closure_snapshot_provider.\
+                                            p5_1_classify_kwargs(ic_surface)
+                                        ic_prefix = f"text[{i}]:ic:{cp:04x}"
+                                        if ic_kwargs:
+                                            ic_prefix += ":src=hussein_snapshot_v1"
                                         ic_set = layers.inflectional_closure_layer.classify(
-                                            mw_cand, trace_prefix=f"text[{i}]:ic:{cp:04x}"
+                                            mw_cand,
+                                            token_surface=ic_surface,
+                                            trace_prefix=ic_prefix,
+                                            **ic_kwargs,
                                         )
                                         report.steps.append(
                                             LayerStep.from_set("InflectionalClosureQiyas", ic_set)

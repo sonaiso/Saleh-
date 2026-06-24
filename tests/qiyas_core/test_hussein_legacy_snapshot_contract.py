@@ -134,7 +134,9 @@ def test_HS_10_manifest_exists_and_checksum_matches():
     actual = hashlib.sha256(CSV_PATH.read_bytes()).hexdigest()
     assert m["sha256"] == actual, "manifest sha256 must match the committed CSV"
     assert m["sha256"] in MANIFEST_MD.read_text(encoding="utf-8")
-    assert m["runtime_consumed"] is False and m["stage_a_read_at_runtime"] is False
+    # Step C: the snapshot is now runtime-consumed by the authorized P5.1 provider, but
+    # Stage A is still never read at runtime.
+    assert m["runtime_consumed"] is True and m["stage_a_read_at_runtime"] is False
 
 
 def test_HS_11_snapshot_version_is_v1():
@@ -145,18 +147,25 @@ def test_HS_11_snapshot_version_is_v1():
         assert r["analyzer_name"] == "hussein"
 
 
-def test_HS_12_no_runtime_reference_to_the_snapshot():
-    # No src/qiyas_core or run_qiyas module may import/reference the snapshot path.
-    targets = list((REPO / "src" / "qiyas_core").rglob("*.py")) + [REPO / "run_qiyas.py"]
+def test_HS_12_snapshot_referenced_only_by_the_authorized_provider():
+    # Step C: the ONLY src/qiyas_core module that may reference the snapshot path is the
+    # authorized provider. No other runtime module may, and run_qiyas must reach the
+    # snapshot only via the provider import — never by hardcoding the path.
+    AUTHORIZED = "hussein_snapshot_provider.py"
     needles = ("external_snapshots", "hussein_legacy_proposals", "snapshot_contract")
-    for path in targets:
-        if not path.exists():
+    for path in (REPO / "src" / "qiyas_core").rglob("*.py"):
+        if path.name == AUTHORIZED:
             continue
         text = path.read_text(encoding="utf-8")
         for n in needles:
             assert n not in text, f"{path} must not reference the snapshot ({n})"
-        # belt-and-braces: no import of the validation test module either
-        tree = ast.parse(text)
+    rq = (REPO / "run_qiyas.py").read_text(encoding="utf-8")
+    for n in needles:
+        assert n not in rq, f"run_qiyas must not hardcode the snapshot path ({n})"
+    assert "hussein_snapshot_provider" in rq  # wired only via the provider
+    # no runtime module imports the validation test module
+    for path in list((REPO / "src" / "qiyas_core").rglob("*.py")) + [REPO / "run_qiyas.py"]:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             mods = ([a.name for a in node.names] if isinstance(node, ast.Import)
                     else [node.module or ""] if isinstance(node, ast.ImportFrom) else [])
