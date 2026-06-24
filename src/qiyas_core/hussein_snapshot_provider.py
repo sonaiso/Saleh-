@@ -27,6 +27,9 @@ import json
 import pathlib
 from dataclasses import dataclass, field
 
+from .candidate import Candidate, CandidateSet
+from .enums import CandidateStatus, EvidenceRank
+
 P5_TARGET = "P5_1_INFLECTIONAL_CLOSURE"
 PROPOSAL_SOURCE = "hussein_snapshot_v1"
 
@@ -173,3 +176,52 @@ class HusseinSnapshotProvider:
         Guaranteed to contain NO root/wazn and NO role/case/relation/event/meaning."""
         prop = self.get_p5_1_proposal(surface)
         return dict(prop.classify_kwargs) if prop else {}
+
+    # ── Step C2: closed-category reachability ────────────────────────────────
+    def closed_category_reachability(self, surface: str | None):
+        """For a single-token CLOSED-CATEGORY unit (ḥarf / pronoun / demonstrative /
+        relative / closed compound) with a SAFE v1 proposal, return
+        ``(carrier_set, classify_kwargs)`` — a narrow accepted ClosedCategoryMufradCarrier
+        so P5.1 can fire. Returns None for verbs/nominals (they reach P5 normally), and
+        for any missing / quarantined / suspicious / non-P5.1-target row.
+
+        STRUCTURAL ONLY: the carrier carries the unit's preserved codepoint identity and
+        NO lexical meaning, root, wazn, i'rab, role, relation, or final judgment."""
+        prop = self.get_p5_1_proposal(surface)
+        if prop is None:
+            return None
+        kwargs = dict(prop.classify_kwargs)
+        # Only closed-category proposals (closed_category / is_closed_compound) — never
+        # word_kind (verbs/nominals reach P5 through the normal chain).
+        if not ("closed_category" in kwargs or kwargs.get("is_closed_compound")):
+            return None
+        return self._carrier_set(surface, prop), kwargs
+
+    def _carrier_set(self, surface: str, prop: P5_1SnapshotProposal) -> CandidateSet:
+        ids = tuple(f"identity:codepoint:{ord(c):04x}" for c in surface
+                    if 0x0621 <= ord(c) <= 0x064A) or ("identity:closed_category_unit",)
+        carrier = Candidate(
+            candidate_id=f"accepted:ClosedCategoryReachabilityQiyas:{surface}",
+            candidate_type="ClosedCategoryMufradCarrier",
+            status=CandidateStatus.ACCEPTED,
+            layer="ClosedCategoryReachabilityQiyas",
+            source_rule_id="closed_category_reachability.bridge",
+            asl_id="اصل:closed_category_reachability_domain",
+            far_id=f"فرع:closed_category_unit:{prop.token_index}",
+            identity_ids=ids,
+            rank=EvidenceRank.FORMAL_STRUCTURE,
+            residuals=(),
+            trace_ids=(
+                f"closed_category_reachability_evidence:proposer={PROPOSAL_SOURCE};"
+                f"class={prop.legacy_class};hint={prop.p5_1_evidence_kind};structural_only",
+                f"src={PROPOSAL_SOURCE}",
+            ),
+            output_flags=frozenset({"CandidateOnly"}),
+        )
+        return CandidateSet(
+            set_id=f"ccr:{surface}",
+            layer="ClosedCategoryReachabilityQiyas",
+            candidates=(carrier,),
+            residuals=(),
+            trace_ids=(),
+        )
