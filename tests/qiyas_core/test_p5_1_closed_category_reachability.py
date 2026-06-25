@@ -27,8 +27,9 @@ from qiyas_core.hussein_snapshot_provider import HusseinSnapshotProvider
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PROVIDER_SRC = REPO / "src" / "qiyas_core" / "hussein_snapshot_provider.py"
 
-CLOSED_CATEGORY = ("مِن", "إلى", "على", "هو", "هذا", "الذي", "الذين")
-QUARANTINED = ("بَاعَ", "صَامَ", "مكتوب")
+# هو is intentionally EXCLUDED (policy quarantine — standalone pronoun); see CC_12.
+CLOSED_CATEGORY = ("مِن", "إلى", "على", "هذا", "الذي", "الذين")
+QUARANTINED = ("بَاعَ", "صَامَ", "مكتوب", "هو")
 
 
 def _provider():
@@ -135,11 +136,16 @@ def test_CC_11_ala_reaches_p5_1_with_snapshot_source():
     assert s and s.status == "accepted" and any("hussein_snapshot_v1" in t for t in s.trace_ids)
 
 
-def test_CC_12_pronoun_huwa_reaches_p5_1_with_snapshot_source():
-    # snapshot surface is هو (no harakat) — the committed pronoun row
-    s = _p5_1("هو")
-    assert s and s.status == "accepted" and s.candidate_type == "MabniReadinessCandidate"
-    assert any("hussein_snapshot_v1" in t for t in s.trace_ids)
+def test_CC_12_standalone_pronoun_huwa_excluded_by_policy():
+    # POLICY: the standalone pronoun هو is referential/indexical and must NOT be
+    # runtime-consumable as a context-free closed-category unit (quarantined /
+    # out_of_scope_pronoun in v1) — even though Hussein produced it in Stage A.
+    p = _provider()
+    assert p.closed_category_reachability("هو") is None
+    assert p.get_p5_1_proposal("هو") is None
+    assert _p5_1("هو") is None
+    # no reachability carrier or snapshot source for هو
+    assert not _steps("هو", "ClosedCategoryReachabilityQiyas")
 
 
 def test_CC_13_demonstrative_hadha_reaches_p5_1():

@@ -112,7 +112,10 @@ def test_HS_08_suspicious_and_unsafe_never_imply_accept():
     rows = _rows()
     assert not any(c for c in REQUIRED_COLUMNS if "accept" in c.lower())
     for r in rows:
-        assert r["reliability_tag"] in {"proposal_evidence", "suspicious_defer"}
+        # out_of_scope_pronoun: a non-runtime policy tag (standalone pronoun هو) —
+        # genuine Hussein output, excluded by policy, never ACCEPT.
+        assert r["reliability_tag"] in {"proposal_evidence", "suspicious_defer",
+                                        "out_of_scope_pronoun"}
         assert r["unsafe_final_looking"] in {"true", "false"}
     # every row flags the (ignored) legacy i'rab as unsafe_final_looking
     assert all(r["unsafe_final_looking"] == "true" for r in rows)
