@@ -81,19 +81,20 @@ def test_PC_03_provider_has_no_subprocess_or_analyzer_import():
 def test_PC_04_proposals_only_for_manually_reviewed_p5_1_target_rows():
     p = _provider()
     # manually_reviewed + P5.1 target → proposal present
-    for tok in ("مِن", "هو", "الذي", "كَتَبَ", "يَقُولُ", "مَكْتُوب"):
+    for tok in ("مِن", "هذا", "الذي", "كَتَبَ", "يَقُولُ", "مَكْتُوب"):
         assert p.get_p5_1_proposal(tok) is not None, tok
 
 
 def test_PC_05_none_for_quarantined_rows():
     p = _provider()
-    for tok in ("بَاعَ", "صَامَ", "مكتوب"):  # quarantined in v1
+    # هو is quarantined by POLICY (standalone pronoun); بَاعَ/صَامَ/مكتوب by data review.
+    for tok in ("بَاعَ", "صَامَ", "مكتوب", "هو"):
         assert p.get_p5_1_proposal(tok) is None, tok
 
 
 def test_PC_06_evidence_excludes_root_and_wazn():
     p = _provider()
-    for tok in ("مِن", "هو", "الذي", "كَتَبَ", "يَقُولُ", "مَكْتُوب"):
+    for tok in ("مِن", "هذا", "الذي", "كَتَبَ", "يَقُولُ", "مَكْتُوب"):
         prop = p.get_p5_1_proposal(tok)
         assert "root" not in str(prop.classify_kwargs)
         assert "wazn" not in str(prop.classify_kwargs)
@@ -104,7 +105,7 @@ def test_PC_06_evidence_excludes_root_and_wazn():
 def test_PC_07_evidence_excludes_forbidden_families():
     p = _provider()
     kwargs_keys = set()
-    for tok in ("مِن", "هو", "الذي", "كَتَبَ", "يَقُولُ", "مَكْتُوب"):
+    for tok in ("مِن", "هذا", "الذي", "كَتَبَ", "يَقُولُ", "مَكْتُوب"):
         kwargs_keys |= set(p.get_p5_1_proposal(tok).classify_kwargs.keys())
     # only closed-category / verb-kind kwargs are ever handed to P5.1
     assert kwargs_keys <= {"word_kind", "closed_category", "verb_tense", "is_closed_compound"}
@@ -141,7 +142,8 @@ def test_PC_10_provider_serves_harf_closed_category_rows():
 
 def test_PC_11_provider_serves_mabni_and_relative_rows():
     p = _provider()
-    assert p.get_p5_1_proposal("هو").classify_kwargs == {"closed_category": "pronoun"}
+    # هو (standalone pronoun) is policy-quarantined → no proposal (see PC_05/CC_12).
+    assert p.get_p5_1_proposal("هو") is None
     assert p.get_p5_1_proposal("هذا").classify_kwargs == {"closed_category": "demonstrative"}
     assert p.get_p5_1_proposal("الذي").classify_kwargs == {"closed_category": "relative"}
 
@@ -211,7 +213,9 @@ def test_PC_18_residual_unreached_tokens_honest_limit():
     # The residual honest limit is tokens that are NOT an exact v1 surface (the fully
     # vocalized هُوَ ≠ committed هو) or are quarantined (unvocalized مكتوب): they still
     # do not reach P5.1. No fuzzy harakat-stripping is done (مَكْتُوب≠مكتوب safety).
-    for tok in ("هُوَ", "مكتوب"):
+    # هو is policy-quarantined (out_of_scope_pronoun); هُوَ is not an exact v1 surface;
+    # مكتوب is data-quarantined — none reach P5.1.
+    for tok in ("هو", "هُوَ", "مكتوب"):
         assert _p5_1_step(tok) is None, tok
 
 

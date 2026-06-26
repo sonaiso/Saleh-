@@ -17,7 +17,7 @@
 - **produced_by:** offline transform of the Stage A reviewed capture — **no live analyzer call**
 - **reviewed_at:** 2026-06-24 · **reviewer:** maintainer (Stage A verbatim review)
 - **snapshot_file:** `hussein_legacy_proposals_v1.csv`
-- **sha256:** `e50498d20290537fee1fb92414bde691fb16aa065676a84c81d09b7e5e58ec97`
+- **sha256:** `a53e712a0095cc1ba1c2f30b157ec0cabfa45c7479cd90afce7ec57c8126457c`
 - Runtime must **never** run the analyzer to refresh this snapshot; a refresh is a new
   reviewed snapshot-version PR.
 
@@ -25,13 +25,14 @@
 | metric | value |
 |---|---|
 | rows | 26 |
-| manually_reviewed | 23 |
-| quarantined | 3 |
+| manually_reviewed | 22 |
+| quarantined | 4 |
 | rejected | 0 |
 | pending_review | 0 |
-| P5.1-target rows | 23 |
+| P5.1-target rows | 22 |
 | P3.1-target rows | 12 |
 | suspicious_defer | 9 |
+| out_of_scope_pronoun | 1 |
 | unsafe_final_looking | 26 |
 
 ## Consumable columns by target (contract §5/§6)
@@ -54,14 +55,21 @@
   resolution, meaning, Q&A, tafsir, hukm, truth/reality, final interpretation) appear in
   **no consumable column** — only inside `ignored_fields_summary` / `quarantine_reason`.
 - **Quarantined rows** (empty allowed_feed_targets): بَاعَ, صَامَ (legacy misclassified the
-  hollow verb as ISM_MUARAB), مكتوب (legacy root متوب is a misread of the unvocalized surface).
+  hollow verb as ISM_MUARAB), مكتوب (legacy root متوب is a misread of the unvocalized surface),
+  هو (**policy exclusion** — standalone referential/indexical pronoun; `reliability_tag =
+  out_of_scope_pronoun`; withheld from context-free P5.1 runtime pending a separate governed
+  pronoun/reference policy; Hussein ISM_MABNI provenance preserved in the row).
+- **`out_of_scope_pronoun`** is a non-runtime reliability tag: the row is genuine Hussein
+  output but excluded from runtime feeds by policy (not by data quality). It never ACCEPTs.
 - **Seed spelling note:** committed fixture spellings are used verbatim — e.g. `هو` (not
   هُوَ), and both `مَكْتُوب` (vocalized) and `مكتوب` (unvocalized) appear as distinct rows.
 - **list cells** use `|` as separator.
 
 ## Status
-The CSV rows are immutable and byte-identical to the Step B (PR #192) commit (sha256
-above unchanged). As of **Step C**, the snapshot is consumed at runtime by the authorized
+The CSV rows from Step B (PR #192) are unchanged EXCEPT one governed policy edit: the
+standalone pronoun `هو` was moved from runtime-consumable to **quarantined /
+out_of_scope_pronoun** (sha256 above updated accordingly; Hussein provenance preserved).
+As of **Step C / C2**, the snapshot is consumed at runtime by the authorized
 `hussein_snapshot_provider` for **P5.1 only** (no LayerSpec, no `run_qiyas` registry/schema
 change, no P3.1 wiring). Registry count 19; no P13; P12 terminal; P3.1/P5.1 auxiliary
 non-registry. Stage A is never read at runtime.

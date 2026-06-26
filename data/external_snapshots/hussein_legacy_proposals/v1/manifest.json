@@ -9,17 +9,21 @@
   "reviewed_at": "2026-06-24",
   "reviewer": "maintainer (Stage A verbatim review)",
   "snapshot_file": "hussein_legacy_proposals_v1.csv",
-  "sha256": "e50498d20290537fee1fb92414bde691fb16aa065676a84c81d09b7e5e58ec97",
+  "sha256": "a53e712a0095cc1ba1c2f30b157ec0cabfa45c7479cd90afce7ec57c8126457c",
   "row_counts": {
     "rows": 26,
-    "manually_reviewed": 23,
-    "quarantined": 3,
+    "manually_reviewed": 22,
+    "quarantined": 4,
     "rejected": 0,
     "pending_review": 0,
-    "p5_1_target": 23,
+    "p5_1_target": 22,
     "p3_1_target": 12,
     "suspicious_defer": 9,
+    "out_of_scope_pronoun": 1,
     "unsafe_final_looking": 26
+  },
+  "policy_exclusions": {
+    "هو": "standalone pronoun: referential/indexical; quarantined from context-free P5.1 runtime pending a separate governed pronoun/reference policy. Hussein ISM_MABNI provenance preserved in the row."
   },
   "consumable_columns_by_target": {
     "P5_1_INFLECTIONAL_CLOSURE": [
