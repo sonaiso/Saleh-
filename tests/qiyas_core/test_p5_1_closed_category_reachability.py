@@ -119,11 +119,15 @@ def test_CC_08_carrier_exposes_no_forbidden_families():
 # ── live runtime reachability (tests 9–15) ────────────────────────────────────
 
 
-def test_CC_09_min_reaches_p5_1_with_snapshot_source():
+def test_CC_09_min_reaches_p5_1_native_source_takes_precedence():
+    # مِن is now served by the Qiyas-NATIVE closed-function-word inventory, which takes
+    # precedence over the (still-present) v1 snapshot HARF row. It still reaches P5.1 and
+    # ACCEPTs MabniReadiness — but the source is native, not Hussein.
     s = _p5_1("مِن")
     assert s is not None and s.status == "accepted"
     assert s.candidate_type == "MabniReadinessCandidate"
-    assert any("hussein_snapshot_v1" in t for t in s.trace_ids)
+    assert any("qiyas_native_closed_function_word" in t for t in s.trace_ids)
+    assert not any("hussein_snapshot_v1" in t for t in s.trace_ids)
 
 
 def test_CC_10_ila_reaches_p5_1_with_snapshot_source():
@@ -164,9 +168,14 @@ def test_CC_15_relative_alladhina_reaches_p5_1():
 
 
 def test_CC_15b_reachability_step_visible_in_ladder():
-    # the bridge emits a visible ClosedCategoryReachabilityQiyas carrier step
+    # the bridge emits a visible carrier step. مِن is now served natively
+    # (NativeClosedFunctionWordQiyas); the rest go via the snapshot
+    # ClosedCategoryReachabilityQiyas bridge. Either carrier is admissible.
     for tok in CLOSED_CATEGORY:
-        assert _steps(tok, "ClosedCategoryReachabilityQiyas"), tok
+        assert (
+            _steps(tok, "ClosedCategoryReachabilityQiyas")
+            or _steps(tok, "NativeClosedFunctionWordQiyas")
+        ), tok
 
 
 def test_CC_15c_fully_vocalized_huwa_is_distinct_surface_not_matched():

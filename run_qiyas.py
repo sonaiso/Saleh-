@@ -84,6 +84,9 @@ from qiyas_core.ifadah_adapter import IfadahSpeechForceLayerAdapter
 from qiyas_core.inflectional_closure_adapter import InflectionalClosureLayerAdapter
 from qiyas_core.weight_pattern_adapter import WeightPatternLayerAdapter
 from qiyas_core.hussein_snapshot_provider import HusseinSnapshotProvider
+from qiyas_core.native_closed_function_word_provider import (
+    NativeClosedFunctionWordProvider,
+)
 from qiyas_core.rules.position_rules import (
     POSITION_FINAL,
     POSITION_INITIAL,
@@ -141,6 +144,13 @@ class PipelineLayers:
     # never invokes the analyzer.
     inflectional_closure_snapshot_provider: HusseinSnapshotProvider = field(
         default_factory=HusseinSnapshotProvider
+    )
+    # Qiyas-NATIVE, snapshot-independent, inventory-gated closed-function-word provider.
+    # Feeds P5.1 closed-category hints for a curated exact-surface inventory (بِ/كَ/وَ/لِ/
+    # مِن/مِنْ) with NO Hussein dependency. Takes precedence over the snapshot provider so a
+    # listed surface is attributed to qiyas_native_closed_function_word, not Hussein.
+    native_closed_function_word_provider: NativeClosedFunctionWordProvider = field(
+        default_factory=NativeClosedFunctionWordProvider
     )
 
     @classmethod
@@ -670,11 +680,20 @@ def process_text(
                                         # (never guesses). The snapshot proposes; the P5.1
                                         # rule decides ACCEPT / DEFER / BLOCK.
                                         ic_surface = segment_surfaces.get(seg_id)
-                                        ic_kwargs = layers.inflectional_closure_snapshot_provider.\
-                                            p5_1_classify_kwargs(ic_surface)
                                         ic_prefix = f"text[{i}]:ic:{cp:04x}"
+                                        # NATIVE FIRST: a curated exact-surface closed
+                                        # function word (بِ/كَ/وَ/لِ/مِن/مِنْ) is attributed
+                                        # to the native inventory, not Hussein. Falls back
+                                        # to the snapshot proposer when not listed.
+                                        ic_kwargs = layers.native_closed_function_word_provider.\
+                                            p5_1_classify_kwargs(ic_surface)
                                         if ic_kwargs:
-                                            ic_prefix += ":src=hussein_snapshot_v1"
+                                            ic_prefix += ":src=qiyas_native_closed_function_word"
+                                        else:
+                                            ic_kwargs = layers.inflectional_closure_snapshot_provider.\
+                                                p5_1_classify_kwargs(ic_surface)
+                                            if ic_kwargs:
+                                                ic_prefix += ":src=hussein_snapshot_v1"
                                         ic_set = layers.inflectional_closure_layer.classify(
                                             mw_cand,
                                             token_surface=ic_surface,
@@ -846,25 +865,37 @@ def process_text(
         for s in r.steps
         if s.layer == "InflectionalClosureQiyas" and r.index in markers_by_index
     }
+    _native_ccr = layers.native_closed_function_word_provider
     for seg_id, surface in segment_surfaces.items():
         if seg_id is None or seg_id in _segs_with_p51:
             continue
-        bridge = _ccr_provider.closed_category_reachability(surface)
-        if bridge is None:
-            continue
-        carrier_set, cc_kwargs = bridge
+        # NATIVE FIRST: a curated exact-surface closed function word reaches mabni-
+        # readiness via the native inventory (no Hussein). Otherwise fall back to the
+        # snapshot closed-category proposal.
+        native_bridge = _native_ccr.native_closed_category_reachability(surface)
+        if native_bridge is not None:
+            carrier_set, cc_kwargs = native_bridge
+            carrier_layer = "NativeClosedFunctionWordQiyas"
+            ic_src = "qiyas_native_closed_function_word"
+        else:
+            bridge = _ccr_provider.closed_category_reachability(surface)
+            if bridge is None:
+                continue
+            carrier_set, cc_kwargs = bridge
+            carrier_layer = "ClosedCategoryReachabilityQiyas"
+            ic_src = "hussein_snapshot_v1"
         seg_indices = [idx for idx, m in markers_by_index.items()
                        if m.segment_id == seg_id]
         if not seg_indices:
             continue
         target = reports[min(seg_indices)]
         target.steps.append(
-            LayerStep.from_set("ClosedCategoryReachabilityQiyas", carrier_set)
+            LayerStep.from_set(carrier_layer, carrier_set)
         )
         ic_set = layers.inflectional_closure_layer.classify(
             carrier_set.candidates[0],
             token_surface=surface,
-            trace_prefix=f"seg[{seg_id}]:ccr:src=hussein_snapshot_v1",
+            trace_prefix=f"seg[{seg_id}]:ccr:src={ic_src}",
             **cc_kwargs,
         )
         target.steps.append(LayerStep.from_set("InflectionalClosureQiyas", ic_set))
