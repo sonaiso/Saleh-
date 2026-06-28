@@ -866,7 +866,61 @@ Every success is identity+rank+trace preserving candidate.
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2026-06-01
-**Status:** Foundational constitutional document
+## 26. Internal Inference vs External Consumption (Producer/Consumer Independence)
+
+> **§26 — Amendment proposed 2026-06-27, status: RATIFIED.**
+> This section is a ratified amendment to the supreme document and is settled law.
+
+**Principle (ADR-6):**
+
+> Every internal Domain is defined **for internal inference, not for external
+> consumption**. When the results of an internal domain are to be used **outside
+> the system**, its internal structure is **NOT published**. Instead an
+> **independent Published Boundary Specification** is constructed for it — one
+> that preserves the necessary **identity, rank, and trace**, and **hides** what
+> does not belong to the published contract.
+
+**بالعربية:**
+
+> كل Domain داخلي يُعرَّف لأجل الاستدلال الداخلي، لا لأجل الاستهلاك الخارجي. وعندما
+> يُراد استعمال نتائج مجال داخلي خارج النظام، فلا تُنشَر بنيته الداخلية، بل يُنشأ له
+> Published Boundary Specification مستقل، يحافظ على ما يلزم من الهوية والرتبة والأثر،
+> ويُخفي ما لا يدخل في العقد المنشور.
+
+**Consequence — the boundary stack is theory, not design-policy.** Because of this
+principle, the existence of **a governed published boundary and a corresponding
+published contract** is a **direct consequence of the theory**, not an engineering
+convenience. The
+future question *“why not let another system consume internal types directly?”*
+is answered here, at the level of the theory: internal types exist for internal
+inference and are not a publishable contract — **unless an explicitly licensed
+boundary publishes them** (e.g. a future licensed reconciliation transition).
+
+**Producer/Consumer Independence.** The theory is **independent of any particular
+producer**:
+
+```
+Theory          governs   →  any system built on Qiyas Theory
+Constitution    governs   →  ANY Producer and ANY Consumer
+Specification   is        →  the versioned contract between any Producer and any Consumer
+Implementation  realizes  →  a Producer (Qiyas is the FIRST producer, not the only one)
+```
+
+- An **internal Domain** is a mathematical entity inside the theory.
+- A **Published Boundary Specification** is the only thing that crosses between
+  systems; it is versioned and producer-agnostic.
+- A **Consumer** depends on the Specification, never on a producer's internal
+  types — this is the system-level form of *no layer jump*.
+
+This principle sits above and is **implemented by the project's governance and
+specification documents** (see §24); the theory itself names no file and no
+version.
+
+---
+
+**Document Version:** v1.1
+**Last Updated:** 2026-06-27
+**Changelog:** v1.1 — ratified §26 Internal Inference vs External Consumption
+(Producer/Consumer Independence). v1.0 — initial foundational document (ratified).
+**Status:** Foundational theoretical document — §26 ratified
 **Authority:** Supreme (defines what the project IS)
