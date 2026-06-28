@@ -37,6 +37,19 @@ This document defines what the project IS:
 
 ---
 
+### 1b. Project Constitution (Read SECOND)
+
+**📜 PROJECT_CONSTITUTION.md**
+
+The canonical governance constitution, **subordinate to the Mathematical
+Foundation**. It is ordered from the true root:
+- §0 Theoretical Foundation → §K Licensed Transition → §A Scientific Identity
+  (identity is a *consequence* of §0+§K, not an origin)
+- §B–§J operational constitutions (registry, naming, Hussein, P5.1, P3.1,
+  exact-surface, pronoun/reference, demo, workflow)
+
+---
+
 ### 2. Governance Framework (Read BEFORE Implementation)
 
 **📋 GOVERNANCE_FRAMEWORK_COMPLETE.md**
